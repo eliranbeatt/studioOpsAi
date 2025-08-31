@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import os
 
-from routers import vendors, materials, mem0
+from routers import vendors, materials, mem0, chat
 
 app = FastAPI(
     title="StudioOps AI API",
@@ -24,6 +24,7 @@ app.add_middleware(
 app.include_router(vendors.router)
 app.include_router(materials.router)
 app.include_router(mem0.router)
+app.include_router(chat.router)
 
 def get_db_connection():
     """Get a database connection"""

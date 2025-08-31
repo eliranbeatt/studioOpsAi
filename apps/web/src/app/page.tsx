@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Chat from '@/components/Chat'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('projects')
@@ -60,17 +61,23 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Recent activity */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">פעילות אחרונה</h3>
-        </div>
-        <div className="p-6">
-          <div className="text-center text-gray-500 py-8">
-            <p>אין פעילות אחרונה להצגה</p>
-            <p className="text-sm mt-2">התחל פרויקט חדש כדי לראות פעילות כאן</p>
+      {/* Chat section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent activity */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b">
+            <h3 className="text-lg font-semibold text-gray-900">פעילות אחרונה</h3>
+          </div>
+          <div className="p-6">
+            <div className="text-center text-gray-500 py-8">
+              <p>אין פעילות אחרונה להצגה</p>
+              <p className="text-sm mt-2">התחל פרויקט חדש כדי לראות פעילות כאן</p>
+            </div>
           </div>
         </div>
+
+        {/* Chat */}
+        <Chat />
       </div>
     </div>
   )
