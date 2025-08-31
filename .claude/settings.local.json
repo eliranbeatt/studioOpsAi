@@ -3,7 +3,11 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python:*)",
+      "Bash(alembic init:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []
