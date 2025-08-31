@@ -1,0 +1,132 @@
+{
+  "test_cases": [
+    {
+      "name": "Kitchen Cabinet Project",
+      "description": "Custom kitchen cabinets with detailed joinery and finish work",
+      "expected_materials": ["Plywood 4x8", "2x4 Lumber", "Screws", "Hinges", "Drawer Slides", "Paint"],
+      "expected_labor": ["Carpenter", "Painter"],
+      "complexity": "complex",
+      "size": "medium"
+    },
+    {
+      "name": "Simple Bookshelf",
+      "description": "Basic pine bookshelf for home office",
+      "expected_materials": ["Pine Board 1x6", "Screws"],
+      "expected_labor": ["Carpenter"],
+      "complexity": "simple", 
+      "size": "small"
+    },
+    {
+      "name": "Whole House Painting",
+      "description": "Complete interior painting of 3-bedroom house",
+      "expected_materials": ["Paint", "Stain"],
+      "expected_labor": ["Painter", "Laborer"],
+      "complexity": "moderate",
+      "size": "large"
+    },
+    {
+      "name": "Electrical Panel Upgrade",
+      "description": "Upgrade electrical panel to 200 amp service",
+      "expected_materials": ["Electrical Wire"],
+      "expected_labor": ["Electrician"],
+      "complexity": "complex",
+      "size": "small"
+    },
+    {
+      "name": "Bathroom Vanity Installation",
+      "description": "Install pre-built vanity with plumbing connections",
+      "expected_materials": ["Plywood 4x8", "Hinges", "Drawer Slides"],
+      "expected_labor": ["Carpenter", "Plumber"],
+      "complexity": "moderate",
+      "size": "small"
+    }
+  ],
+  "shipping_scenarios": [
+    {
+      "name": "Local Standard Delivery",
+      "weight_kg": 100,
+      "distance_km": 25,
+      "urgency": "standard",
+      "material_type": "general",
+      "vendor_location": "local",
+      "expected_cost_range": [200, 400]
+    },
+    {
+      "name": "Regional Express Fragile",
+      "weight_kg": 50,
+      "distance_km": 150,
+      "urgency": "express", 
+      "material_type": "fragile",
+      "vendor_location": "regional",
+      "expected_cost_range": [300, 600]
+    },
+    {
+      "name": "National Priority Heavy",
+      "weight_kg": 500,
+      "distance_km": 500,
+      "urgency": "priority",
+      "material_type": "heavy",
+      "vendor_location": "national",
+      "expected_cost_range": [800, 1500]
+    }
+  ],
+  "labor_scenarios": [
+    {
+      "role": "Carpenter",
+      "project_description": "complex custom kitchen cabinets with detailed joinery",
+      "materials_count": 6,
+      "expected_hours_range": [20, 35]
+    },
+    {
+      "role": "Painter",
+      "project_description": "simple wall painting in single room",
+      "materials_count": 2,
+      "expected_hours_range": [4, 8]
+    },
+    {
+      "role": "Electrician", 
+      "project_description": "complex whole house rewiring project",
+      "materials_count": 8,
+      "expected_hours_range": [25, 40]
+    }
+  ],
+  "material_scenarios": [
+    {
+      "material_name": "Plywood 4x8",
+      "project_description": "large custom cabinet project with complex design",
+      "expected_quantity_range": [8, 15]
+    },
+    {
+      "material_name": "2x4 Lumber",
+      "project_description": "small basic shelving unit",
+      "expected_quantity_range": [4, 8]
+    },
+    {
+      "material_name": "Paint",
+      "project_description": "whole house interior painting large project",
+      "expected_quantity_range": [3, 6]
+    }
+  ],
+  "chat_examples": [
+    {
+      "user_input": "I want to build kitchen cabinets",
+      "expected_response_keywords": ["cabinet", "recommend", "plan", "material", "pricing"]
+    },
+    {
+      "user_input": "How much does it cost to paint a room?",
+      "expected_response_keywords": ["paint", "cost", "price", "labor", "estimate"]
+    },
+    {
+      "user_input": "I need electrical work done",
+      "expected_response_keywords": ["electrical", "wiring", "electrician", "plan", "help"]
+    },
+    {
+      "user_input": "Hello",
+      "expected_response_keywords": ["hello", "help", "project", "assist"]
+    },
+    {
+      "user_input": "Create a plan for furniture building",
+      "expected_response_keywords": ["furniture", "plan", "generate", "material", "recommendation"]
+    }
+  ]
+}

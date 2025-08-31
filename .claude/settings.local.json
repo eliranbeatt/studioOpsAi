@@ -10,7 +10,15 @@
       "Bash(pip install:*)",
       "Bash(npx create-next-app:*)",
       "Bash(npm init:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose:*)",
+      "Bash(npm run dev)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout:*)",
+      "Bash(tasklist:*)",
+      "Read(\\/**)"
     ],
     "deny": [],
     "ask": []

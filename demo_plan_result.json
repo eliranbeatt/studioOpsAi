@@ -1,0 +1,72 @@
+{
+  "project_id": "proj-1756669525",
+  "project_name": "Custom Project from Chat",
+  "items": [
+    {
+      "category": "materials",
+      "title": "Plywood 4x8",
+      "description": "Plywood 4x8 from Hardware Store",
+      "quantity": 10.0,
+      "unit": "sheet",
+      "unit_price": 45.99,
+      "unit_price_source": {
+        "vendor": "Hardware Store",
+        "confidence": 0.9,
+        "fetched_at": "2025-08-31T19:45:25.326822+00:00"
+      },
+      "subtotal": 459.90000000000003
+    },
+    {
+      "category": "materials",
+      "title": "2x4 Lumber",
+      "description": "2x4 Lumber from Lumber Yard",
+      "quantity": 8.0,
+      "unit": "piece",
+      "unit_price": 8.99,
+      "unit_price_source": {
+        "vendor": "Lumber Yard",
+        "confidence": 0.9,
+        "fetched_at": "2025-08-31T19:45:25.326825+00:00"
+      },
+      "subtotal": 71.92
+    },
+    {
+      "category": "labor",
+      "title": "Carpenter work",
+      "description": "Carpenter services for the project",
+      "quantity": 16.0,
+      "unit": "hour",
+      "unit_price": 120.0,
+      "labor_role": "Carpenter",
+      "labor_hours": 16.0,
+      "subtotal": 1920.0
+    },
+    {
+      "category": "logistics",
+      "title": "Shipping & Delivery",
+      "description": "Material delivery and logistics",
+      "quantity": 1,
+      "unit": "delivery",
+      "unit_price": 250.0,
+      "subtotal": 250.0
+    },
+    {
+      "category": "materials",
+      "title": "Screws",
+      "description": "Construction screws",
+      "quantity": 2,
+      "unit": "box",
+      "unit_price": 12.99,
+      "subtotal": 25.98
+    }
+  ],
+  "total": 2727.8,
+  "margin_target": 0.25,
+  "currency": "NIS",
+  "metadata": {
+    "generated_at": 1756669525.3268683,
+    "items_count": 4,
+    "project_type": "Cabinet Construction",
+    "source": "chat_context"
+  }
+}

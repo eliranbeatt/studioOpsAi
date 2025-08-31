@@ -7,9 +7,15 @@ interface Message {
   text: string
   isUser: boolean
   timestamp: Date
+  data?: any
 }
 
-export default function Chat() {
+interface ChatProps {
+  onPlanSuggest?: (suggestion: boolean) => void
+  onPlanGenerated?: (plan: any) => void
+}
+
+export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -38,7 +44,7 @@ export default function Chat() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8000/chat/message', {
+      const response = await fetch('http://localhost:8002/chat/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,10 +62,16 @@ export default function Chat() {
           id: (Date.now() + 1).toString(),
           text: data.message,
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          data: data
         }
 
         setMessages(prev => [...prev, aiMessage])
+        
+        // Check if plan suggestion is offered
+        if (data.suggest_plan && onPlanSuggest) {
+          onPlanSuggest(true)
+        }
       } else {
         throw new Error('Failed to get response')
       }
@@ -80,6 +92,48 @@ export default function Chat() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
+    }
+  }
+
+  const handleGeneratePlan = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('http://localhost:8002/chat/generate_plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          project_name: 'Project from Chat',
+          project_description: messages.find(m => m.isUser)?.text || ''
+        })
+      })
+
+      if (response.ok) {
+        const plan = await response.json()
+        if (onPlanGenerated) {
+          onPlanGenerated(plan)
+        }
+        
+        // Add success message
+        const successMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          text: 'תוכנית עבודה נוצרה successfully! ניתן לערוך אותה בטבלה.',
+          isUser: false,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, successMessage])
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        text: 'שגיאה ביצירת התוכנית. נסה שוב.',
+        isUser: false,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -113,6 +167,20 @@ export default function Chat() {
               }`}
             >
               <p className="text-sm">{message.text}</p>
+              
+              {/* Show plan generation button if suggested */}
+              {!message.isUser && message.data?.suggest_plan && (
+                <div className="mt-2">
+                  <button
+                    onClick={handleGeneratePlan}
+                    disabled={isLoading}
+                    className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {isLoading ? 'יוצר תוכנית...' : '📋 צור תוכנית עבודה'}
+                  </button>
+                </div>
+              )}
+              
               <p className="text-xs opacity-50 mt-1">
                 {message.timestamp.toLocaleTimeString('he-IL')}
               </p>
