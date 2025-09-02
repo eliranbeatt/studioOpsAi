@@ -1,0 +1,426 @@
+# HRAG‑Lite Ingestion & Feature Extraction — Technical Design Document (TDD) v1.0
+
+*Last updated: 2025‑09‑02*
+
+> This TDD specifies the end‑to‑end ingestion pipeline that accepts historical and new documents, performs retrieval‑aware LLM extraction, asks clarifying questions when confidence is low, and persists normalized facts into SQL and Mem0 with full provenance. It is written to be directly actionable for implementation with an AI coding agent.
+
+---
+
+## 1) Scope & Goals
+
+**In‑scope**
+
+* Upload/backfill of PDFs, DOCX, images (JPG/PNG), CSVs, ZIPs, and Trello JSON exports.
+* Parsing/OCR → classification → page‑level extraction → validation/normalization → human clarifications → commit.
+* Retrieval‑aware extraction using SQL (facts), Mem0 (memories), and Postgres FTS (similar pages) as context.
+* Persistence to SQL canonical tables, `extracted_items` audit, documents store, and Mem0 memories.
+* RTL Hebrew UI for upload/review; NIS only.
+
+**Out‑of‑scope (here)**
+
+* Cloud control‑plane mirrors, advanced analytics, Neo4j/GraphRAG (can be added later).
+
+---
+
+## 2) Architecture Overview
+
+```mermaid
+graph TB
+  U[Upload UI (RTL)] --> API
+  API --> Q[Ingest Queue]
+  Q --> P[Parse/OCR (Unstructured + OCRmyPDF/Tesseract)]
+  P --> C[Classifier]
+  C --> R[RAG Packer (SQL + Mem0 + FTS)]
+  R --> X[LLM Extractor (page-level)]
+  X --> V[Validators (units/currency/math/dates)]
+  V --> L[Linker (Vendors/Materials/Projects)]
+  L --> S[Staging (extracted_items)]
+  S --> H[Human Review + Clarifications]
+  H --> W[Writers (SQL canonical + Mem0 + Files)]
+  W --> D[(Project Dossier)]
+  subgraph Stores
+    PG[(Postgres)]
+    OBJ[(MinIO)]
+    MEM0[Mem0]
+  end
+  API <--> PG
+  API <--> OBJ
+  API <--> MEM0
+```
+
+---
+
+## 3) Components
+
+* **Upload UI**: drag‑drop multi‑file; review drawer; clarifications panel; progress & confidence chips.
+* **Core API (FastAPI)**: upload endpoints; job orchestration; SSE for status; review/commit endpoints.
+* **Workers**: stateless tasks (parse, classify, pack, extract, validate, link, stage, commit).
+* **RAG Packer**: compiles compact, cited context from SQL/Mem0/FTS.
+* **LLM Extractor**: constrained JSON output; page‑level; Hebrew prompts; evidence spans.
+* **Validators**: deterministic checks; conversions; conflict detection.
+* **Linker**: canonicalizes vendors/materials/projects using fuzzy match + aliases.
+* **Writers**: canonical SQL upserts; Mem0 memories emission; object artifacts.
+* **Audit**: `ingest_events` log of every state transition with payload snapshots.
+
+---
+
+## 4) Data Model (DDL)
+
+> Postgres; enable `pg_trgm`, `unaccent`, `pgcrypto`, `vector` (only if embeddings later). All ULIDs (text) as IDs.
+
+```sql
+create table documents (
+  id ulid primary key,
+  filename text not null,
+  mime_type text,
+  size_bytes bigint,
+  language text, -- he/en
+  type text,     -- quote|project_brief|invoice|receipt|shipping_quote|catalog|trello_export|other
+  confidence numeric(3,2),
+  project_id ulid,
+  storage_path text not null,
+  content_sha256 text not null,
+  created_at timestamptz default now(),
+  unique(content_sha256)
+);
+
+create table doc_chunks (
+  id ulid primary key,
+  document_id ulid references documents(id) on delete cascade,
+  page int not null,
+  text text not null,
+  tsv tsvector generated always as (to_tsvector('simple', unaccent(coalesce(text,'')))) stored
+);
+create index on doc_chunks(document_id, page);
+create index doc_chunks_tsv_idx on doc_chunks using gin(tsv);
+
+create table extracted_items (
+  id ulid primary key,
+  document_id ulid references documents(id) on delete cascade,
+  project_id ulid,
+  type text not null, -- line_item|purchase|shipping|decision|metadata
+  vendor_id ulid,
+  material_id ulid,
+  title text,
+  qty numeric(14,3),
+  unit text,
+  unit_price_nis numeric(14,2),
+  vat_pct numeric(5,2),
+  lead_time_days numeric(6,2),
+  attrs jsonb,
+  source_ref text not null, -- doc:page:span
+  evidence text,
+  confidence numeric(3,2) default 0.8,
+  occurred_at date,
+  created_at timestamptz default now()
+);
+create index on extracted_items(project_id, type);
+create index on extracted_items((attrs->>'sku'));
+create index extracted_items_attrs_idx on extracted_items using gin(attrs jsonb_path_ops);
+create index extracted_items_low_conf_idx on extracted_items(confidence) where confidence < 0.7;
+
+create table vendor_aliases (
+  id ulid primary key,
+  vendor_id ulid not null,
+  alias text not null,
+  source_ref text,
+  created_at timestamptz default now()
+);
+create index on vendor_aliases(vendor_id);
+create index on vendor_aliases using gin (alias gin_trgm_ops);
+
+create table material_aliases (
+  id ulid primary key,
+  material_id ulid not null,
+  alias text not null,
+  source_ref text,
+  created_at timestamptz default now()
+);
+create index on material_aliases(material_id);
+create index on material_aliases using gin (alias gin_trgm_ops);
+
+create table ingest_events (
+  id bigserial primary key,
+  document_id ulid not null,
+  stage text not null,    -- upload|parse|classify|pack|extract|validate|link|stage|clarify|commit|error
+  status text not null,   -- start|ok|retry|fail
+  payload_jsonb jsonb,
+  created_at timestamptz default now()
+);
+```
+
+> **Canonical SQL tables** used elsewhere already exist: `vendors`, `materials`, `vendor_prices`, `purchases`, `shipping_quotes`, `plans`, `plan_items`, `documents` (above). Writers upsert into those.
+
+---
+
+## 5) API Contracts (FastAPI)
+
+All responses include `request_id`, `trace_id`.
+
+### 5.1 Upload & Control
+
+* `POST /ingest/upload` (multipart)
+
+  * **Req**: files\[], optional `project_id`, optional `tags[]`.
+  * **Res**: `{document_ids[], statuses[]}`
+* `POST /ingest/run/{document_id}`
+
+  * Starts/continues pipeline; returns **SSE** events: `stage`, `status`, `progress`, `message`.
+* `GET /ingest/{document_id}`
+
+  * Current structured payload: `{document, extracted_items[], issues[], suggestions{vendor[],material[]}, clarifications[]}`
+* `POST /ingest/{document_id}/answer`
+
+  * **Req**: `{question_id, answer, answer_type}`
+  * **Res**: updated payload with recomputed confidence.
+* `POST /ingest/{document_id}/commit`
+
+  * Persists canonical rows + memories; **idempotent** by `document_id` + content hash.
+  * **Res**: `{affected:{vendor_prices:n, purchases:n, shipping_quotes:n, plan_items:n, memories:n}, dossier_updates[]}`
+
+### 5.2 Lookup helpers (for UI auto‑complete)
+
+* `GET /lookup/vendors?q=...` (fuzzy; uses `pg_trgm`)
+* `GET /lookup/materials?q=...`
+
+### 5.3 Status & Queue
+
+* `GET /ingest/queue?status=needs_review|failed|all` → for review list.
+
+**Error model** (shared): `{code, message, details?, retriable: bool}`
+
+---
+
+## 6) Worker Pipeline & State Machine
+
+### 6.1 States
+
+`upload → parse → classify → pack → extract → validate → link → stage → (clarify?) → commit`
+
+### 6.2 Transitions & Idempotency
+
+* Each step writes an `ingest_events` row. Steps are **idempotent** keyed by `content_sha256` + `document_id` + `step_version`.
+* Retries use exponential backoff; after 3 hard failures → `status=failed` and appear in review list.
+
+### 6.3 Queueing
+
+* Use simple internal queue (Redis/NATS) or LangGraph task graph; max concurrency per stage to protect OCR/LLM budgets.
+
+---
+
+## 7) RAG Packer (Retrieval Context)
+
+**Inputs:** `document_id`, `project_id?`, detected `type`, first page text.
+
+**Algorithm:**
+
+1. **SQL lookups**
+
+   * By `project_id` (if provided): last 180 days `vendor_prices`, `purchases`, `plan_items` joined on fuzzy material/vendor.
+   * By detected vendor/material names from the page header (regex) using `trgm_similarity` to propose canonical IDs.
+2. **Mem0 memories**
+
+   * `price_hint`, `lead_time`, `pattern` scoped to `{project_id?, vendor_id?, material_id?}`; top‑k by recency & score.
+3. **FTS**
+
+   * `doc_chunks` search in same project or same vendor; top‑k pages with short snippets.
+4. **Pack**
+
+   * Produce ≤ 1–2k token context block: (a) canonical entity suggestions, (b) last known prices/lead times (with dates), (c) 2–3 short cited snippets from similar docs.
+
+**Output contract**
+
+```json
+{
+  "entities": {"vendorCandidates": [{"id":"...","name":"...","score":0.93}],
+               "materialCandidates": [{"id":"...","name":"...","score":0.91}]},
+  "facts": [{"kind":"price","materialId":"...","vendorId":"...","priceNIS":850,"date":"2025-08-26","sourceRef":"..."}],
+  "snippets": [{"docId":"...","page":2,"text":"...","sourceRef":"..."}]
+}
+```
+
+---
+
+## 8) LLM Extractor (Page‑Level)
+
+### 8.1 Prompt Templates (Hebrew‑first)
+
+**System**
+
+> אתה סוכן חילוץ נתונים. הפק JSON חוקי התואם לסכמה **{DOC\_SCHEMA}** בלבד. אל תמציא ערכים. כל סכום ב‑NIS. לכל ערך חשוב ציין `evidence` (ציטוט קצר) ו‑`source_ref` בתבנית `doc:{DOCUMENT_ID}:page:{PAGE}:span:{START}-{END}`. אם מידע חסר, השאר ריק וציין `confidence` נמוך.
+
+**User**
+
+> מסמך: {FILENAME} (סוג: {DOC\_TYPE}, שפה: {LANG}).
+> הקשר קיים:
+> {PACKED\_CONTEXT}
+> תוכן עמוד {PAGE}:
+>
+> ```
+> {PAGE_TEXT}
+> ```
+>
+> החזר JSON בלבד.
+
+### 8.2 Schemas
+
+* `quote_line_items`, `purchases`, `shipping_quotes`, `decisions`, `metadata` (see PRD §19.3). Validate with JSON Schema (fastjsonschema).
+
+### 8.3 Output Normalization
+
+* Trim/normalize strings; convert numbers; map Hebrew months; canonicalize units via table.
+
+### 8.4 Error Handling
+
+* If invalid JSON: attempt `repair` once; else mark `failed` and enqueue for review.
+* If no evidence: drop field or set confidence 0.3 and require clarification.
+
+---
+
+## 9) Validation & Normalization
+
+* **Currency**: enforce `NIS`; otherwise ask user to confirm conversion or mark low confidence.
+* **Units**: mapping table `{מ"מ:mm, מטר:m, גיליון:sheet, ק"ג:kg, שעה:hour}` with converters; reject nonsensical combos.
+* **Math**: `subtotal = qty × unit_price_nis`; doc total mismatch > 5% → flag.
+* **Dates**: detect Hebrew month names; store ISO.
+* **Vendor/Material**: `pg_trgm` similarity ≥ 0.9 auto‑link; 0.7–0.9 require user approval; <0.7 new alias candidate.
+
+---
+
+## 10) Clarifications Engine
+
+**Trigger conditions:** missing required, conflicts, ambiguities, low confidence.
+
+**Question model**
+
+```json
+{
+  "id":"q_ulid",
+  "documentId":"...",
+  "field":"unit_price_nis",
+  "reason":"TOTAL_MISMATCH",
+  "questionHe":"המחיר כולל מע""מ?",
+  "options":[{"value":"כולל מע""מ"},{"value":"ללא מע""מ"}],
+  "suggested":"ללא מע""מ",
+  "confidence":0.55
+}
+```
+
+**Answer handling**
+
+* Updates staged item, recompute confidence & math; emit Mem0 `meeting_decision` with `source_ref="user_input:ingest:{document_id}:{question_id}"`.
+
+---
+
+## 11) Writers (Commit)
+
+Transactional boundary: one document at a time.
+
+**Upserts**
+
+* `vendor_prices`: `(vendor_id, material_id, sku?, fetched_at)` unique; set `source_url`, `confidence`.
+* `purchases`: insert with `receipt_path` link; normalize VAT.
+* `shipping_quotes`: model params/base/per‑km/per‑kg; if predicted later, set `source='MODEL'`.
+* `plan_items`: only when doc type is quote/planning; tag `unit_price_source` with evidence & `document_id`.
+
+**Mem0 memories**
+
+* Create for `price_hint`, `lead_time`, `decision`, `pattern` with scopes and `source_ref`.
+
+**Dossier updates**
+
+* Summarize key additions per project (e.g., "מחיר חדש לאקריליק 3 מ""מ: ₪850 @Vendor A").
+
+---
+
+## 12) Security & Privacy
+
+* Accept only allowed MIME types; scan uploads (optional).
+* Store in MinIO under `projects/{project_id}/{document_id}/...` with private ACL.
+* Signed URLs for previews; expire in 10 minutes.
+* PII fields encrypted at rest (pgcrypto or app‑level AES‑GCM); redact logs.
+* Rate limits on upload and run endpoints.
+
+---
+
+## 13) Observability
+
+* **Tracing**: span per stage with `document_id`, `content_sha256`, `model`, `tokens_in/out`, `duration_ms`, `cost_estimate`.
+* **Metrics**: counters for docs processed, errors by stage; histograms for latency per stage; gauge for review backlog.
+* **Logs**: structured JSON with trace\_id; evidence excerpts truncated.
+
+---
+
+## 14) Performance Budgets
+
+* Parse/OCR: ≤ 1.5s per page p95 (cached PDFs faster).
+* Extraction: ≤ 2 LLM calls per page (main + optional repair). Average cost target ≤ \$0.01 per page (model‑dependent).
+* Backfill throughput: ≥ 500 pages/hour on local PC.
+
+---
+
+## 15) Test‑Driven Development Plan
+
+Write tests **before** implementation. Use pytest + Playwright + k6.
+
+### 15.1 Unit Tests
+
+* **Normalization**: `test_unit_map_hebrew_units`, `test_currency_enforced_nis`, `test_date_parse_hebrew_months`.
+* **Math**: `test_subtotal_calculation`, `test_total_mismatch_flag`.
+* **Linker**: `test_vendor_autolink_thresholds`, `test_material_alias_creation`.
+* **RAG packer**: `test_context_includes_recent_prices`, `test_snippets_are_cited`.
+* **Clarifications**: `test_question_generated_for_low_confidence`.
+
+### 15.2 Contract Tests
+
+* JSON Schema validation for each **doc type** output.
+* OpenAPI schema tests for endpoints; error model conformity.
+* SSE stream format test for `/ingest/run/{document_id}`.
+
+### 15.3 Integration Tests
+
+* Sample Hebrew **quote PDF** → extraction yields 6–12 items with NIS, evidence, and correct totals.
+* **Receipt** → purchase row with VAT, date normalized.
+* **Shipping quote** → parameters captured; stored in `shipping_quotes`.
+* **Ambiguous vendor** → clarification shown; user answer commits and creates alias; memory emitted.
+
+### 15.4 E2E (Playwright)
+
+* Upload mixed batch → watch statuses → open review → answer 2 questions → commit → verify SQL rows + memories + dossier updates → search answers from chat using retrieved facts.
+
+### 15.5 Performance & Chaos
+
+* k6: 20 concurrent uploads; ensure queue drains; p95 within budgets.
+* Kill worker mid‑extract; ensure idempotent resume (no dup rows).
+
+### 15.6 AI Evaluation Harness
+
+* Labeled fields on 50 docs: measure precision/recall per field; goal ≥ 0.9 precision for prices/qty; ≥ 0.85 recall.
+* Citation coverage ≥ 0.95 for numeric fields.
+
+---
+
+## 16) Implementation Notes (for AI agent)
+
+* Store `content_sha256` and `page_sha256` for cache keys.
+* Use **page‑level** extraction; merge to document‑level in staging.
+* Hebrew fonts in preview; right‑to‑left rendering.
+* Convert clarifications and user edits into **Mem0 `meeting_decision`** memories.
+* Use transactions; on commit failure, rollback staged changes.
+
+---
+
+## 17) Risks & Mitigations
+
+* **Extraction drift** → keep schemas versioned; A/B prompts; sample audits.
+* **Cost spikes** → cache by hash; batch; small models for classify/pack.
+* **Ambiguity loops** → cap to 5 clarifications per document; allow manual override.
+* **Data quality** → require evidence for numerics; enforce validators before commit.
+
+---
+
+## 18) Definition of Done
+
+* Users can bulk upload; system parses, extracts with retrieval context, asks clarifications when needed, and commits normalized facts + memories with provenance.
+* Pricing/plan generation can answer primarily from SQL/Mem0 without external search.
+* Observability shows end‑to‑end traces; review backlog manageable; all tests green.

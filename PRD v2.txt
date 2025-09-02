@@ -1,0 +1,463 @@
+# StudioOps AI — Implementation Plan & MVP Roadmap (v1)
+
+*Last updated: 2025‑08‑27*
+
+This is a step‑by‑step build plan optimized for working with an **AI coding agent**. It starts with a lean MVP and expands in safe, testable increments. Each step includes scope, artifacts, acceptance tests, and copy‑paste prompts for your coding agent.
+
+---
+
+## 0) Ground Rules
+
+* **Monorepo** with three apps and shared packages.
+* **TDD first**: write tests for contracts before implementation.
+* **Hybrid** later: MVP can be fully local, then split to cloud control‑plane + local data‑plane.
+* **Hebrew & NIS** from day one; Trello board‑per‑project; plan approval gate; single-user.
+
+**Repo layout**
+
+```
+studioops/
+  apps/
+    web/                 # Next.js (RTL Hebrew)
+    api/                 # FastAPI Core (local plane)
+    gateway/             # FastAPI Gateway (cloud plane, later)
+    trello-mcp/          # MCP Trello server
+  packages/
+    db/                  # SQL migrations, seed scripts
+    schemas/             # Pydantic/TS types shared
+    clients/             # API clients, MCP clients
+    pricing/             # pricing, shipping, labor modules
+  infra/
+    docker-compose.yaml  # local stack
+    k6/                  # perf tests
+  tests/
+    e2e/                 # Playwright
+    integration/
+    unit/
+```
+
+**Core services (local docker ports)**
+
+* Postgres+pgvector (5432), Neo4j (7474/7687), MinIO (9000/9001), Langfuse (3100), API (8000), Web (3000), Trello MCP (8787).
+
+**Environment/Secrets**
+
+* `.env` for local; SOPS‑encrypted for real keys. Variables: `DATABASE_URL`, `MINIO_*`, `MEM0_*`, `TRELLO_API_KEY`, `TRELLO_TOKEN`, `LITELLM_*`.
+
+---
+
+## 1) MVP Definition (You can use it end‑to‑end)
+
+**Goal**: Chat about a project → generate a **plan skeleton** → curate items in **Plan Editor** → **approve plan** → generate **Hebrew PDFs** (Quote + Planning) → **draft tasks** → export to **Trello**.
+
+**MVP must‑haves**
+
+1. **Projects CRUD** (local DB).
+2. **Vendor Cost DB** (vendors, materials, vendor\_prices, purchases) with seed script.
+3. **Unified Studio Memory (Mem0)** on pgvector; add/search memories.
+4. **Chat assistant** (retrieval: Mem0 + doc chunks; no graph yet) that produces **plan skeleton**.
+5. **Plan Editor** (columns, add/edit/remove rows, live totals in NIS).
+6. **Pricing resolver** (Vendor DB first; web price fallback stored as vendor\_price entry).
+7. **Document generation** (Hebrew PDFs + JSON; logo placeholder; RTL fonts).
+8. **Tasks draft** from plan; **Trello export** via MCP; idempotent.
+9. **Observability**: Langfuse tracing and basic metrics.
+
+**Out of MVP**: Shipping regression model (stub simple base+per‑km), UI‑TARS, GraphRAG (Neo4j), cloud gateway/mirrors (add in Phase 3+).
+
+---
+
+## 2) Phase 0 — Bootstrap (1–2 days)
+
+**Scope**: Monorepo, Docker Compose, DB migrations, seed data, CI skeleton.
+
+**Deliverables**
+
+* `docker-compose.yaml` with Postgres+pgvector, MinIO, Langfuse, API, Web.
+* DB migrations for `vendors`, `materials`, `vendor_prices`, `projects`, `plans`, `plan_items`, `documents`, `memories`.
+* Seed CSVs: `vendors.csv`, `materials.csv`, `vendor_prices.csv` (sample), `purchases.csv` (sample).
+* CI: lint, type‑check, unit test jobs (GitHub Actions).
+
+**Acceptance tests**
+
+* `psql` connects; tables exist; seeds load; API healthcheck returns 200.
+
+**Agent prompt**
+
+> Create a Docker Compose for Postgres (pgvector), MinIO, Langfuse, and two app services `api` (FastAPI) and `web` (Next.js). Generate Alembic migrations for the provided tables. Provide seed loaders that read CSVs from `packages/db/seeds`. Write a `Makefile` with targets: `dev-up`, `dev-down`, `db-migrate`, `db-seed`.
+
+---
+
+## 3) Phase 1 — Core API + Vendor DB + Mem0 (3–5 days)
+
+**Scope**: FastAPI app, Pydantic schemas, Vendor DB CRUD, Mem0 wiring, simple auth, project CRUD.
+
+**Deliverables**
+
+* FastAPI `/health`, `/projects`, `/vendors`, `/materials`, `/vendor_prices`, `/purchases`.
+* Mem0 config on pgvector; endpoints `/mem0/add`, `/mem0/search`.
+* Simple session/token auth (single user).
+
+**Acceptance tests**
+
+* Unit: vendor price selection prefers Vendor DB.
+* Integration: seed → POST `/vendor_prices` → search works; Mem0 add/search returns scoped memory.
+
+**Agent prompt**
+
+> Scaffold FastAPI with routers for projects, vendors, materials, vendor\_prices, purchases, and mem0. Implement Pydantic models from the TDD. Add pytest tests that validate vendor price selection logic and mem0 search.
+
+---
+
+## 4) Phase 2 — Web App (Hebrew RTL) + Chat + Plan Skeleton (5–7 days)
+
+**Scope**: Next.js app with RTL layout, login screen, Project workspace tabs, Chat pane with Context Drawer, “Create Plan” action.
+
+**Deliverables**
+
+* `apps/web`:
+
+  * Project list page; Project workspace with tabs: **שיחה**, **תוכנית**, **מסמכים**, **משימות**.
+  * Chat UI (streaming SSE), Context Drawer tiles (Assumptions, Risks, BOM, Sources, Memories).
+  * Button: **צור תוכנית** → calls `/projects/{id}/plan/from_context`.
+* API: `/projects/{id}/chat` (mock retrieval initially), `/projects/{id}/plan/from_context` returns 6–12 suggested lines.
+
+**Acceptance tests**
+
+* E2E: create project → chat → click create plan → see plan skeleton with totals in NIS.
+
+**Agent prompt**
+
+> Build a Next.js (App Router) app with RTL and shadcn/ui. Implement a chat panel with SSE from `/projects/{id}/chat`. Add a Context Drawer and a button that calls `/plan/from_context` to produce a skeleton plan with default categories.
+
+---
+
+## 5) Phase 3 — Plan Editor + Pricing Resolver + Hebrew PDFs (7–10 days)
+
+**Scope**: Spreadsheet‑like Plan Editor, pricing resolver (Vendor DB first; web fallback), document generator (Hebrew PDFs + JSON), plan approval gate.
+
+**Deliverables**
+
+* Plan Editor grid with columns, inline add/edit/remove, live totals; validation (units, arithmetic).
+* Pricing resolver service; “Reprice All” action.
+* Document generator: Quote (צעת מחיר) and Planning (מסמך תכנון) with logo slot; store PDF + JSON in MinIO; list under **מסמכים** tab.
+* Approval gate: `/projects/{id}/approve_plan` before docs.
+
+**Acceptance tests**
+
+* Unit: arithmetic & unit tests, median‑of‑top‑k pricing, NIS rounding rules.
+* Integration: plan upsert + reprice + approve + doc generation returns valid PDFs.
+
+**Agent prompt**
+
+> Implement the Plan Editor grid with inline validation. Create a pricing module that chooses prices from `vendor_prices` (median of top‑k by confidence; fallback writes web prices back into DB). Generate Hebrew PDFs using PagedJS/WeasyPrint and a doc template with a logo slot. Write tests for arithmetic and price selection.
+
+---
+
+## 6) Phase 4 — Tasks Draft + Trello MCP Export (4–6 days)
+
+**Scope**: Minimal tasks decomposition from plan items; Trello MCP server with `ensure_board_structure` and `upsert_cards`; export from UI.
+
+**Deliverables**
+
+* `/projects/{id}/tasks/draft`: simple mapping (one card per plan item) with role/due.
+* `apps/trello-mcp`: MCP server with typed JSON Schemas; idempotent upserts using external id `project_id:plan_item_id`.
+* UI: **ייצוא ל‑Trello** button; show board link.
+
+**Acceptance tests**
+
+* Integration (sandbox board): lists created, cards upserted idempotently; webhook received and recorded.
+
+**Agent prompt**
+
+> Create a Trello MCP server exposing `ensure_board_structure` and `upsert_cards`. From the web app, call an API that exports draft tasks to Trello. Ensure idempotency and handle rate limits with backoff. Add an integration test against a sandbox board.
+
+---
+
+## 7) Phase 5 — Observability, Caching, Hardening (3–5 days)
+
+**Scope**: Langfuse spans for chat/plan/pricing/docs/export; request caching; error handling; seeds & fixtures.
+
+**Deliverables**
+
+* Langfuse integrated in API and web; trace links in UI.
+* Retry/backoff for Trello; idempotency keys for writes.
+* Better empty‑state UX; helpful error banners.
+
+**Acceptance tests**
+
+* Verify traces appear per user action; 429 handling works.
+
+**Agent prompt**
+
+> Instrument API endpoints and MCP calls with Langfuse + OTEL. Add retry/backoff utilities and idempotency middleware. Create UI to surface trace IDs.
+
+---
+
+## 8) Phase 6 — Shipping Model v1 + Labor Estimator v1 (5–7 days)
+
+**Scope**: Replace stub with base+per‑km model and KNN fallback; simple labor estimator from rate cards and priors.
+
+**Deliverables**
+
+* `/shipping/estimate` using `shipping_quotes` history; persist modeled entries with confidence.
+* `/plan/reestimate_labor` using category/material priors.
+
+**Acceptance tests**
+
+* Unit: regression coefficients, KNN fallback, labor hours formula.
+* Integration: price deltas reflect shipping/labor changes.
+
+**Agent prompt**
+
+> Implement shipping estimator from `shipping_quotes` and a labor estimator based on rate\_cards and historical priors. Write unit tests for both.
+
+---
+
+## 9) Phase 7 — Unified Studio Memory Deepening (3–5 days)
+
+**Scope**: Enrich Mem0 ingestion from plan/doc generation, Trello webhooks (basic), and finance CSV import (stub).
+
+**Deliverables**
+
+* Hook memories on key events (price learned, lead time, risk discovered).
+* `/mem0/scope/{project_id}` dashboard section in UI.
+
+**Acceptance tests**
+
+* Memories created for new facts; retrieval improves assistant answers in a small labeled set.
+
+**Agent prompt**
+
+> Add Mem0 hooks so new facts (prices, lead times, decisions) create atomic memories with `source_ref`. Build a UI panel to browse top memories per project.
+
+---
+
+## 10) Phase 8 — Hybrid Split (Cloud Control Plane) (5–8 days)
+
+**Scope**: Introduce cloud gateway and secure tunnel; mirrors for read‑only; SSE proxy.
+
+**Deliverables**
+
+* `apps/gateway`: FastAPI gateway with auth and SSE; calls local CoreAPI via Tailscale/Cloudflare Tunnel.
+* Mirror DB/search index with minimal snapshots; offline read‑only mode in UI.
+
+**Acceptance tests**
+
+* Local offline → cloud shows read‑only; queued writes play after reconnect.
+
+**Agent prompt**
+
+> Create a cloud gateway that proxies to local via a tunnel. Add a minimal mirror (recent projects, dossiers) and read‑only behavior when local is offline.
+
+---
+
+## 11) Phase 9 — UI‑TARS (DesktopOps) (5–7 days)
+
+**Scope**: Controlled desktop sessions for data extraction/automation.
+
+**Deliverables**
+
+* MCP bridge: `computer_use.start|run|stop` with confirm/dry‑run modes.
+* UI button in Chat: “Run desktop step…”; artifact capture into Documents.
+
+**Acceptance tests**
+
+* Dry‑run steps rendered; artifacts stored; audit trail complete.
+
+**Agent prompt**
+
+> Integrate UI‑TARS via MCP bridge with scoped permissions. Add a chat action to run a desktop step and store screenshots/files with citations.
+
+---
+
+## 12) Backlog (Post‑MVP)
+
+* Neo4j GraphRAG and community summaries; weekly digest.
+* Procurement hints and order‑by dates.
+* Tiered quotes mirroring into plan.
+* Advanced analytics: cycle time per phase, throughput, blocker reasons.
+
+---
+
+## 13) Test Matrix (per phase)
+
+* **Unit**: pricing, shipping, labor, arithmetic, retrieval packer.
+* **Contract**: OpenAPI & MCP schemas.
+* **Integration**: plan lifecycle, documents, Trello export, memories.
+* **E2E**: full flow with Playwright (golden PDF snapshot diffs for Hebrew).
+* **Perf**: plan with 1k items → calc < 3s p95; doc < 10s.
+
+---
+
+## 14) Go/No‑Go Gates
+
+* **MVP Gate**: Phases 0–4 green; PDFs correct; Trello export stable.
+* **Beta Gate**: Phases 5–7 green; shipping/labor models pass accuracy thresholds; observability complete.
+* **Prod Gate**: Phase 8 green; tunnel & mirrors verified; backup/restore drill completed.
+
+---
+
+## 15) Risk Controls
+
+* **Data loss**: nightly snapshots (DB, MinIO), restore test monthly.
+* **Rate limits**: batch writes + backoff + idempotency.
+* **Hallucinations**: citation‑required; show confidence; fail‑closed.
+* **Offline**: read‑only mirrors + queued writes.
+
+---
+
+## 16) Quickstart Commands (local)
+
+```bash
+# 1) bring up infra
+make dev-up
+
+# 2) run migrations & seeds
+make db-migrate
+yarn tsx packages/db/seed.ts  # or python seed script
+
+# 3) start apps (dev)
+cd apps/api && uvicorn main:app --reload
+cd apps/web && pnpm dev
+
+# 4) open http://localhost:3000
+```
+
+---
+
+## 17) Sample Tickets (copy/paste into your tracker)
+
+1. **DB: Vendor tables + seeds** — DDL, seed loaders, tests.
+2. **API: Vendor CRUD + price resolver** — endpoints + unit tests.
+3. **Mem0: configure pgvector** — add/search endpoints + tests.
+4. **Web: RTL shell + project list** — login, routing, Hebrew.
+5. **Chat: SSE + context tiles** — API + UI.
+6. **Plan: skeleton from chat** — API + UI button.
+7. **Plan Editor: grid + validation** — arithmetic/unit tests.
+8. **Pricing: Reprice action** — resolver + UI.
+9. **Docs: Hebrew PDFs** — templates + snapshot tests.
+10. **Tasks: draft & Trello export** — MCP server + UI button.
+11. **Observability: Langfuse** — spans on chat/plan/docs/export.
+12. **Shipping v1** — base+per‑km + tests.
+13. **Labor v1** — estimator + tests.
+14. **Memories panel** — /mem0/scope UI.
+15. **Gateway + Tunnel** — cloud split + mirrors.
+16. **UI‑TARS bridge** — desktop action + artifacts.
+
+```
+
+
+
+---
+
+## 19) HRAG‑Lite Ingestion & Feature Extraction (UI + Retrieval‑Aware)
+**Goal:** Provide a **self‑serve UI** for uploading historical and new documents (quotes, briefs, receipts, shipping quotes, vendor catalogs, Trello exports), run an **LLM‑assisted extraction** that leverages **prior data as context**, and persist **validated, structured facts** into SQL + **Mem0 memories** with full provenance. When confidence is low or data conflicts, the system **asks the user clarifying questions** inside the ingestion UI before committing.
+
+### 19.1 Scope
+- **Input types:** PDF, DOCX, images (JPG/PNG), CSV, ZIP of files, Trello JSON export.
+- **Extraction targets:** plan items, vendor prices, purchases, shipping parameters, lead times, decisions/assumptions, project metadata, and reusable **memories**.
+- **Persistence:** SQL tables (vendor_prices/purchases/shipping_quotes/plan_items/documents/extracted_items), **Mem0** (atomic memories), object storage (original + OCR text + evidence snapshots).
+- **Retrieval‑aware extraction:** The extractor **pulls prior facts** from SQL/Mem0/FTS to normalize and disambiguate values, and to avoid re‑asking known information.
+- **Human‑in‑the‑loop:** Clarification questions appear only when needed; user edits/explanations become part of the record and **emit memories**.
+
+### 19.2 UX — Upload & Review
+**Upload screen (RTL Hebrew):**
+- Drag‑and‑drop zone + file picker; accepts many files at once.
+- Table with columns: קובץ, סוג, מצב, ביטחון (confidence), פרויקט משויך, תגים, פעולות.
+- Status chips: _מועלה_, _מפורש_ (Parsed), _נחצה_ (Extracted), _נדרש הבהרה_, _ממתין לאישור_, _מאושר_, _שמור_.
+- Bulk actions: Assign Project, Assign Vendor, Run Extraction, Approve All (when green), Re‑run.
+
+**Review panel (side drawer):**
+- **Left:** Original page preview (with highlight boxes around cited spans).
+- **Right:** Structured form built from the JSON schema for that doc type (line items, prices, vendor, quantities, VAT, dates, shipping params, etc.).
+- Below form: **Conflicts & Clarifications** (agent asks specific questions), with quick answers (radio/text).
+- **Linking widget**: Suggests existing Vendor/Material/Project by fuzzy match; user confirms or creates new.
+- **Approve → Commit** writes canonical rows + memories and moves file to **שמור**.
+
+### 19.3 Workflow (State Machine)
+1) **Upload** → store file in object storage; create `documents` row.
+2) **Parse/OCR** → Unstructured + OCRmyPDF/Tesseract; per‑page text saved as `doc_chunks` (with `tsvector`).
+3) **Classify** → set `documents.type` + `language` + confidence.
+4) **Build Retrieval Context** (HRAG‑lite):
+   - **SQL filters**: prior `vendor_prices`, `purchases`, `shipping_quotes`, recent `plan_items` for same `project/vendor/material`.
+   - **Mem0**: top memories (`price_hint`, `lead_time`, `pattern`) scoped to project/vendor/material.
+   - **FTS**: similar pages in `doc_chunks` (e.g., past quotes from same client/vendor).
+   - **Pack** a small, cited context for the LLM (no whole docs), including **canonical names** and units used previously.
+5) **LLM Extraction** (page‑level): produce JSON with fields + `evidence` + `source_ref` (doc_id:page:char_span) + confidence.
+6) **Validate/Normalize**: units, currency=NIS only, math (qty×unit_price), date formats (Hebrew months), canonical vendor/material names.
+7) **Clarify** (if needed): generate targeted questions with suggested answers, e.g., "האם המחיר כולל מע"מ?", "איזו יחידה נכונה — מטר/מ״מ?"; show in Review panel.
+8) **Review & Approve**: user edits/answers; system recomputes; green check when valid & confident.
+9) **Commit**:
+   - Upsert to **SQL** tables (vendor_prices/purchases/shipping_quotes/plan_items). 
+   - Write **Mem0** memories for reusable facts (price hints, lead times, decisions).
+   - Write `extracted_items` row (normalized JSON + provenance + confidence) for audit.
+   - Update **Project Dossier** with key highlights.
+
+### 19.4 Clarification Question Policy
+- Trigger when: (a) required field missing, (b) unit mismatch, (c) total mismatch >5%, (d) vendor/material ambiguous (two close matches), (e) confidence < threshold.
+- Question design: **one fact per question**, multiple‑choice if safe (from retrieval context), else short text. Answers update extraction in real time and are logged as **`meeting_decision` memories** with `source_ref="user_input:ingest:<id>"`.
+
+### 19.5 Data Model Additions
+- `extracted_items(id, document_id, project_id, type, vendor_id?, material_id?, qty, unit, unit_price_nis, vat_pct?, lead_time_days?, attrs jsonb, source_ref text, evidence text, confidence numeric, occurred_at date, created_at timestamptz)` 
+  - **Indexes**: `(project_id, type)`, `GIN(attrs)`, partial index on `confidence < 0.7` for review queue.
+- `vendor_aliases(vendor_id, alias, source_ref)`; `material_aliases(material_id, alias, source_ref)`
+- `ingest_events(id, document_id, stage, payload_jsonb, created_at)` for audit trail.
+
+### 19.6 APIs (FastAPI)
+- `POST /ingest/upload` → `{ingest_id, files[]}`
+- `POST /ingest/run/{document_id}` → starts parse→classify→extract→validate; returns status stream (SSE).
+- `GET /ingest/{document_id}` → current structured payload + issues + suggested links.
+- `POST /ingest/{document_id}/answer` → `{question_id, answer}` updates extraction; returns new status.
+- `POST /ingest/{document_id}/commit` → persists to SQL + Mem0, returns affected rows + memories.
+- `GET /ingest/queue?status=needs_review` → list for the Review UI.
+
+### 19.7 LLM Contracts & Retrieval
+- **Extractor prompt** (Hebrew‑first) requires **schema‑valid JSON** and **extractive evidence** with page indices.
+- **Retrieval packer** (for extraction):
+  1) SQL candidates by vendor/material/project and recent timeframe.
+  2) Mem0 top memories (scoped) for prices/lead times.
+  3) FTS top‑k similar pages; include short cited snippets.
+  4) Compose a compact, cited context block under 1–2k tokens.
+- **Cleaner** (optional post‑filter): When user queries later, the same retrieval path returns slim spans; the cleaner trims irrelevancies **without inventing**; any numbers must match cited spans.
+
+### 19.8 Validation Rules
+- Currency **NIS only**; if other currency detected, ask clarification or mark low confidence.
+- Units canonicalization and conversions (`mm↔m`, `sheet`, `kg`, `hour`).
+- Totals: `subtotal = qty × unit_price_nis`; mismatch >5% → flag.
+- Dates: ISO; support Hebrew month names.
+- Vendor/Material linking: similarity ≥ 0.9 auto‑link; 0.7–0.9 → ask user; <0.7 → create new.
+
+### 19.9 Memories Emission (Mem0)
+- **When to create a memory:** reusable fact (`price_hint`, `lead_time`), decision/clarification (`meeting_decision`), or learned pattern (`pattern`).
+- **Scope:** `{project_id, vendor_id, material_id}`; include `source_ref` to the page or `user_input` id.
+- **Dedup:** if similar memory exists (cosine ≥ 0.95), update timestamp and keep history.
+
+### 19.10 Security & Privacy
+- Files stored privately; signed URLs for previews; delete on request.
+- PII fields encrypted at rest; redact in logs.
+- Webhooks (if used) are signed and replay‑protected.
+- All clarifications + answers are auditable and tied to your user account.
+
+### 19.11 Performance & Cost
+- Extraction is **page‑level** and cached by `content_sha256` to reduce tokens.
+- Concurrency limits and exponential backoff on model calls.
+- Batch SQL writes; COPY for backfill.
+
+### 19.12 Metrics & Evaluation
+- **Coverage**: % docs parsed, % with successful extraction.
+- **Quality**: precision/recall on a labeled sample; % fields with evidence; post‑edit error rate.
+- **Ops**: median extraction latency per page; cost per doc.
+- **Value**: % of pricing answers answered from SQL/Mem0 (no extra search), time saved in planning.
+
+### 19.13 Rollout
+- **Milestone A**: Upload UI + parse/OCR + classify + page previews + basic extraction for quotes/receipts; manual commit.
+- **Milestone B**: Clarifications engine + Review UI + vendor/material linking + commit to SQL/Mem0.
+- **Milestone C**: Shipping & lead‑time extraction; Trello export awareness (create procurement hints from lead times).
+- **Milestone D**: Bulk backfill runner + dashboards; quality tuning; confidence thresholds.
+
+### 19.14 Definition of Done (Ingestion)
+- User can upload a batch of mixed Hebrew PDFs; system parses, extracts, **asks clarifying questions when needed**, and commits normalized facts to SQL with **citations** and **Mem0 memories**.
+- Pricing and plan generation pull primarily from the ingested SQL/Mem0; document answers include source references.
+- Review queue is empty after user pass; audit trail in `ingest_events` reflects every step.
+
+```
