@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "Trello Integration MCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "trello-mcp@latest"
+      ],
+      "env": {
+        "TRELLO_API_KEY": "your_trello_api_key_here",
+        "TRELLO_API_TOKEN": "your_trello_api_token_here",
+        "TRELLO_BOARD_PREFIX": "StudioOps",
+        "TRELLO_DEFAULT_LIST": "To Do",
+        "TRELLO_RATE_LIMIT": "100",
+        "TRELLO_TIMEOUT": "30000"
+      }
+    }
+  }
+}

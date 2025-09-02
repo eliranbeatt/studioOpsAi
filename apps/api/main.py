@@ -1,14 +1,19 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 import psycopg2
 import os
 
-from routers import vendors, materials, mem0, chat
+from routers import vendors, materials, mem0, chat, projects, plans, documents, auth, estimation
+from middleware.observability_middleware import ObservabilityMiddleware, ObservableAPIRoute
+from services.observability_service import observability_service
 
 app = FastAPI(
     title="StudioOps AI API",
     description="Core API for StudioOps AI project management system",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
 # CORS middleware
@@ -20,11 +25,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Observability middleware
+app.add_middleware(ObservabilityMiddleware)
+
+# Use custom route class for automatic observability
+app.router.route_class = ObservableAPIRoute
+
 # Include routers
+app.include_router(auth.router)
 app.include_router(vendors.router)
 app.include_router(materials.router)
 app.include_router(mem0.router)
 app.include_router(chat.router)
+app.include_router(projects.router)
+app.include_router(plans.router)
+app.include_router(documents.router)
 
 def get_db_connection():
     """Get a database connection"""
@@ -66,6 +81,20 @@ async def health_check():
 async def api_health():
     """API health endpoint"""
     return {"status": "ok", "service": "studioops-api"}
+
+@app.get("/api/observability/health")
+async def observability_health():
+    """Observability health check endpoint"""
+    return {
+        "status": "enabled" if observability_service.enabled else "disabled",
+        "service": "langfuse",
+        "details": {
+            "initialized": observability_service.enabled,
+            "public_key_configured": bool(os.getenv('LANGFUSE_PUBLIC_KEY')),
+            "secret_key_configured": bool(os.getenv('LANGFUSE_SECRET_KEY')),
+            "host": os.getenv('LANGFUSE_HOST', 'http://localhost:3000')
+        }
+    }
 
 if __name__ == "__main__":
     import uvicorn

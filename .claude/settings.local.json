@@ -37,7 +37,14 @@
       "Bash(echo:*)",
       "Bash(git credential:*)",
       "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth status)",
-      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth login --web)"
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth login --web)",
+      "Bash(venvScriptsactivate)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "Bash(cd C:UserseliraDevclaude codeappsapi)",
+      "Bash(find . -name \"*.sql\" -exec grep -l \"CREATE TABLE\" {} ;)"
     ],
     "deny": [],
     "ask": []
