@@ -25,7 +25,19 @@
       "Bash(pip search:*)",
       "Bash(npx:*)",
       "Bash(git rm:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git push:*)",
+      "Bash(git remote:*)",
+      "Bash(gh repo create:*)",
+      "Bash(winget install:*)",
+      "Bash(gh auth login:*)",
+      "Bash(where gh)",
+      "Bash(C:Program FilesGitHub CLIgh.exe auth login)",
+      "Bash(git ls-remote:*)",
+      "Bash(echo:*)",
+      "Bash(git credential:*)",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth status)",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" auth login --web)"
     ],
     "deny": [],
     "ask": []
