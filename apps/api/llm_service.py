@@ -19,7 +19,7 @@ class LLMService:
         api_key = os.getenv('OPENAI_API_KEY')
         if api_key and api_key != 'your_openai_api_key_here':
             self.client = OpenAI(api_key=api_key)
-            self.model = "gpt-4-turbo"  # Using GPT-4 Turbo (latest available)
+            self.model = "gpt-5"  # Using GPT-4 Turbo (latest available)
             self.use_openai = True
         else:
             self.client = None
