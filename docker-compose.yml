@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: studioops
+      POSTGRES_USER: studioops
+      POSTGRES_PASSWORD: studioops123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studioops -d studioops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./apps/api
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://studioops:studioops123@postgres:5432/studioops
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-mock-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app
+    command: uvicorn simple_api:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    build: ./apps/web
+    ports:
+      - "3005:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8002
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres_data:

@@ -44,7 +44,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8002/chat/message', {
+      const response = await fetch('http://localhost:8008/chat/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   const handleGeneratePlan = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('http://localhost:8002/chat/generate_plan', {
+      const response = await fetch('http://localhost:8008/chat/generate_plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

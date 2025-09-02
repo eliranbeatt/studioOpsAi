@@ -9,6 +9,17 @@ import asyncio
 import time
 from datetime import datetime, timezone
 
+# Database and AI services
+try:
+    from .database import init_db
+    from .llm_service import llm_service
+    from .rag_service import rag_service
+except ImportError:
+    # Fallback for direct execution
+    from database import init_db
+    from llm_service import llm_service
+    from rag_service import rag_service
+
 app = FastAPI(
     title="StudioOps AI API",
     description="Core API for StudioOps AI project management system",
@@ -18,11 +29,22 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3005", "http://localhost:3006", "http://127.0.0.1:3000", "http://127.0.0.1:3001", "http://127.0.0.1:3005", "http://127.0.0.1:3006"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Startup event - initialize database
+@app.on_event("startup")
+async def startup_event():
+    try:
+        init_db()
+        print("Database initialized successfully")
+        print("LLM service ready")
+        print("RAG service ready")
+    except Exception as e:
+        print(f"Startup error: {e}")
 
 # Mock data for pricing resolver
 mock_prices = {
@@ -842,22 +864,33 @@ async def health_check():
 
 @app.post("/chat/message")
 async def chat_message(chat_message: dict):
-    """Simple chat endpoint"""
+    """Real chat endpoint with LLM integration and memory"""
     try:
-        response = await simulate_ai_response(chat_message.get('message', ''))
+        # LLM services are already imported globally
         
-        should_suggest_plan = any(word in chat_message.get('message', '').lower() for word in [
-            'plan', 'תוכנית', 'project', 'פרויקט', 'build', 'בנייה', 'create', 'יצירה'
-        ])
+        message = chat_message.get('message', '')
+        session_id = chat_message.get('session_id')
+        project_context = chat_message.get('project_context', {})
+        
+        # Enhance message with RAG context
+        enhanced_message = rag_service.enhance_prompt(message)
+        
+        # Get AI response with memory
+        response = await llm_service.generate_response(
+            enhanced_message, 
+            session_id, 
+            project_context
+        )
         
         return {
-            "message": response,
+            "message": response["message"],
             "context": {
-                "assumptions": ["הנחה 1", "הנחה 2"],
-                "risks": ["סיכון 1", "סיכון 2"],
-                "suggestions": ["הצעה 1", "הצעה 2"]
+                "assumptions": ["Using current material prices", "Standard labor rates applied"],
+                "risks": ["Material availability may vary", "Labor rates subject to change"],
+                "suggestions": ["Consider getting multiple quotes", "Allow for 15% contingency"]
             },
-            "suggest_plan": should_suggest_plan,
+            "suggest_plan": response["suggest_plan"],
+            "session_id": response["session_id"],
             "timestamp": time.time()
         }
     
@@ -1210,4 +1243,14 @@ async def generate_plan_skeleton(plan_request: dict):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    import sys
+    
+    # Get port from command line or use 8003
+    port = 8003
+    if len(sys.argv) > 1 and sys.argv[1] == "--port":
+        try:
+            port = int(sys.argv[2])
+        except (IndexError, ValueError):
+            pass
+    
+    uvicorn.run(app, host="0.0.0.0", port=port)

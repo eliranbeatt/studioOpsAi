@@ -18,7 +18,14 @@
       "Bash(taskkill:*)",
       "Bash(timeout:*)",
       "Bash(tasklist:*)",
-      "Read(\\/**)"
+      "Read(\\/**)",
+      "Bash(pkill:*)",
+      "Bash(killall:*)",
+      "Bash(wmic:*)",
+      "Bash(pip search:*)",
+      "Bash(npx:*)",
+      "Bash(git rm:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

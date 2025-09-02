@@ -25,6 +25,9 @@ export default function RootLayout({
                   </h1>
                 </div>
                 <nav className="flex space-x-8">
+                  <a href="/" className="text-gray-600 hover:text-gray-900">
+                    בית
+                  </a>
                   <a href="/projects" className="text-gray-600 hover:text-gray-900">
                     פרויקטים
                   </a>
@@ -33,6 +36,9 @@ export default function RootLayout({
                   </a>
                   <a href="/materials" className="text-gray-600 hover:text-gray-900">
                     חומרים
+                  </a>
+                  <a href="/chat" className="text-gray-600 hover:text-gray-900">
+                    שיחה עם AI
                   </a>
                 </nav>
               </div>
