@@ -132,41 +132,43 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-background/95 backdrop-blur-sm rounded-xl border border-border/30 shadow-xl">
       {/* Header */}
-      <div className="px-6 py-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">עורך תוכנית - {localPlan.project_name}</h3>
-        <p className="text-sm text-gray-600">
-          סך הכל: {formatCurrency(localPlan.total)} | {localPlan.items.length} פריטים
+      <div className="px-8 py-6 border-b border-border/20">
+        <h3 className="text-2xl font-semibold text-foreground mb-2">עורך תוכנית - {localPlan.project_name}</h3>
+        <p className="text-sm text-muted-foreground/80">
+          סך הכל: <span className="font-semibold text-foreground">{formatCurrency(localPlan.total)}</span> | 
+          {localPlan.items.length} פריטים | 
+          יעד רווח: {localPlan.margin_target}%
         </p>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">קטגוריה</th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">תיאור</th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">כמות</th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">יחידה</th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">מחיר ליחידה</th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">סה"כ</th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">פעולות</th>
+            <tr className="bg-muted/50 backdrop-blur-sm">
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">קטגוריה</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">תיאור</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">כמות</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">יחידה</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">מחיר ליחידה</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">סה"כ</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground/80 uppercase tracking-wide border-b border-border/20">פעולות</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border/30">
             {localPlan.items.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+              <tr key={index} className="hover:bg-muted/20 transition-colors duration-150 group">
                 {/* Category */}
-                <td className="px-4 py-2">
+                <td className="px-6 py-4">
                   {editingCell?.rowIndex === index && editingCell.field === 'category' ? (
                     <select
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={handleCellBlur}
                       onKeyPress={handleKeyPress}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-left"
+                      className="w-full px-3 py-2 border border-border/50 rounded-lg text-right bg-background/80 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                       autoFocus
                     >
                       <option value="materials">חומרים</option>
@@ -176,19 +178,21 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
                     </select>
                   ) : (
                     <div
-                      className="cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      className="cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 transition-all duration-200 group-hover:bg-muted/30"
                       onClick={() => handleCellClick(index, 'category', item.category)}
                     >
-                      {item.category === 'materials' && 'חומרים'}
-                      {item.category === 'labor' && 'עבודה'}
-                      {item.category === 'tools' && 'כלים'}
-                      {item.category === 'logistics' && 'לוגיסטיקה'}
+                      <span className="text-sm font-medium text-foreground/90">
+                        {item.category === 'materials' && '📦 חומרים'}
+                        {item.category === 'labor' && '👷 עבודה'}
+                        {item.category === 'tools' && '🛠️ כלים'}
+                        {item.category === 'logistics' && '🚚 לוגיסטיקה'}
+                      </span>
                     </div>
                   )}
                 </td>
 
                 {/* Title/Description */}
-                <td className="px-4 py-2">
+                <td className="px-6 py-4">
                   {editingCell?.rowIndex === index && editingCell.field === 'title' ? (
                     <input
                       type="text"
@@ -196,24 +200,24 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={handleCellBlur}
                       onKeyPress={handleKeyPress}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-right"
+                      className="w-full px-3 py-2 border border-border/50 rounded-lg text-right bg-background/80 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                       autoFocus
                     />
                   ) : (
                     <div
-                      className="cursor-pointer px-2 py-1 rounded hover:bg-gray-100 text-right"
+                      className="cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 transition-all duration-200 group-hover:bg-muted/30 text-right"
                       onClick={() => handleCellClick(index, 'title', item.title)}
                     >
-                      {item.title}
+                      <div className="text-sm font-medium text-foreground/90">{item.title}</div>
                       {item.description && (
-                        <div className="text-xs text-gray-500 mt-1">{item.description}</div>
+                        <div className="text-xs text-muted-foreground/70 mt-1">{item.description}</div>
                       )}
                     </div>
                   )}
                 </td>
 
                 {/* Quantity */}
-                <td className="px-4 py-2 text-right">
+                <td className="px-6 py-4 text-right">
                   {editingCell?.rowIndex === index && editingCell.field === 'quantity' ? (
                     <input
                       type="number"
@@ -222,21 +226,21 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={handleCellBlur}
                       onKeyPress={handleKeyPress}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-right"
+                      className="w-24 px-3 py-2 border border-border/50 rounded-lg text-right bg-background/80 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                       autoFocus
                     />
                   ) : (
                     <div
-                      className="cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      className="cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 transition-all duration-200 group-hover:bg-muted/30"
                       onClick={() => handleCellClick(index, 'quantity', item.quantity)}
                     >
-                      {item.quantity}
+                      <span className="text-sm font-medium text-foreground/90">{item.quantity}</span>
                     </div>
                   )}
                 </td>
 
                 {/* Unit */}
-                <td className="px-4 py-2 text-right">
+                <td className="px-6 py-4 text-right">
                   {editingCell?.rowIndex === index && editingCell.field === 'unit' ? (
                     <input
                       type="text"
@@ -244,21 +248,21 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={handleCellBlur}
                       onKeyPress={handleKeyPress}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-right"
+                      className="w-24 px-3 py-2 border border-border/50 rounded-lg text-right bg-background/80 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                       autoFocus
                     />
                   ) : (
                     <div
-                      className="cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      className="cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 transition-all duration-200 group-hover:bg-muted/30"
                       onClick={() => handleCellClick(index, 'unit', item.unit)}
                     >
-                      {item.unit}
+                      <span className="text-sm font-medium text-foreground/90">{item.unit}</span>
                     </div>
                   )}
                 </td>
 
                 {/* Unit Price */}
-                <td className="px-4 py-2 text-right">
+                <td className="px-6 py-4 text-right">
                   {editingCell?.rowIndex === index && editingCell.field === 'unit_price' ? (
                     <input
                       type="number"
@@ -267,31 +271,31 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={handleCellBlur}
                       onKeyPress={handleKeyPress}
-                      className="w-24 px-2 py-1 border border-gray-300 rounded text-right"
+                      className="w-28 px-3 py-2 border border-border/50 rounded-lg text-right bg-background/80 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                       autoFocus
                     />
                   ) : (
                     <div
-                      className="cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      className="cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 transition-all duration-200 group-hover:bg-muted/30"
                       onClick={() => handleCellClick(index, 'unit_price', item.unit_price)}
                     >
-                      {formatCurrency(item.unit_price)}
+                      <span className="text-sm font-medium text-foreground/90">{formatCurrency(item.unit_price)}</span>
                     </div>
                   )}
                 </td>
 
                 {/* Subtotal */}
-                <td className="px-4 py-2 text-right font-medium">
+                <td className="px-6 py-4 text-right font-semibold text-foreground/90">
                   {formatCurrency(item.subtotal)}
                 </td>
 
                 {/* Actions */}
-                <td className="px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center">
                   <button
                     onClick={() => deleteRow(index)}
-                    className="text-red-600 hover:text-red-800 text-sm"
+                    className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-lg hover:bg-red-50 transition-all duration-200"
                   >
-                    מחק
+                    🗑️ מחק
                   </button>
                 </td>
               </tr>
@@ -299,37 +303,37 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
           </tbody>
 
           {/* Footer */}
-          <tfoot className="bg-gray-50">
+          <tfoot className="bg-muted/50 backdrop-blur-sm">
             <tr>
-              <td colSpan={5} className="px-4 py-3 text-right font-medium">
+              <td colSpan={5} className="px-6 py-4 text-right font-semibold text-muted-foreground/80 border-t border-border/20">
                 סה"כ פרויקט:
               </td>
-              <td className="px-4 py-3 text-right font-bold text-lg">
+              <td className="px-6 py-4 text-right font-bold text-xl text-foreground border-t border-border/20">
                 {formatCurrency(localPlan.total)}
               </td>
-              <td></td>
+              <td className="border-t border-border/20"></td>
             </tr>
           </tfoot>
         </table>
       </div>
 
       {/* Controls */}
-      <div className="px-6 py-4 border-t">
+      <div className="px-8 py-6 border-t border-border/20">
         <div className="flex justify-between items-center">
           <button
             onClick={addNewRow}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className="btn bg-gradient-to-r from-green-600 to-green-700 text-white border-0 hover:from-green-700 hover:to-green-800 hover:shadow-lg transition-all duration-200"
           >
-            + הוסף שורה
+            ➕ הוסף שורה
           </button>
           
           {onSave && (
             <button
               onClick={onSave}
               disabled={isLoading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="btn btn-primary px-8 gradient-bg border-0 hover:shadow-lg disabled:opacity-50 transition-all duration-200"
             >
-              {isLoading ? 'שומר...' : 'שמור תוכנית'}
+              {isLoading ? '💾 שומר...' : '💾 שמור תוכנית'}
             </button>
           )}
         </div>

@@ -138,19 +138,22 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-96 bg-white rounded-lg shadow">
+    <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="px-4 py-3 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">שיחה עם AI</h3>
-        <p className="text-sm text-gray-600">קבל ייעוץ והמלצות לפרויקט שלך</p>
+      <div className="card-header pb-6 border-b border-border/30">
+        <h2 className="card-title text-2xl font-semibold">שיחה עם AI</h2>
+        <p className="card-description text-muted-foreground/80">קבל ייעוץ והמלצות לפרויקט שלך</p>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <p>שלום! איך אני יכול לעזור לך היום?</p>
-            <p className="text-sm mt-2">שאל שאלה על פרויקט, תמחור, או תכנון</p>
+          <div className="text-center text-muted-foreground/70 py-16">
+            <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+              <span className="text-muted-foreground/40 text-3xl">💬</span>
+            </div>
+            <p className="text-lg font-light mb-2">שלום! איך אני יכול לעזור לך היום?</p>
+            <p className="text-sm">שאל שאלה על פרויקט, תמחור, או תכנון</p>
           </div>
         )}
         
@@ -160,28 +163,28 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
             className={`flex ${message.isUser ? 'justify-start' : 'justify-end'}`}
           >
             <div
-              className={`max-w-xs px-4 py-2 rounded-lg ${
+              className={`max-w-md px-5 py-4 rounded-2xl ${
                 message.isUser
-                  ? 'bg-blue-100 text-blue-900'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
+                  ? 'bg-primary text-primary-foreground shadow-lg'
+                  : 'bg-muted/80 text-foreground border border-border/30 shadow-sm backdrop-blur-sm'
+              } transition-all duration-200 hover:shadow-md`}
             >
-              <p className="text-sm">{message.text}</p>
+              <p className="text-sm leading-relaxed font-light">{message.text}</p>
               
               {/* Show plan generation button if suggested */}
               {!message.isUser && message.data?.suggest_plan && (
-                <div className="mt-2">
+                <div className="mt-4">
                   <button
                     onClick={handleGeneratePlan}
                     disabled={isLoading}
-                    className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:opacity-50"
+                    className="btn btn-sm bg-gradient-to-r from-green-600 to-green-700 text-white border-0 hover:from-green-700 hover:to-green-800 hover:shadow-lg disabled:opacity-50 transition-all"
                   >
-                    {isLoading ? 'יוצר תוכנית...' : '📋 צור תוכנית עבודה'}
+                    {isLoading ? '📋 יוצר תוכנית...' : '📋 צור תוכנית עבודה'}
                   </button>
                 </div>
               )}
               
-              <p className="text-xs opacity-50 mt-1">
+              <p className="text-xs opacity-60 mt-3">
                 {message.timestamp.toLocaleTimeString('he-IL')}
               </p>
             </div>
@@ -190,11 +193,11 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
         
         {isLoading && (
           <div className="flex justify-end">
-            <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            <div className="bg-muted/80 text-foreground px-5 py-4 rounded-2xl border border-border/30 shadow-sm backdrop-blur-sm">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-muted-foreground/60 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-muted-foreground/60 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-3 h-3 bg-muted-foreground/60 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
               </div>
             </div>
           </div>
@@ -204,23 +207,23 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 border-t">
-        <div className="flex space-x-2">
+      <div className="border-t border-border/30 p-6">
+        <div className="flex space-x-3 space-x-reverse">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="הקלד את ההודעה שלך..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input flex-1 border-border/50 focus:border-primary/50 transition-all duration-200"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-primary px-6 gradient-bg border-0 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            שלח
+            📤 שלח
           </button>
         </div>
       </div>

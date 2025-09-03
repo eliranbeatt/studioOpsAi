@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from routers import vendors, materials, mem0, chat, projects, plans, documents, auth, estimation, instructor
+from routers import vendors, materials, mem0, chat, projects, plans, documents, auth, estimation, instructor, ingest
 from middleware.observability_middleware import ObservabilityMiddleware, ObservableAPIRoute
 from services.observability_service import observability_service
 
@@ -47,6 +47,7 @@ app.include_router(documents.router)
 app.include_router(ocr.router)
 app.include_router(unstructured.router)
 app.include_router(instructor.router)
+app.include_router(ingest.router)
 
 def get_db_connection():
     """Get a database connection"""
