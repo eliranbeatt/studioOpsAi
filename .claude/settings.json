@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash *",
+      "Bash docker *",
+      "Docker *"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

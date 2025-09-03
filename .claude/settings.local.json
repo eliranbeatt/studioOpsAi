@@ -1,11 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:github.com)",
-      "Bash(git clone https://github.com/benjaminr/chrome-devtools-mcp.git)",
-      "Bash(dir)",
-      "Bash(uv sync)",
-      "Bash(pip install uv)"
+      "Bash(docker-compose -f infra/docker-compose.yml exec api python -c \"\nimport litellm\nimport os\n\nprint(''Testing LiteLLM with OpenAI...'')\n\ntry:\n    # Set the OpenAI API key for LiteLLM\n    os.environ[''OPENAI_API_KEY''] = os.getenv(''OPENAI_API_KEY'')\n    \n    response = litellm.completion(\n        model=''gpt-3.5-turbo'',\n        messages=[{''role'': ''user'', ''content'': ''Hello''}],\n        max_tokens=10\n    )\n    print(''LiteLLM test successful'')\n    print(''Response:'', response.choices[0].message.content)\n    \nexcept Exception as e:\n    print(''LiteLLM error:'', e)\n    import traceback\n    traceback.print_exc()\n\")"
     ],
     "deny": [],
     "ask": []

@@ -1,12 +1,5 @@
--- Enable pgvector extension
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- Enable UUID generation
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Create custom ULID type if needed
-CREATE OR REPLACE FUNCTION generate_ulid() RETURNS uuid AS $$
-BEGIN
-  RETURN uuid_generate_v7();
-END;
-$$ LANGUAGE plpgsql;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;

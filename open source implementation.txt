@@ -1,0 +1,443 @@
+1) What your system includes (source-of-truth recap)
+
+Monorepo + stack & “MVP now / scale later” ethos. Web app (Next.js + shadcn/ui), FastAPI core service, optional gateway later; Postgres as primary store; MinIO for files; Langfuse for telemetry; Trello integration via MCP; everything small-team friendly, with future headroom. 
+ 
+
+Core ingestion & pipeline. Upload UI → background jobs → OCR & parsing → LLM extraction (JSON-strict) → validators → linker → write to SQL/Mem0 → observability/traces → clarification loop when confidence/gaps demand it. 
+ 
+
+RAG-without-embeddings (initially). Retrieval “packer” queries Postgres (and Mem0) by project/task/vendor names; relies on FTS + pg_trgm similarity & curated aliases; embeddings can come later. 
+
+Validation & linking. Units/currency/date/math checks; fuzzy joins using trigram similarity with thresholding and alias tables; human-authored tie-breakers for brand/sku edge cases. 
+
+Clarification engine. If fields are low-confidence/missing or inconsistent, system asks targeted questions and stores “meeting_decision” style outcomes. 
+
+Writers & stores. Safe upserts into normalized SQL; object storage signed URLs; Mem0 for long-term “facts” and decisions; Langfuse + OTEL for traces. 
+ 
+
+Plan editor & document generation. Spreadsheet-like “Plan Editor” to edit structured plans (rates/shipping/props); generate finalized Hebrew RTL PDFs for quotes/POs/agreements. 
+
+Estimators. Shipping cost (light regression + KNN fallback), labor estimator (rate cards + heuristics); price resolver pulls from vendor DB and optionally web price lookups later. 
+
+Testing & perf. pytest for unit/integration, Playwright for E2E, k6 for load; plus an LLM-based evaluation harness for extractors. 
+
+2) Best open-source building blocks (by component)
+
+Below I map each part to a mature OSS you can drop in or copy from. When I say “copy parts,” I call out the exact module/snippet to borrow.
+
+2.1 Documents → text (OCR/Parsing/Chunking)
+
+OCRmyPDF + Tesseract for robust OCR + PDF linearization/caching. It automates Tesseract, keeps a cache, and bakes text layer back into PDFs (less re-OCR). Use ocrmypdf.ocr() in the worker. 
+ocrmypdf.readthedocs.io
+
+Copy: CLI flags and Python API usage from docs; reuse their skip/caching patterns to avoid re-processing. 
+ocrmypdf.readthedocs.io
+
+Unstructured to partition PDFs, images, emails, DOCX into typed elements (tables, titles, narrative). Great first pass before LLM. 
+GitHub
+
+Copy: Their partition/chunking recipes and the table-extraction utilities (good templates for your extractor pre-clean). 
+GitHub
+
+Optionals to consider (only if you hit edge cases):
+
+PaddleOCR multilingual models (can help for mixed Hebrew/English scans). 
+GitHub
+
+Mindee DocTR (deep-learning OCR) — solid on complex layouts/photos. 
+GitHub
+
+2.2 Structured JSON extraction (LLM with hard schema)
+
+Instructor (Pydantic-first structured outputs) — simplest path to guaranteed JSON into your Pydantic models; integrates cleanly with FastAPI & Python. Prefer this as primary. 
+OpenTelemetry Python Contrib
+
+Copy: The instructor.from_openai() / client.chat.completions.create(..., response_model=YourModel) patterns and their retry/validation loop example. 
+OpenTelemetry Python Contrib
+
+Guardrails (validators & guards) or Outlines (grammar-constrained generation) as backup tools when you need ultra-strict formats. 
+Next.js
+Boto3
+
+Domain validators (non-LLM):
+
+pint for units/quantities; your “kg/m/cm” normalizer. 
+pint.readthedocs.io
+
+dateparser (Hebrew months, fuzzy human dates). 
+dateparser.readthedocs.io
+
+2.3 Linker (fuzzy joins & aliasing)
+
+PostgreSQL pg_trgm for similarity search + GIN/GiST indexes; use <->, %, and similarity() + thresholds you defined. Add unaccent for Hebrew/English edge cases. 
+PostgreSQL
+
+Copy: From the docs: sample index creation and pg_trgm operator usage; port their example queries into your linker service functions.
+
+2.4 Retrieval “packer” (SQL-first now, vectors later)
+
+Plain SQL + Postgres FTS/pg_trgm — aligns with your “no embeddings yet” MVP. Your packer can stitch: project → tasks → vendors → items. (You already spec’d fields and tables.) 
+
+Later, if/when you add vectors: pgvector (native Postgres extension) or Mem0’s vector backend (see below).
+
+2.5 Memory (decisions, facts, preferences)
+
+Mem0 (open-source, production-oriented memory layer) with Postgres/pgvector. It’s designed for agents, supports metadata, and has MCP examples. 
+GitHub
+docs.mem0.ai
+
+Copy:
+
+The memory object schema & upsert/search flows in the repo; adapt your “meeting_decision / vendor_fact” to Mem0’s collections. 
+GitHub
+
+The Mem0 MCP server templates so your Trello MCP and Mem0 MCP share conventions. 
+GitHub
++1
+
+Alternatives (only if Mem0 doesn’t fit): memobase (profile-based long-term memory) or newer research libs (MemEngine). 
+GitHub
+arXiv
+
+2.6 Trello MCP server
+
+Model Context Protocol: use the official Python server template (clean contract, tool definitions).
+
+fastmcp — a tiny framework to build MCP servers quickly (nicely complements FastAPI code style). 
+FastMCP
+
+Copy: The MCP tool schema + handler patterns; replicate for: list_boards, list_cards, get_card, attach_file, emit_decision. 
+
+2.7 API gateway / LLM router
+
+LiteLLM — OSS LLM proxy supporting many providers, cost logging, retries, and JSON mode; you already reference LITELLM_*. Plug your Instructor calls through LiteLLM.
+
+2.8 Observability, tracing & evals
+
+Langfuse — self-hostable LLM observability (traces, evals, prompt mgmt), OTEL-native v3 SDK. Perfect to capture every hop in your pipeline. 
+GitHub
+Langfuse
++1
+
+Copy: Their OTEL ingestion config and FastAPI/Node SDK snippets; wire spans around “parse → extract → validate → link → write”. 
+Langfuse
+
+(You can also skim PostHog’s comparison to validate choice; Langfuse is top-tier OSS.) 
+PostHog
+
+2.9 Real-time UX (streaming status & partial results)
+
+SSE via Starlette/FastAPI (simple generator that yields events; pairs well with Next.js EventSource). Use a minimal server-side event stream for “processing…”, “parsed”, “awaiting clarifications”, etc. (FastAPI/Starlette expose streaming responses; sse-starlette is a tiny helper lib if you prefer a package.)
+
+2.10 PDF generation (Hebrew RTL, branded)
+
+Use Puppeteer (Chromium print-to-PDF) on a server route — modern browsers do RTL + OpenType fonts well, so you can render a React/HTML template and print to PDF. 
+Puppeteer
++1
+
+Copy: page.pdf(...) usage; embed Noto Sans Hebrew @font-face; set direction: rtl; unicode-bidi: plaintext; in CSS for critical blocks. Notes: mixed Hebrew/English+numbers sometimes needs careful CSS; there are community tips on RTL ordering quirks. 
+Stack Overflow
+
+(Why not WeasyPrint/pdfmake? Both have partial/finicky RTL; Puppeteer rides Chromium’s excellent text engine.)
+
+2.11 Frontend primitives
+
+Next.js (app router), shadcn/ui for consistent design system; for table-like editing use React Data Grid (adazzle) (MIT, virtualized) or TanStack Table (headless). Both are battle-tested. 
+GitHub
++1
+
+2.12 Testing & performance
+
+pytest + Playwright for your E2E; k6 for load (as you planned). (No special citations needed here; you already selected them.)
+
+2.13 Security & storage
+
+MinIO for object storage with presigned URLs for secure uploads/downloads from the client. 
+GitHub
+
+Postgres + pgcrypto (for at-rest field encryption if/when you store sensitive price contacts). (Standard Postgres extension; no special link needed now.)
+
+3) Exactly how to use each project (and what to copy)
+
+Below, I tie the OSS pieces to your pipeline stages with concrete instructions.
+
+3.1 Upload → background job
+
+API: FastAPI route POST /ingest saves file metadata to Postgres, streams file to MinIO, enqueues a job ID. Signed upload URL from MinIO SDK. 
+ 
+GitHub
+
+Copy: From MinIO docs, copy the presigned URL creation snippet and the client-side PUT pattern. 
+GitHub
+
+Queue: Start simple: FastAPI background tasks or rq (Redis). If you need DAGs later, adopt LangGraph or Temporal (overkill now).
+
+3.2 Parse & OCR
+
+Worker code:
+
+If PDF has no text layer → ocrmypdf.ocr() with deskew, optimize, skip text options. (copy from docs) 
+ocrmypdf.readthedocs.io
+
+unstructured.partition_pdf() to get typed elements. (copy their minimal partition recipe) 
+GitHub
+
+Normalize blocks: fix common OCR artifacts, merge hyphenated words, preserve tables separately.
+
+3.3 Extraction (strict JSON)
+
+Instructor + Pydantic: Define ItemSpec, VendorSpec, PlanRow, MeetingDecision models exactly as in your TDD. Call LLM through LiteLLM with response_model=.... Instructor handles re-asks on invalid JSON automatically. 
+OpenTelemetry Python Contrib
+
+Copy: Instructor’s decorator/response_model example + retry loop; add your evidence capture (store source text span id + page number) per your spec. 
+
+3.4 Validators
+
+pint: load a UnitRegistry with aliases (“kg, ק"ג, kilo” etc.). Convert all to base units. 
+pint.readthedocs.io
+
+dateparser: parse Hebrew dates like “15/9/2025” or “ספטמבר 2025”, normalize ISO date. 
+dateparser.readthedocs.io
+
+Money: use decimal.Decimal + currency code from your vendor profile.
+
+3.5 Linker
+
+SQL:
+
+Install pg_trgm and unaccent.
+
+Create GIN index on lower(unaccent(name)).
+
+Join candidates by project/vendor/context, then apply similarity(name, query) >= 0.55 (your threshold).
+
+Copy: PostgreSQL docs’ index + operator usage; port to your linker.py (include your alias table logic and tie-breakers).
+
+3.6 Writers
+
+SQL writer: upsert with ON CONFLICT ... DO UPDATE; record provenance (doc id, page, extractor version).
+
+Mem0 writer: mem0.create_memory() for durable “facts/decisions.” Use collection per project. 
+GitHub
+
+3.7 Retrieval packer
+
+SQL-first: Build a single function that returns a context bundle: items, vendors, prior decisions, and any Mem0 facts relevant to current project/plan. (Your spec already defines fields.) 
+
+Later: If a question is vague, query Mem0’s semantic search as a secondary source. 
+GitHub
+
+3.8 Clarifications engine
+
+Emit a “needs clarification” event when validators fail or the linker returns multiple candidates within ~0.02 similarity of each other. This triggers a short question to the user and stores the answer as a Mem0 decision tied to doc+row. 
+ 
+GitHub
+
+3.9 Observability
+
+Wrap every step with Langfuse traces/spans; if you’re already on OTEL for other parts, push to Langfuse’s OTEL endpoint. 
+Langfuse
+
+Copy: The OTLP endpoint + environment variables from docs; pull in Langfuse Python SDK decorators for FastAPI routes. 
+Langfuse
+
+3.10 Streaming UX (SSE)
+
+Implement an SSE endpoint (/events/{job_id}) that yields progress updates; consume from Next.js via EventSource. This directly matches your “status + partials” requirement. 
+
+3.11 Plan Editor
+
+Use React Data Grid (MIT) for a spreadsheet-like editor with virtualization, row selection, in-cell editors, and RTL. 
+GitHub
+
+Copy: The editable grid example (column definitions + onCommit); use your server actions to persist.
+
+3.12 PDF (Hebrew RTL)
+
+Add a Next.js route /print/quote?id=... that renders your React template. Launch a Puppeteer worker to page.goto that route and call page.pdf(). Load Noto fonts and set CSS direction: rtl. 
+Puppeteer
++1
+
+Note: Mixed Hebrew/English/number formatting can flip if CSS isn’t explicit; keep unicode-bidi and direction set on key blocks. 
+Stack Overflow
+
+4) Where partial reuse makes sense (exact bits to borrow)
+
+Unstructured: copy their partition + table handling patterns to avoid reinventing layout heuristics; keep your own thin post-processing layer. 
+GitHub
+
+OCRmyPDF: copy their CLI flags for speed/quality and skip-text caching; it will cut compute & cost. 
+ocrmypdf.readthedocs.io
+
+Instructor: copy the response_model pattern + retry on validation; adds hard guarantees your LLM emits your schema. 
+OpenTelemetry Python Contrib
+
+pg_trgm: copy the index and similarity operator usage from the docs into your linker SQL.
+
+Mem0 MCP: copy a minimal MCP tool schema + server skeleton (mem0-mcp), adapt names/collections to your studio domain. 
+GitHub
+
+Langfuse OTEL: copy the OTLP env/config so your traces instantly show up. 
+Langfuse
+
+Puppeteer PDF: copy the page.pdf() example + font loading note from docs. 
+Puppeteer
++1
+
+5) End-to-end build plan (do this)
+Phase A — Bootstrap (1–2 days)
+
+Repos & env: create monorepo with apps/web, apps/api, packages/shared. Add .env for DB, MinIO, LiteLLM, Langfuse. 
+
+Infra quick start: docker-compose for Postgres (+ pg_trgm), MinIO, Langfuse, LiteLLM. 
+GitHub
+
+Web: Next.js + shadcn/ui; add Upload page with presigned PUT to MinIO. 
+GitHub
+
+API: FastAPI with routes: /ingest, /events/{job}, /plans, /print/quote.
+
+Observability: wire Langfuse Python SDK + OTEL exporter. 
+Langfuse
++1
+
+Phase B — Ingestion pipeline (2–4 days)
+
+Worker executes: OCRmyPDF → Unstructured → normalize. 
+ocrmypdf.readthedocs.io
+GitHub
+
+Save raw blocks (JSON) + provenance to Postgres; original file in MinIO.
+
+Emit SSE events for progress.
+
+Phase C — Extraction + validation (3–5 days)
+
+Instructor + LiteLLM to produce ItemSpec, VendorSpec, PlanRow, MeetingDecision with evidence spans. 
+OpenTelemetry Python Contrib
+
+Validators (pint/dateparser/decimal) normalize and assert constraints. 
+pint.readthedocs.io
+dateparser.readthedocs.io
+
+On low confidence → Clarification question; store answer as Mem0 decision. 
+GitHub
+
+Phase D — Linker & writers (2–4 days)
+
+Install pg_trgm + unaccent; write candidate joins; apply similarity threshold per your TDD.
+
+Upsert normalized rows; create Aliases table & management UI.
+
+Phase E — Retrieval & Plan Editor (2–4 days)
+
+Build SQL packer to assemble context for any doc/plan. 
+
+React Data Grid with inline editing + RTL; server actions for save. 
+GitHub
+
+Phase F — Output PDFs (1–2 days)
+
+Add /print/* routes that render React templates; run Puppeteer worker to print to PDF; store in MinIO; return signed link. 
+Puppeteer
+GitHub
+
+Phase G — Trello MCP (1–3 days)
+
+Implement MCP server with fastmcp or the official template; tools for listing boards/cards, pushing updates, and attaching generated PDFs. 
+FastMCP
+
+Phase H — Estimators (2–5 days)
+
+Shipping: scikit-learn LinearRegression + KNN fallback over your historical rows; serialize via joblib.
+
+Labor: deterministic rules (rate cards) + fitted multipliers; log errors to Langfuse.
+
+Phase I — Tests & perf (ongoing)
+
+pytest unit tests; Playwright E2E on “upload→extract→edit→print”; k6 load test /ingest and /events/*.
+
+Add a tiny LLM eval harness to score extraction accuracy on labeled docs (log in Langfuse).
+
+6) Quick pick-list (by area)
+
+OCR & parsing: OCRmyPDF + Tesseract; Unstructured. 
+ocrmypdf.readthedocs.io
+GitHub
+
+Structured JSON: Instructor (+ Guardrails/Outlines optional). 
+OpenTelemetry Python Contrib
+Next.js
+Boto3
+
+Validation: pint, dateparser.
+
+Linker: Postgres pg_trgm (+ unaccent).
+
+Memory: Mem0 (+ Mem0 MCP templates). 
+GitHub
++1
+
+LLM router: LiteLLM.
+
+Observability: Langfuse + OTEL. 
+GitHub
+Langfuse
++1
+
+SSE: FastAPI/Starlette streaming; tiny helper sse-starlette if desired.
+
+Plan editor: React Data Grid (MIT). 
+GitHub
+
+PDF (RTL): Puppeteer print-to-PDF with Noto Sans Hebrew. 
+Puppeteer
++1
+
+7) Risks & how we’ve mitigated them
+
+Mixed Hebrew/English number ordering in PDFs → we chose Puppeteer (browser-grade RTL) and call out CSS bidi rules; validate a few complex samples early. 
+Stack Overflow
+
+OCR noise on receipts → OCRmyPDF + Unstructured and your clarifications engine; store evidence spans for audit. 
+ocrmypdf.readthedocs.io
+GitHub
+
+Fuzzy linking false positives → strict thresholds + alias tables + tie-break rules; show suggested matches in UI for confirm.
+
+Schema drift → Instructor + Pydantic hardens outputs; Langfuse traces surface failures fast. 
+OpenTelemetry Python Contrib
+Langfuse
+
+8) What to do next (actionable checklist)
+
+Spin up infra: Postgres (+ pg_trgm), MinIO, Langfuse, LiteLLM via docker-compose. 
+GitHub
+
+Implement /ingest + SSE + MinIO presigned uploads. 
+GitHub
+
+Worker: OCRmyPDF → Unstructured → normalize → store. 
+ocrmypdf.readthedocs.io
+GitHub
+
+Instructor extractor with your Pydantic models; wire pint/dateparser validators. 
+OpenTelemetry Python Contrib
+
+Linker with pg_trgm + alias tables; expose review UI when similarity ties.
+
+Writers: safe upserts + Mem0 fact writes. 
+GitHub
+
+Plan Editor (React Data Grid) + save endpoints. 
+GitHub
+
+Print routes + Puppeteer worker + Hebrew fonts. 
+Puppeteer
++1
+
+Trello MCP server (start from mem0-mcp template and the MCP Python template). 
+GitHub
+
+LLM eval harness + Langfuse spans everywhere. 
+Langfuse
