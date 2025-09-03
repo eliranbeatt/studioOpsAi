@@ -36,16 +36,21 @@ export default function VendorsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">ניהול ספקים</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            צפה וניהול כל הספקים והמחירים שלהם
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">ניהול ספקים</h2>
+            <p className="text-muted-foreground mt-1">
+              צפה וניהול כל הספקים וה�מחירים שלהם
+            </p>
+          </div>
+          <button className="btn btn-primary px-4 gradient-bg border-0">
+            ➕ ספק חדש
+          </button>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-center py-12">
+        <div className="card border-border/50 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
+          <div className="text-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">טוען ספקים...</p>
+            <p className="text-muted-foreground">טוען ספקים...</p>
           </div>
         </div>
       </div>
@@ -54,31 +59,37 @@ export default function VendorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">ניהול ספקים</h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          צפה וניהול כל הספקים והמחירים שלהם
-        </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">ניהול ספקים</h2>
+          <p className="text-muted-foreground mt-1">
+            צפה וניהול כל הספקים וה�מחירים שלהם
+          </p>
+        </div>
+        <button className="btn btn-primary px-4 gradient-bg border-0">
+          ➕ ספק חדש
+        </button>
       </div>
 
       {vendors.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-center text-gray-500 py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-gray-400 text-2xl">🏢</span>
+        <div className="card border-border/50 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
+          <div className="text-center text-muted-foreground/70 py-16">
+            <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+              <span className="text-muted-foreground/40 text-3xl">🏢</span>
             </div>
-            <p className="text-lg">אין ספקים להצגה</p>
-            <p className="text-sm mt-2">הוסף ספקים כדי לראות אותם כאן</p>
-            <button className="mt-4 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+            <p className="text-lg font-light mb-2">אין ספקים להצגה</p>
+            <p className="text-sm">הוסף ספקים כדי לראות אותם כאן</p>
+            <button className="mt-4 btn btn-primary px-6 gradient-bg border-0">
               הוסף ספק חדש
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-900">רשימת ספקים</h3>
-            <p className="text-sm text-gray-600">
+        <div className="card border-border/50 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border/50">
+            <h3 className="text-lg font-semibold text-foreground">רשימת ספקים</h3>
+            <p className="text-sm text-muted-foreground">
               {vendors.length} ספקים נמצאו
             </p>
           </div>
@@ -86,40 +97,40 @@ export default function VendorsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">שם</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">קשר</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">דירוג</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">הערות</th>
+                <tr className="bg-muted/50">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">שם</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">קשר</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">דירוג</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">הערות</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border/50">
                 {vendors.map((vendor) => (
-                  <tr key={vendor.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2">
-                      <div className="font-medium text-gray-900">{vendor.name}</div>
-                      <div className="text-sm text-gray-500">
-                        <a href={vendor.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                  <tr key={vendor.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-foreground">{vendor.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        <a href={vendor.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
                           {vendor.url}
                         </a>
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{vendor.contact}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3 text-sm text-foreground">{vendor.contact}</td>
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <div className="text-sm font-medium text-gray-900">{vendor.rating}</div>
+                        <div className="text-sm font-medium text-foreground">{vendor.rating}</div>
                         <div className="ml-1 text-yellow-400">★</div>
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-500">{vendor.notes}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{vendor.notes}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           
-          <div className="px-6 py-4 border-t">
-            <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+          <div className="px-6 py-4 border-t border-border/50">
+            <button className="btn btn-primary px-4 gradient-bg border-0">
               + הוסף ספק חדש
             </button>
           </div>

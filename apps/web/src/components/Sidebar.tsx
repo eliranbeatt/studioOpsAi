@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import ThemeToggle from './ThemeToggle'
 
 const navigation = [
   {
@@ -28,6 +29,11 @@ const navigation = [
     name: 'שיחה עם AI',
     href: '/chat',
     icon: '💬',
+  },
+  {
+    name: 'תוכניות',
+    href: '/plans',
+    icon: '📊',
   },
 ]
 
@@ -70,7 +76,14 @@ export default function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border p-4 space-y-4">
+        {/* Theme toggle */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">ערכת עיצוב</span>
+          <ThemeToggle />
+        </div>
+        
+        {/* User info */}
         <div className="flex items-center space-x-3 space-x-reverse">
           <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
             <span className="text-muted-foreground">👤</span>
