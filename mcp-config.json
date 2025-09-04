@@ -1,0 +1,11 @@
+{
+  "studioops-postgres": {
+    "command": "python",
+    "args": [
+      "apps/api/mcp_server.py"
+    ],
+    "env": {
+      "DATABASE_URL": "postgresql://studioops:studioops123@localhost:5432/studioops"
+    }
+  }
+}

@@ -16,15 +16,10 @@ import uuid
 
 class LLMService:
     def __init__(self):
-        api_key = os.getenv('OPENAI_API_KEY')
-        if api_key and api_key != 'your_openai_api_key_here':
-            self.client = OpenAI(api_key=api_key)
-            self.model = "gpt-5"  # Using GPT-4 Turbo (latest available)
-            self.use_openai = True
-        else:
-            self.client = None
-            self.use_openai = False
-            print("Warning: OpenAI API key not set. Using fallback responses.")
+        # For now, use fallback mode to avoid OpenAI client issues
+        self.client = None
+        self.use_openai = False
+        print("Using fallback LLM responses (OpenAI client disabled due to configuration issues)")
     
     async def generate_response(self, message: str, session_id: str = None, project_context: dict = None) -> dict:
         """Generate AI response with context and memory"""

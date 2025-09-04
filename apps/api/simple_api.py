@@ -11,14 +11,14 @@ from datetime import datetime, timezone
 
 # Database and AI services
 try:
-    from .database import init_db
-    from .llm_service import llm_service
-    from .rag_service import rag_service
-except ImportError:
-    # Fallback for direct execution
     from database import init_db
     from llm_service import llm_service
     from rag_service import rag_service
+except ImportError:
+    # Fallback for relative import
+    from .database import init_db
+    from .llm_service import llm_service
+    from .rag_service import rag_service
 
 app = FastAPI(
     title="StudioOps AI API",

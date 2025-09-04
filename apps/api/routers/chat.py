@@ -6,44 +6,221 @@ import asyncio
 import time
 from pydantic import BaseModel
 from services.pricing_resolver import pricing_resolver
+import psycopg2
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Database connection
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://studioops:studioops123@localhost:5432/studioops')
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 class ChatMessage(BaseModel):
     message: str
     project_id: Optional[str] = None
+    session_id: Optional[str] = None
 
-async def simulate_ai_response(message: str):
-    """Simulate AI response generation"""
-    # This is a mock implementation - in production, you would use:
-    # 1. Retrieve relevant context from Mem0
-    # 2. Use LangChain/LlamaIndex with your LLM
-    # 3. Generate response with citations
+def get_db_connection():
+    """Get a database connection"""
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
+
+async def get_project_context(project_id: str) -> Dict[str, Any]:
+    """Get project context from database"""
+    if not project_id:
+        return {}
     
-    responses = {
-        "hello": "שלום! איך אני יכול לעזור לך עם הפרויקט היום?",
-        "project": "אשמח לעזור עם התכנון. תאר לי את הפרויקט ואתן לך המלצות.",
-        "price": "אני יכול לעזור עם תמחור. איזה חומרים אתה צריך?",
-        "plan": "בוא ניצור תוכנית עבודה מפורטת לפרויקט שלך.",
-        "default": "מצוין! אני כאן כדי לעזור עם ניהול הפרויקט. אוכל לסייע בתכנון, תמחור, יצירת תוכנית עבודה או ייצוא ל-Trello."
-    }
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT id, name, client_name, status, start_date, due_date, budget_planned
+            FROM projects WHERE id = %s
+        """, (project_id,))
+        
+        row = cursor.fetchone()
+        if row:
+            return {
+                "project_id": row[0],
+                "project_name": row[1],
+                "client_name": row[2],
+                "status": row[3],
+                "start_date": row[4].isoformat() if row[4] else None,
+                "due_date": row[5].isoformat() if row[5] else None,
+                "budget_planned": float(row[6]) if row[6] else None
+            }
+        return {}
+        
+    finally:
+        cursor.close()
+        conn.close()
+
+async def get_chat_history(session_id: str, limit: int = 10) -> List[Dict]:
+    """Get chat history for context"""
+    if not session_id:
+        return []
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT message, response, is_user, created_at
+            FROM chat_messages 
+            WHERE session_id = %s 
+            ORDER BY created_at DESC 
+            LIMIT %s
+        """, (session_id, limit))
+        
+        history = []
+        for row in cursor.fetchall():
+            history.append({
+                "message": row[0],
+                "response": row[1],
+                "is_user": row[2],
+                "timestamp": row[3].isoformat()
+            })
+        
+        return history
+        
+    finally:
+        cursor.close()
+        conn.close()
+
+async def search_rag_documents(search_term: str, limit: int = 5) -> List[Dict]:
+    """Search RAG documents for relevant information"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT title, content, document_type
+            FROM rag_documents 
+            WHERE is_active = true 
+            AND (title ILIKE %s OR content ILIKE %s)
+            ORDER BY created_at DESC 
+            LIMIT %s
+        """, (f"%{search_term}%", f"%{search_term}%", limit))
+        
+        documents = []
+        for row in cursor.fetchall():
+            documents.append({
+                "title": row[0],
+                "content": row[1][:200] + "..." if len(row[1]) > 200 else row[1],
+                "type": row[2]
+            })
+        
+        return documents
+        
+    finally:
+        cursor.close()
+        conn.close()
+
+async def simulate_ai_response(message: str, project_id: str = None, session_id: str = None):
+    """Enhanced AI response generation with database context"""
     
     message_lower = message.lower()
     
-    if "hello" in message_lower or "hi" in message_lower:
-        return responses["hello"]
+    # Get context from database
+    project_context = await get_project_context(project_id) if project_id else {}
+    chat_history = await get_chat_history(session_id) if session_id else []
+    
+    # Extract keywords for RAG search
+    keywords = extract_keywords(message)
+    rag_context = []
+    if keywords:
+        for keyword in keywords[:3]:  # Search top 3 keywords
+            docs = await search_rag_documents(keyword, limit=2)
+            rag_context.extend(docs)
+    
+    # Build context-aware response
+    context_info = ""
+    if project_context:
+        context_info += f"\nProject: {project_context.get('project_name', 'Unknown')}"
+        if project_context.get('client_name'):
+            context_info += f" for {project_context['client_name']}"
+    
+    if rag_context:
+        context_info += "\nRelevant knowledge:"
+        for doc in rag_context:
+            context_info += f"\n- {doc['title']}: {doc['content']}"
+    
+    # Context-aware responses
+    if "hello" in message_lower or "hi" in message_lower or "hey" in message_lower:
+        greeting = "שלום!" if any(char in message for char in "אבגדהוזחטיכלמנסעפצקרשת") else "Hello!"
+        return f"{greeting} איך אני יכול לעזור לך עם הפרויקט היום?{context_info}"
+    
     elif "project" in message_lower or "פרויקט" in message_lower:
-        return responses["project"]
+        if project_context:
+            return f"אשמח לעזור עם הפרויקט '{project_context.get('project_name')}'.{context_info} תאר לי מה אתה צריך לעשות ואתן לך המלצות מפורטות."
+        else:
+            return "אשמח לעזור עם התכנון. תאר לי את הפרויקט ואתן לך המלצות כולל חומרים, עבודה, ותמחור.{context_info}"
+    
     elif "price" in message_lower or "מחיר" in message_lower or "תמחור" in message_lower:
-        return responses["price"]
-    elif "plan" in message_lower or "תוכנית" in message_lower:
-        return responses["plan"]
+        return f"אני יכול לעזור עם תמחור מדויק.{context_info} איזה חומרים או עבודה אתה צריך לתמחר?"
+    
+    elif "plan" in message_lower or "תוכנית" in message_lower or "schedule" in message_lower:
+        return f"בוא ניצור תוכנית עבודה מפורטת.{context_info} אכלול חומרים, עבודה, לוח זמנים, ותמחור מדויק."
+    
+    elif "status" in message_lower or "stat" in message_lower or "status" in message_lower:
+        if project_context:
+            status = project_context.get('status', 'unknown')
+            return f"סטטוס הפרויקט '{project_context.get('project_name')}' הוא: {status}.{context_info}"
+        else:
+            return "אשמח לבדוק סטטוס פרויקט. אנא ציין את מזהה הפרויקט.{context_info}"
+    
+    elif "material" in message_lower or "חומר" in message_lower or "wood" in message_lower:
+        return f"אני יכול לעזור עם בחירת חומרים.{context_info} איזה סוג עבודה אתה מתכנן?"
+    
     else:
-        return responses["default"]
+        return f"מצוין! אני כאן כדי לעזור עם ניהול הפרויקט.{context_info} אוכל לסייע בתכנון, תמחור, יצירת תוכנית עבודה, או מעקב אחר התקדמות."
 
-async def generate_streaming_response(message: str):
-    """Generate streaming response for SSE"""
-    response = await simulate_ai_response(message)
+def extract_keywords(message: str) -> List[str]:
+    """Extract relevant keywords from message for RAG search"""
+    message_lower = message.lower()
+    
+    # Common project-related keywords
+    keywords = []
+    
+    # Project types
+    project_types = [
+        'cabinet', 'kitchen', 'furniture', 'table', 'chair', 'desk', 'shelf',
+        'painting', 'paint', 'wall', 'ceiling', 'electrical', 'wiring', 'light',
+        'plumbing', 'pipe', 'sink', 'toilet', 'renovation', 'remodel', 'build',
+        'construction', 'deck', 'patio', 'door', 'window', 'floor', 'tile'
+    ]
+    
+    # Materials
+    materials = [
+        'wood', 'plywood', 'lumber', '2x4', 'pine', 'oak', 'maple', 'screw',
+        'nail', 'hinge', 'paint', 'stain', 'varnish', 'wire', 'pipe', 'drywall',
+        'tile', 'glass', 'metal', 'steel', 'aluminum', 'plastic', 'laminate'
+    ]
+    
+    # Hebrew keywords
+    hebrew_keywords = [
+        'עץ', 'פlywood', 'קרש', 'בורג', 'מסמר', 'צבע', 'לכה', 'חוט', 'צינור',
+        'גבס', 'אריח', 'זכוכית', 'מתכת', 'פלדה', 'אלומיניום', 'פלסטיק', 'למינציה'
+    ]
+    
+    # Check for keywords in message
+    all_keywords = project_types + materials + hebrew_keywords
+    for keyword in all_keywords:
+        if keyword in message_lower:
+            keywords.append(keyword)
+    
+    return keywords
+
+async def generate_streaming_response(message: str, project_id: str = None, session_id: str = None):
+    """Generate streaming response for SSE with context"""
+    response = await simulate_ai_response(message, project_id, session_id)
     
     # Simulate streaming by sending words one by one
     words = response.split()
@@ -55,29 +232,50 @@ async def generate_streaming_response(message: str):
 async def chat_stream(chat_message: ChatMessage):
     """Streaming chat endpoint with SSE"""
     return StreamingResponse(
-        generate_streaming_response(chat_message.message),
+        generate_streaming_response(
+            chat_message.message, 
+            chat_message.project_id, 
+            chat_message.session_id
+        ),
         media_type="text/event-stream"
     )
 
 @router.post("/message")
 async def chat_message(chat_message: ChatMessage):
-    """Simple chat endpoint (non-streaming)"""
+    """Simple chat endpoint (non-streaming) with context"""
     try:
-        response = await simulate_ai_response(chat_message.message)
+        response = await simulate_ai_response(
+            chat_message.message, 
+            chat_message.project_id, 
+            chat_message.session_id
+        )
         
         # Check if the message suggests creating a plan
         should_suggest_plan = any(word in chat_message.message.lower() for word in [
             'plan', 'תוכנית', 'project', 'פרויקט', 'build', 'בנייה', 'create', 'יצירה'
         ])
         
+        # Get actual context from database
+        project_context = await get_project_context(chat_message.project_id) if chat_message.project_id else {}
+        rag_context = []
+        if chat_message.message:
+            keywords = extract_keywords(chat_message.message)
+            if keywords:
+                for keyword in keywords[:2]:
+                    docs = await search_rag_documents(keyword, limit=1)
+                    rag_context.extend(docs)
+        
         return {
             "message": response,
             "context": {
-                "assumptions": ["הנחה 1", "הנחה 2"],
-                "risks": ["סיכון 1", "סיכון 2"],
-                "suggestions": ["הצעה 1", "הצעה 2"]
+                "project": project_context,
+                "rag_documents": rag_context,
+                "assumptions": ["מחירים מעודכנים לפי ספקים נוכחיים", "זמני עבודה לפי ניסיון קודם"],
+                "risks": ["זמינות חומרים עשויה להשתנות", "שינויים בלוח הזמנים אפשריים"],
+                "suggestions": ["מומלץ לקבל הצעות מחיר מכמה ספקים", "לתכנן מרווח ביטחון של 15% בעלויות"]
             },
             "suggest_plan": should_suggest_plan,
+            "session_id": chat_message.session_id or f"session_{int(time.time())}",
             "timestamp": time.time()
         }
     

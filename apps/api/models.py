@@ -77,3 +77,20 @@ class ProjectKnowledge(Base):
     
     def __repr__(self):
         return f"<ProjectKnowledge(project={self.project_id}, key={self.key})>"
+
+class Project(Base):
+    """Project management"""
+    __tablename__ = "projects"
+    
+    id = Column(String, primary_key=True, default=generate_ulid)
+    name = Column(String, nullable=False)
+    client_name = Column(String, nullable=True)
+    status = Column(String, default="draft")
+    start_date = Column(DateTime(timezone=True), nullable=True)
+    due_date = Column(DateTime(timezone=True), nullable=True)
+    budget_planned = Column(Float, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    def __repr__(self):
+        return f"<Project(name={self.name}, client={self.client_name})>"

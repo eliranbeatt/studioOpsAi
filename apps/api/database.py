@@ -29,7 +29,7 @@ def get_db():
 def init_db():
     """Initialize database tables"""
     try:
-        from .models import Base
+        from models import Base
         Base.metadata.create_all(bind=engine)
         print("Database tables created successfully")
     except Exception as e:
@@ -38,6 +38,6 @@ def init_db():
 
 def drop_db():
     """Drop all database tables"""
-    from .models import Base
+    from models import Base
     Base.metadata.drop_all(bind=engine)
     print("Database tables dropped successfully")
