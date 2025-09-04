@@ -35,6 +35,16 @@ const navigation = [
     href: '/plans',
     icon: '📊',
   },
+  {
+    name: 'הגדרות',
+    href: '/settings',
+    icon: '⚙️',
+  },
+  {
+    name: 'טעינת נתונים',
+    href: '/data-loading',
+    icon: '📤',
+  },
 ]
 
 export default function Sidebar() {

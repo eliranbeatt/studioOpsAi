@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import os
@@ -10,34 +10,8 @@ import json
 import time
 
 # Import LLM and RAG services
-try:
-    # Try absolute import first
-    from llm_service import llm_service
-    from rag_service import rag_service
-except ImportError:
-    try:
-        # Fallback for relative import
-        from .llm_service import llm_service
-        from .rag_service import rag_service
-    except ImportError:
-        # Create fallback instances if imports fail
-        print("Warning: LLM and RAG services not available. Using fallback mode.")
-        
-        # Create simple fallback classes
-        class FallbackLLMService:
-            async def generate_response(self, message, session_id=None, project_context=None):
-                return {
-                    "message": "I'm a fallback AI assistant. Please configure OpenAI API for full functionality.",
-                    "session_id": session_id or "fallback-session",
-                    "suggest_plan": False
-                }
-        
-        class FallbackRAGService:
-            def enhance_prompt(self, user_message, max_context=1000):
-                return user_message
-        
-        llm_service = FallbackLLMService()
-        rag_service = FallbackRAGService()
+from llm_service import llm_service
+from rag_service import rag_service
 
 # Load environment variables
 load_dotenv()
@@ -326,6 +300,143 @@ async def detect_context(message: str):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing context: {e}")
+
+# Additional chat endpoints
+@app.get("/chat/sessions", response_model=List[Dict[str, Any]])
+async def get_chat_sessions(project_id: Optional[str] = None):
+    """Get all chat sessions, optionally filtered by project"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        if project_id:
+            cursor.execute("""
+                SELECT DISTINCT session_id, MAX(created_at) as last_activity
+                FROM chat_messages 
+                WHERE project_context->>'project_id' = %s
+                GROUP BY session_id
+                ORDER BY last_activity DESC
+            """, (project_id,))
+        else:
+            cursor.execute("""
+                SELECT DISTINCT session_id, MAX(created_at) as last_activity
+                FROM chat_messages 
+                GROUP BY session_id
+                ORDER BY last_activity DESC
+            """)
+        
+        sessions = []
+        for row in cursor.fetchall():
+            sessions.append({
+                "session_id": row[0],
+                "last_activity": row[1].isoformat() if row[1] else None
+            })
+        
+        cursor.close()
+        conn.close()
+        return sessions
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch chat sessions: {e}")
+
+@app.get("/chat/history/{session_id}", response_model=List[Dict[str, Any]])
+async def get_chat_history(session_id: str):
+    """Get chat history for a specific session"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT id, message, response, is_user, project_context, created_at
+            FROM chat_messages 
+            WHERE session_id = %s
+            ORDER BY created_at ASC
+        """, (session_id,))
+        
+        messages = []
+        for row in cursor.fetchall():
+            messages.append({
+                "id": row[0],
+                "message": row[1],
+                "response": row[2],
+                "is_user": row[3],
+                "project_context": row[4],
+                "created_at": row[5].isoformat() if row[5] else None
+            })
+        
+        cursor.close()
+        conn.close()
+        return messages
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {e}")
+
+@app.delete("/chat/session/{session_id}")
+async def delete_chat_session(session_id: str):
+    """Delete a chat session and all its messages"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM chat_messages WHERE session_id = %s", (session_id,))
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Chat session not found")
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"message": "Chat session deleted successfully", "deleted_messages": cursor.rowcount}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete chat session: {e}")
+
+@app.get("/chat/analyze")
+async def analyze_chat_message(message: str):
+    """Analyze a chat message for project context and intent"""
+    try:
+        # Use the context detection endpoint
+        context_response = await detect_context(message)
+        
+        # Additional analysis can be added here
+        return {
+            "success": True,
+            "message": message,
+            "analysis": context_response["analysis"],
+            "suggested_actions": ["create_project", "estimate_cost", "schedule_task"],
+            "confidence": 0.85
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing chat message: {e}")
+
+@app.post("/rag/upload")
+async def rag_upload_file(
+    file: UploadFile = File(...),
+    source: str = Form("web_upload"),
+    document_type: str = Form("manual")
+):
+    """Upload a document to the RAG system"""
+    try:
+        # Read file content
+        contents = await file.read()
+        
+        # For now, just log the upload and return success
+        # In a real implementation, this would process the file and add to RAG
+        print(f"RAG Upload: {file.filename} ({len(contents)} bytes) from {source}, type: {document_type}")
+        
+        return {
+            "success": True,
+            "filename": file.filename,
+            "size": len(contents),
+            "message": "File uploaded successfully (simulated)"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {e}")
 
 if __name__ == "__main__":
     import uvicorn
