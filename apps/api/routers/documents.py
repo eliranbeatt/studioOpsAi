@@ -7,8 +7,8 @@ import json
 from datetime import datetime, timezone
 
 from packages.schemas.projects import Document, DocumentCreate
-from ..services.pdf_service import pdf_service
-from ..services.trello_service import trello_service
+from services.pdf_service import pdf_service
+from services.trello_service import trello_service
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

@@ -7,7 +7,7 @@ from datetime import datetime
 
 from packages.schemas.projects import Project, ProjectCreate, ProjectUpdate
 from packages.schemas.auth import UserInDB
-from ..services.auth_service import get_current_user
+from services.auth_service import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 

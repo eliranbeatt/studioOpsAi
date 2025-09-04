@@ -6,7 +6,7 @@ from uuid import UUID
 import json
 
 from packages.schemas.projects import Plan, PlanCreate, PlanUpdate, PlanItem, PlanItemCreate
-from ..services.pricing_resolver import pricing_resolver
+from services.pricing_resolver import pricing_resolver
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 

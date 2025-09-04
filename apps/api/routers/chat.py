@@ -5,7 +5,7 @@ import json
 import asyncio
 import time
 from pydantic import BaseModel
-from ..services.pricing_resolver import pricing_resolver
+from services.pricing_resolver import pricing_resolver
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
