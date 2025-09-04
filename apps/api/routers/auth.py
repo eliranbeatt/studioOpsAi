@@ -11,7 +11,7 @@ from packages.schemas.auth import (
     UserCreate, User, LoginRequest, Token, APIKeyCreate, APIKey, 
     PasswordResetRequest, PasswordResetConfirm
 )
-from ..services.auth_service import auth_service, get_current_user
+from services.auth_service import auth_service, get_current_user
 from packages.schemas.auth import UserInDB
 
 router = APIRouter(prefix="/auth", tags=["authentication"])

@@ -8,7 +8,15 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from routers import vendors, materials, mem0, chat, projects, plans, documents, auth, estimation, instructor, ingest, vendor_prices, purchases, shipping_quotes, rate_cards
+from routers import vendors, materials, mem0, chat, projects, plans, auth, estimation, instructor, ingest, vendor_prices, purchases, shipping_quotes, rate_cards
+
+# Conditionally import documents router if WeasyPrint is available
+try:
+    from routers import documents
+    DOCUMENTS_AVAILABLE = True
+except ImportError as e:
+    print(f"Documents router not available: {e}")
+    DOCUMENTS_AVAILABLE = False
 from middleware.observability_middleware import ObservabilityMiddleware, ObservableAPIRoute
 from services.observability_service import observability_service
 
@@ -43,13 +51,12 @@ app.include_router(mem0.router)
 app.include_router(chat.router)
 app.include_router(projects.router)
 app.include_router(plans.router)
-app.include_router(documents.router)
+if DOCUMENTS_AVAILABLE:
+    app.include_router(documents.router)
 app.include_router(vendor_prices.router)
 app.include_router(purchases.router)
 app.include_router(shipping_quotes.router)
 app.include_router(rate_cards.router)
-app.include_router(ocr.router)
-app.include_router(unstructured.router)
 app.include_router(instructor.router)
 app.include_router(ingest.router)
 

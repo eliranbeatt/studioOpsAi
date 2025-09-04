@@ -1,0 +1,71 @@
+# Page snapshot
+
+```yaml
+- generic [active]:
+  - alert [ref=e1]
+  - dialog "Server Error" [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - navigation [ref=e8]:
+          - button "previous" [disabled] [ref=e9]:
+            - img "previous" [ref=e10]
+          - button "next" [disabled] [ref=e12]:
+            - img "next" [ref=e13]
+          - generic [ref=e15]:
+            - generic [ref=e16]: "1"
+            - text: of
+            - generic [ref=e17]: "1"
+            - text: error
+          - generic [ref=e18]:
+            - generic "An outdated version detected (latest is 15.5.2), upgrade is highly recommended!" [ref=e20]: Next.js (14.2.32) is outdated
+            - link "(learn more)" [ref=e21] [cursor=pointer]:
+              - /url: https://nextjs.org/docs/messages/version-staleness
+        - heading "Server Error" [level=1] [ref=e22]
+        - paragraph [ref=e23]: "Error: Cannot find module './24.js' Require stack: - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\.next\\server\\webpack-runtime.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\.next\\server\\pages\\_document.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\require.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\load-components.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\build\\utils.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\lib\\router-server.js - C:\\Users\\elira\\Dev\\claude code\\apps\\web\\node_modules\\next\\dist\\server\\lib\\start-server.js"
+        - generic [ref=e25]: This error happened while generating the page. Any console logs will be displayed in the terminal window.
+      - generic [ref=e26]:
+        - heading "Call Stack" [level=2] [ref=e27]
+        - group [ref=e28]:
+          - generic "Next.js" [ref=e29] [cursor=pointer]:
+            - img [ref=e30] [cursor=pointer]
+            - img [ref=e32] [cursor=pointer]
+            - text: Next.js
+        - generic [ref=e37]:
+          - heading "TracingChannel.traceSync" [level=3] [ref=e38]
+          - generic [ref=e40]: node:diagnostics_channel (322:14)
+        - group [ref=e41]:
+          - generic "Next.js" [ref=e42] [cursor=pointer]:
+            - img [ref=e43] [cursor=pointer]
+            - img [ref=e45] [cursor=pointer]
+            - text: Next.js
+        - generic [ref=e50]:
+          - heading "Array.reduce" [level=3] [ref=e51]
+          - generic [ref=e53]: <anonymous>
+        - group [ref=e54]:
+          - generic "Next.js" [ref=e55] [cursor=pointer]:
+            - img [ref=e56] [cursor=pointer]
+            - img [ref=e58] [cursor=pointer]
+            - text: Next.js
+        - generic [ref=e63]:
+          - heading "Array.map" [level=3] [ref=e64]
+          - generic [ref=e66]: <anonymous>
+        - group [ref=e67]:
+          - generic "Next.js" [ref=e68] [cursor=pointer]:
+            - img [ref=e69] [cursor=pointer]
+            - img [ref=e71] [cursor=pointer]
+            - text: Next.js
+        - generic [ref=e76]:
+          - heading "<unknown>" [level=3] [ref=e77]
+          - generic [ref=e79]: file:///C:/Users/elira/Dev/claude%20code/apps/web/.next/server/app/page.js (1:13625)
+        - generic [ref=e80]:
+          - heading "Object.<anonymous>" [level=3] [ref=e81]
+          - generic [ref=e83]: file:///C:/Users/elira/Dev/claude%20code/apps/web/.next/server/app/page.js (1:13669)
+        - generic [ref=e84]:
+          - heading "TracingChannel.traceSync" [level=3] [ref=e85]
+          - generic [ref=e87]: node:diagnostics_channel (322:14)
+        - group [ref=e88]:
+          - generic "Next.js" [ref=e89] [cursor=pointer]:
+            - img [ref=e90] [cursor=pointer]
+            - img [ref=e92] [cursor=pointer]
+            - text: Next.js
+```

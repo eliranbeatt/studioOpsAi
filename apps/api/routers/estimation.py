@@ -11,8 +11,8 @@ from packages.schemas.estimation import (
     RateCardUpdate, ShippingQuoteCreate
 )
 from packages.schemas.auth import UserInDB
-from ..services.estimation_service import estimation_service
-from ..services.auth_service import get_current_user
+from services.estimation_service import estimation_service
+from services.auth_service import get_current_user
 
 router = APIRouter(prefix="/estimation", tags=["estimation"])
 

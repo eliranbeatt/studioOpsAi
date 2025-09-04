@@ -13,8 +13,8 @@ from packages.schemas.estimation import (
     ProjectEstimateRequest, ProjectEstimate,
     MaterialRequirement, RateCardUpdate, ShippingQuoteCreate
 )
-from ..services.pricing_resolver import pricing_resolver
-from ..services.observability_service import observability_service
+from services.pricing_resolver import pricing_resolver
+from services.observability_service import observability_service
 
 logger = logging.getLogger(__name__)
 
