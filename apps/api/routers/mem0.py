@@ -222,3 +222,42 @@ async def get_project_memory_count(project_id: UUID):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error counting memories: {e}")
+
+@router.get("/scope/{project_id}", response_model=dict)
+async def get_mem0_scope(project_id: UUID):
+    """Get Mem0 scope for a specific project"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get all memories for the project with their scope keys
+        cursor.execute(
+            """SELECT scope_keys FROM memories WHERE project_id = %s AND scope_keys IS NOT NULL""",
+            (str(project_id),)
+        )
+        
+        scope_data = {}
+        for row in cursor.fetchall():
+            if row[0]:
+                scope_keys = json.loads(row[0])
+                for key, value in scope_keys.items():
+                    if key not in scope_data:
+                        scope_data[key] = set()
+                    if isinstance(value, list):
+                        scope_data[key].update(value)
+                    else:
+                        scope_data[key].add(value)
+        
+        # Convert sets to lists for JSON serialization
+        scope_data = {key: list(values) for key, values in scope_data.items()}
+        
+        cursor.close()
+        conn.close()
+        
+        return {
+            "project_id": project_id,
+            "scope": scope_data
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting Mem0 scope: {e}")

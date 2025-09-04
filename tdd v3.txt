@@ -1,0 +1,554 @@
+# StudioOps AI — System Technical Design Document (TDD) v3.0
+
+*Updated: 2025‑09‑04*
+
+> This TDD implements the **Comprehensive PRD v3.0** (HRAG‑Lite, Hebrew/NIS, Trello MCP, Mem0, hybrid hosting). It is written to be executable by an AI coding agent: precise contracts, schemas, DDL, sequences, error models, performance budgets, and a TDD-first test plan.
+
+---
+
+## 0) System Overview
+
+**Goal**: A small‑studio platform that turns conversation → structured plan → Hebrew PDFs (Quote/Planning) → Tasks → Trello, powered by a **lean HRAG‑Lite** data layer (SQL + JSONB + Mem0 + Postgres FTS) and an ingestion pipeline with clarifications.
+
+### 0.1 High-Level Architecture
+
+```mermaid
+graph TB
+  subgraph Cloud(Control Plane)
+    UI[Next.js (RTL Hebrew)
+    Auth, Dashboards, Chat]
+    GW[FastAPI API Gateway
+    (SSE, auth, mirrors)]
+    LLM[LiteLLM Router]
+    MCP_T[MCP: Trello]
+    MCP_SQL[MCP: SQL (read-only)]
+    Mirror[(Mirror DB / Search)
+    read-only]
+    OBS_C[Langfuse/OTEL Collector]
+  end
+
+  subgraph Local(Data/Compute Plane)
+    TUN[Tunnel (Tailscale/Cloudflare)
+    mTLS allow-list]
+    API[FastAPI Core
+    (domain APIs, webhooks)]
+    AG[LangGraph Agents
+    (Assistant/Quote/Planner/Finance)]
+    MEM0[Mem0 Service (pgvector)]
+    PG[(Postgres + JSONB + FTS)]
+    MINIO[(MinIO Object Store)]
+    ING[Ingest Workers
+    (Unstructured/OCR + Extract)]
+    UITARS[UI-TARS Desktop Agent]
+    OBS_L[Langfuse SDK + OTEL spans]
+  end
+
+  UI-->GW
+  GW-- MCP -->MCP_T
+  GW-- MCP -->MCP_SQL
+  GW-- mTLS -->TUN-->API
+  UI-->LLM
+  API<-->AG
+  AG<-->MEM0
+  AG<-->PG
+  API<-->PG
+  API<-->MINIO
+  API<-->ING
+  API-->OBS_L-->OBS_C
+  GW-->OBS_C
+```
+
+---
+
+## 1) Repos & Layout
+
+```
+studioops/
+  apps/
+    web/                 # Next.js (App Router, RTL, shadcn/ui)
+    api/                 # FastAPI Core (local plane)
+    gateway/             # FastAPI Gateway (cloud plane)
+    trello-mcp/          # Trello MCP server
+  packages/
+    schemas/             # Pydantic + TS types (OpenAPI shared)
+    pricing/             # pricing/shipping/labor modules
+    db/                  # Alembic migrations + seeders
+    clients/             # API + MCP clients
+  infra/
+    docker-compose.yml   # local stack (PG, Mem0, MinIO, Langfuse, API, Web)
+    k6/                  # perf tests
+  tests/
+    unit/
+    integration/
+    e2e/
+```
+
+---
+
+## 2) Environment & Config
+
+| Key                                | Description                         |
+| ---------------------------------- | ----------------------------------- |
+| `DATABASE_URL`                     | Postgres connection (local primary) |
+| `MEM0_*`                           | Mem0 provider config (pgvector)     |
+| `MINIO_ENDPOINT/KEY/SECRET/BUCKET` | Object storage                      |
+| `LITELLM_*`                        | Model routing                       |
+| `TRELLO_API_KEY/TOKEN`             | Trello per-user tokens              |
+| `TUNNEL_*`                         | Tunnel auth (mTLS certs/secrets)    |
+| `LANGFUSE_*`                       | Tracing                             |
+
+Secrets are managed with **SOPS**; local `.env` for dev only.
+
+---
+
+## 3) Data Model (DDL)
+
+> Postgres; enable `pg_trgm`, `unaccent`, `pgcrypto`. pgvector optional for Mem0 backend. All IDs are ULIDs (TEXT).
+
+```sql
+-- Documents repository
+create table documents (
+  id ulid primary key,
+  filename text not null,
+  mime_type text,
+  size_bytes bigint,
+  language text,   -- he/en
+  type text,       -- quote|project_brief|invoice|receipt|shipping_quote|catalog|trello_export|other
+  confidence numeric(3,2),
+  project_id ulid,
+  storage_path text not null,
+  content_sha256 text not null unique,
+  created_at timestamptz default now()
+);
+
+create table doc_chunks (
+  id ulid primary key,
+  document_id ulid references documents(id) on delete cascade,
+  page int not null,
+  text text not null,
+  tsv tsvector generated always as (to_tsvector('simple', unaccent(coalesce(text,'')))) stored
+);
+create index on doc_chunks(document_id, page);
+create index doc_chunks_tsv_idx on doc_chunks using gin(tsv);
+
+-- Projects & Plans
+create table projects (
+  id ulid primary key,
+  name text not null,
+  client_name text,
+  board_id text, -- Trello
+  status text,
+  start_date date,
+  due_date date,
+  budget_planned numeric(14,2),
+  budget_actual numeric(14,2)
+);
+
+create table plans (
+  id ulid primary key,
+  project_id ulid references projects(id) on delete cascade,
+  version int not null,
+  status text check (status in ('draft','approved','archived')),
+  margin_target numeric(4,3) default 0.25,
+  currency text default 'NIS',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique(project_id, version)
+);
+
+create table plan_items (
+  id ulid primary key,
+  plan_id ulid references plans(id) on delete cascade,
+  category text not null,
+  title text not null,
+  description text,
+  quantity numeric(14,3) default 1,
+  unit text,
+  unit_price numeric(14,2),
+  unit_price_source jsonb,
+  vendor_id ulid,
+  labor_role text,
+  labor_hours numeric(10,2),
+  lead_time_days numeric(6,2),
+  dependency_ids jsonb,
+  risk_level text,
+  notes text,
+  subtotal numeric(14,2),
+  attrs jsonb,
+  metadata jsonb
+);
+create index on plan_items(plan_id);
+create index plan_items_attrs_idx on plan_items using gin(attrs jsonb_path_ops);
+
+-- Vendor Cost DB
+create table vendors (
+  id ulid primary key,
+  name text not null,
+  contact jsonb,
+  url text,
+  rating smallint,
+  notes text
+);
+create table materials (
+  id ulid primary key,
+  name text not null,
+  spec text,
+  unit text not null,
+  category text,
+  typical_waste_pct numeric(5,2) default 0,
+  notes text
+);
+create table vendor_prices (
+  id ulid primary key,
+  vendor_id ulid references vendors(id),
+  material_id ulid references materials(id),
+  sku text,
+  price_nis numeric(14,2) not null,
+  fetched_at timestamptz not null,
+  source_url text,
+  confidence numeric(3,2) default 0.8,
+  is_quote boolean default false,
+  unique(vendor_id, material_id, sku, fetched_at)
+);
+create index on vendor_prices(material_id, fetched_at desc);
+
+create table purchases (
+  id ulid primary key,
+  vendor_id ulid references vendors(id),
+  material_id ulid references materials(id),
+  project_id ulid references projects(id),
+  qty numeric(14,3),
+  unit_price_nis numeric(14,2),
+  tax_vat_pct numeric(5,2),
+  occurred_at date,
+  receipt_path text
+);
+
+create table shipping_quotes (
+  id ulid primary key,
+  route_hash text,
+  distance_km numeric(10,2),
+  weight_kg numeric(10,2),
+  type text,
+  base_fee_nis numeric(14,2),
+  per_km_nis numeric(10,2),
+  per_kg_nis numeric(10,2),
+  surge_json jsonb,
+  fetched_at timestamptz,
+  source text,
+  confidence numeric(3,2)
+);
+
+create table rate_cards (
+  role text primary key,
+  hourly_rate_nis numeric(10,2) not null,
+  overtime_rules_json jsonb,
+  default_efficiency numeric(3,2) default 1.0
+);
+
+-- Ingestion staging & audit
+create table extracted_items (
+  id ulid primary key,
+  document_id ulid references documents(id) on delete cascade,
+  project_id ulid,
+  type text not null, -- line_item|purchase|shipping|decision|metadata
+  vendor_id ulid,
+  material_id ulid,
+  title text,
+  qty numeric(14,3),
+  unit text,
+  unit_price_nis numeric(14,2),
+  vat_pct numeric(5,2),
+  lead_time_days numeric(6,2),
+  attrs jsonb,
+  source_ref text not null,    -- doc:page:span
+  evidence text,
+  confidence numeric(3,2) default 0.8,
+  occurred_at date,
+  created_at timestamptz default now()
+);
+create index on extracted_items(project_id, type);
+create index extracted_items_attrs_idx on extracted_items using gin(attrs jsonb_path_ops);
+create index extracted_items_low_conf_idx on extracted_items(confidence) where confidence < 0.7;
+
+create table vendor_aliases (
+  id ulid primary key,
+  vendor_id ulid not null references vendors(id),
+  alias text not null,
+  source_ref text,
+  created_at timestamptz default now()
+);
+create index on vendor_aliases(vendor_id);
+create index on vendor_aliases using gin (alias gin_trgm_ops);
+
+create table material_aliases (
+  id ulid primary key,
+  material_id ulid not null references materials(id),
+  alias text not null,
+  source_ref text,
+  created_at timestamptz default now()
+);
+create index on material_aliases(material_id);
+create index on material_aliases using gin (alias gin_trgm_ops);
+
+create table ingest_events (
+  id bigserial primary key,
+  document_id ulid not null,
+  stage text not null,    -- upload|parse|classify|pack|extract|validate|link|stage|clarify|commit|error
+  status text not null,   -- start|ok|retry|fail
+  payload_jsonb jsonb,
+  created_at timestamptz default now()
+);
+
+-- Documents generated
+create table generated_documents (
+  id ulid primary key,
+  project_id ulid references projects(id),
+  type text check (type in ('quote','planning')),
+  path_pdf text not null,
+  snapshot_jsonb jsonb,
+  version int,
+  created_at timestamptz default now(),
+  created_by text
+);
+```
+
+---
+
+## 4) Core Services & Contracts
+
+### 4.1 Core API (FastAPI, Local)
+
+**Shared error model:** `{ code, message, details?, retriable: bool, trace_id }`
+
+**Projects & Plans**
+
+* `GET /projects` → list
+* `POST /projects` → create
+* `GET /projects/{id}`
+* `POST /projects/{id}/chat` (SSE): `{message, tools_allowed?}` → `{reply, updates:{assumptions[], risks[], bom[], labor_est[]}}`
+* `POST /projects/{id}/plan/from_context` → `{plan_id, version, items[]}`
+* `POST /projects/{id}/plan/upsert` → `{items:[PlanItem...]}`
+* `POST /projects/{id}/plan/reprice` → `{item_ids[]?}` → `{updated_items[], sources[]}`
+* `POST /projects/{id}/plan/reestimate_labor` → `{item_ids[]?}`
+* `POST /projects/{id}/approve_plan` → `{approved_by}` → `{status:'approved'}`
+* `POST /projects/{id}/documents/generate` → `{template:'hebrew_default', include_tiers?:bool}` → `{quote_pdf, planning_pdf, planning_json}`
+
+**Tasks & Trello**
+
+* `POST /projects/{id}/tasks/draft` → `{strategy?}` → `{tasks[]}`
+* `POST /projects/{id}/tasks/export/trello` → `{board_name?, confirm:true}` → `{board_id, created[], updated[]}`
+* `POST /webhooks/trello` (signed) → upserts actions/cards; idempotent
+
+**Vendor DB**
+
+* `GET /vendor_prices/search?q&material_id&vendor_id&since`
+* `POST /vendor_prices` (internal, from ingest)
+* `POST /purchases` (internal, from ingest)
+* `POST /shipping/estimate` → `{distance_km, weight_kg, type}` → `{cost, components{base, per_km, per_kg}, confidence}`
+* `GET /rate_cards`
+
+**Mem0 wrappers**
+
+* `POST /mem0/add|search|batch_add`
+* `GET /mem0/scope/{project_id}`
+
+**Ingestion**
+
+* `POST /ingest/upload` (multipart)
+* `POST /ingest/run/{document_id}` (SSE status)
+* `GET /ingest/{document_id}` → extracted payload + issues + suggestions + clarifications
+* `POST /ingest/{document_id}/answer` → updates staged data
+* `POST /ingest/{document_id}/commit` → writes SQL + memories
+* `GET /ingest/queue?status=needs_review|failed|all`
+
+### 4.2 Gateway API (Cloud)
+
+* Mirrors the Core API with proxying via tunnel; adds Auth and SSE fanout; read‑only mirrors for fallback.
+
+### 4.3 MCP: Trello (Server)
+
+**Methods** (JSON Schema):
+
+* `ensure_board_structure(project_id, board_name, lists[], labels[], custom_fields[])`
+* `upsert_cards(project_id, board_id, cards:[{external_id, title, desc, list, labels[], custom_fields{}}])`
+* `get_actions(board_id, before?, limit?)`
+* `add_checklist(card_id, items[])`
+* `add_comment(card_id, text)`
+
+Idempotency: `external_id = project_id:plan_item_id`.
+
+### 4.4 MCP: SQL (read‑only)
+
+* Whitelisted schemas/tables; only `SELECT` with required `LIMIT`.
+* Parameterized templates for common queries (prices, purchases, lead times, plan items by category).
+* Logs full query with hashed parameters.
+
+---
+
+## 5) Algorithms & Modules
+
+### 5.1 Pricing Resolver
+
+1. Prefer latest `vendor_prices` for exact `material_id` and preferred vendors.
+2. If multiple: **median of top‑k** by `confidence`.
+3. Else: last `purchases` for same material/spec.
+4. Else: web price (saved to `vendor_prices` with low confidence).
+   Apply waste %, VAT handling, NIS rounding.
+
+### 5.2 Shipping Estimator (v1)
+
+* Model: `cost = base + α*distance_km + β*weight_kg + γ(type)` fit from `shipping_quotes`.
+* KNN fallback by route/material class.
+* Persist predictions with `source='MODEL'`, `confidence`.
+
+### 5.3 Labor Estimator (v1)
+
+* `hours = base_hours(category, material) * complexity * adj(project_archetype)` learned from plan history / (later) Trello cycle times.
+* `cost = hours * rate_cards[role]`.
+
+### 5.4 HRAG‑Lite Retrieval Router
+
+* **Structured intent** (fields, dates, vendors, materials) → SQL MCP / Core API.
+* **Narrative** → Postgres FTS over `doc_chunks` scoped to project/vendor.
+* Returned candidates → re‑rank by BM25 → **extractive cleaner** with citations.
+
+### 5.5 Ingestion Pipeline (state machine)
+
+`upload → parse → classify → pack (build retrieval context) → extract (page) → validate → link → stage → [clarify?] → commit`
+
+* Clarifications: single‑fact questions; multiple‑choice from context when possible.
+* Commit transactionally per document: SQL upserts, Mem0 memories, dossier updates.
+
+---
+
+## 6) UI Specs (Key Views)
+
+### 6.1 Project Workspace
+
+* Tabs: **שיחה**, **תוכנית**, **מסמכים**, **משימות**, **ניתוח**.
+* Chat (SSE) with Context Drawer tiles.
+
+### 6.2 Plan Editor
+
+* Grid with inline validation; actions: Reprice, Re‑estimate Labor, Apply Tier, What‑if, Approve Plan.
+* Impact Panel shows totals, margin, timeline delta, and reasons.
+
+### 6.3 Documents
+
+* List versions; view/download PDF & JSON; diff between versions; logo slot.
+
+### 6.4 Tasks
+
+* WBS draft list; edit/add/delete; Export to Trello; sync statuses from webhooks.
+
+### 6.5 Ingestion
+
+* Upload table (status chips), review drawer with page preview highlights, clarifications panel, linking widget; Approve/Commit.
+
+---
+
+## 7) Deployment
+
+### 7.1 Local (Docker Compose)
+
+Services: `postgres`, `minio`, `mem0`, `api`, `web`, `langfuse`, `ingest-workers`, optional `ollama/vllm`, `ui-tars`, `otel-collector`.
+
+### 7.2 Cloud
+
+* `web` (Vercel/VPS), `gateway` (FastAPI), `trello-mcp`, LiteLLM router, mirror DB (tiny), Langfuse cloud.
+
+### 7.3 Tunnel
+
+* Tailscale/Cloudflare Tunnel with mTLS; allow‑list routes; health checks.
+
+---
+
+## 8) Security
+
+* Private MinIO with signed URLs; PII fields encrypted at rest.
+* mTLS tunnel; signed HMAC webhooks; replay protection.
+* Read‑only SQL MCP with whitelisted queries and hard `LIMIT`.
+* No chain‑of‑thought persistence; store outputs + citations only.
+
+---
+
+## 9) Observability
+
+* OTEL spans per endpoint/tool call; propagate `trace_id` to UI.
+* Metrics: latency histograms, throughput, error rates, cost estimates (tokens × price).
+* Logs: structured JSON; redact PII; include `document_id`, `project_id`.
+
+---
+
+## 10) Performance Budgets
+
+* Plan recalculation p95 < **3s** for **1,000** items.
+* PDF generation < **10s** per pair (Quote + Planning).
+* Ingestion throughput ≥ **500 pages/hour** on local PC.
+* Trello export: batch 100 cards; respect 429 with exponential backoff.
+
+---
+
+## 11) Test‑Driven Development Plan
+
+> Write tests first. Every ticket must include unit + contract; critical flows add integration/E2E.
+
+### 11.1 Unit (pytest)
+
+* Pricing: `test_vendor_db_overrides_web`, `test_median_topk`, `test_vat_rounding_nis`.
+* Shipping: `test_regression_coefficients`, `test_knn_fallback`.
+* Labor: `test_hours_formula`.
+* Retrieval: `test_sql_router_for_structured`, `test_fts_scope`, `test_cleaner_citations_required`.
+* Ingestion: `test_unit_map_hebrew_units`, `test_total_mismatch_flag`, `test_vendor_autolink`.
+
+### 11.2 Contract
+
+* OpenAPI schema validation for Core & Gateway.
+* MCP JSON Schemas (Trello, SQL) round‑trip tests.
+* SSE format tests for chat & ingest run.
+
+### 11.3 Integration
+
+* Chat → Create Plan → Upsert Items → Reprice → Approve → Generate Hebrew PDFs.
+* Ingestion of sample Hebrew quote/receipt/shipping: extracted\_items → commit → SQL rows + Mem0 memories.
+* Trello export on sandbox board: ensure board, upsert idempotent, webhook handled.
+
+### 11.4 E2E (Playwright)
+
+* Full MVP flow (Hebrew UI): new project → chat → plan editor → approve → docs → tasks → Trello. Snapshot diff for PDFs.
+
+### 11.5 Performance/Chaos
+
+* k6: 20 concurrent uploads; ensure queues drain; p95 within budgets.
+* Kill ingest worker mid‑run; verify idempotent resume.
+
+### 11.6 AI Evaluation
+
+* Retrieval precision/recall\@k on labeled questions.
+* Citation coverage ≥ 0.95 for numeric facts.
+* Estimation error tracking vs final purchases (BvA).
+
+---
+
+## 12) Error Handling & Idempotency
+
+* Unified error model; map exceptions to `{code,message}`; user‑readable Hebrew prompts.
+* Idempotent Trello upserts with `external_id`.
+* Ingestion idempotency via `content_sha256` + step versioning.
+
+---
+
+## 13) Rollout Checklist
+
+* **Phase 0**: DB + seeds + Compose up; healthchecks.
+* **Phase 1**: Core API + Web (RTL) + Chat skeleton.
+* **Phase 2**: Plan Editor + Pricing + PDFs + Approval.
+* **Phase 3**: Tasks + Trello MCP + webhooks.
+* **Phase 4**: Ingestion UI + extraction + clarifications + commit.
+* **Phase 5**: Shipping/Labor v1; Observability; SQL MCP + router.
+* **Phase 6**: Hybrid split (gateway + tunnel + mirrors); DesktopOps optional.
+
+**Definition of Done (System)**
+
+* End‑to‑end flow working with citations; Hebrew PDFs; Trello sync; ingestion with clarifications; metrics visible; backups configured.

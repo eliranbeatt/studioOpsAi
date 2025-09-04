@@ -1,172 +1,125 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
-import psycopg2
-import os
+from sqlalchemy.orm import Session
 from uuid import UUID
 import json
 
+from database import get_db
+from models import Plan as PlanModel, PlanItem as PlanItemModel
 from packages.schemas.projects import Plan, PlanCreate, PlanUpdate, PlanItem, PlanItemCreate
 from services.pricing_resolver import pricing_resolver
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 
-def get_db_connection():
-    """Get a database connection"""
-    try:
-        conn = psycopg2.connect(
-            os.getenv('DATABASE_URL', 'postgresql://studioops:studioops@localhost:5432/studioops')
-        )
-        return conn
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
-
 @router.get("/project/{project_id}", response_model=List[Plan])
-async def get_project_plans(project_id: UUID):
+async def get_project_plans(project_id: UUID, db: Session = Depends(get_db)):
     """Get all plans for a project"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, project_id, version, status, margin_target, currency,
-                   created_at, updated_at
-            FROM plans WHERE project_id = %s ORDER BY version DESC
-        """, (str(project_id),))
+        plans = db.query(PlanModel).filter(PlanModel.project_id == str(project_id)).order_by(PlanModel.version.desc()).all()
         
-        plans = []
-        for row in cursor.fetchall():
-            plan = {
-                "id": row[0],
-                "project_id": row[1],
-                "version": row[2],
-                "status": row[3],
-                "margin_target": float(row[4]),
-                "currency": row[5],
-                "created_at": row[6],
-                "updated_at": row[7],
+        result = []
+        for plan in plans:
+            plan_data = {
+                "id": plan.id,
+                "project_id": plan.project_id,
+                "version": plan.version,
+                "status": plan.status,
+                "margin_target": float(plan.margin_target),
+                "currency": plan.currency,
+                "created_at": plan.created_at,
+                "updated_at": plan.updated_at,
                 "items": [],
                 "total": 0.0
             }
             
             # Get plan items
-            cursor2 = conn.cursor()
-            cursor2.execute("""
-                SELECT id, category, title, description, quantity, unit, unit_price,
-                       unit_price_source, vendor_id, labor_role, labor_hours,
-                       lead_time_days, dependency_ids, risk_level, notes,
-                       subtotal, created_at, updated_at
-                FROM plan_items WHERE plan_id = %s
-            """, (str(row[0]),))
-            
-            items = []
+            items = db.query(PlanItemModel).filter(PlanItemModel.plan_id == plan.id).all()
             total = 0.0
-            for item_row in cursor2.fetchall():
-                item = {
-                    "id": item_row[0],
-                    "category": item_row[1],
-                    "title": item_row[2],
-                    "description": item_row[3],
-                    "quantity": float(item_row[4]),
-                    "unit": item_row[5],
-                    "unit_price": float(item_row[6]) if item_row[6] else None,
-                    "unit_price_source": json.loads(item_row[7]) if item_row[7] else None,
-                    "vendor_id": item_row[8],
-                    "labor_role": item_row[9],
-                    "labor_hours": float(item_row[10]) if item_row[10] else None,
-                    "lead_time_days": float(item_row[11]) if item_row[11] else None,
-                    "dependency_ids": json.loads(item_row[12]) if item_row[12] else None,
-                    "risk_level": item_row[13],
-                    "notes": item_row[14],
-                    "subtotal": float(item_row[15]) if item_row[15] else None,
-                    "created_at": item_row[16],
-                    "updated_at": item_row[17]
+            for item in items:
+                item_data = {
+                    "id": item.id,
+                    "category": item.category,
+                    "title": item.title,
+                    "description": item.description,
+                    "quantity": float(item.quantity),
+                    "unit": item.unit,
+                    "unit_price": float(item.unit_price) if item.unit_price else None,
+                    "unit_price_source": json.loads(item.unit_price_source) if item.unit_price_source else None,
+                    "vendor_id": item.vendor_id,
+                    "labor_role": item.labor_role,
+                    "labor_hours": float(item.labor_hours) if item.labor_hours else None,
+                    "lead_time_days": float(item.lead_time_days) if item.lead_time_days else None,
+                    "dependency_ids": json.loads(item.dependency_ids) if item.dependency_ids else None,
+                    "risk_level": item.risk_level,
+                    "notes": item.notes,
+                    "subtotal": float(item.subtotal) if item.subtotal else None,
+                    "created_at": item.created_at,
+                    "updated_at": item.updated_at
                 }
-                items.append(item)
-                if item_row[15]:
-                    total += float(item_row[15])
+                plan_data["items"].append(item_data)
+                if item.subtotal:
+                    total += float(item.subtotal)
             
-            cursor2.close()
-            plan["items"] = items
-            plan["total"] = total
-            plans.append(plan)
+            plan_data["total"] = total
+            result.append(plan_data)
         
-        cursor.close()
-        conn.close()
-        return plans
+        return result
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching plans: {e}")
 
 @router.get("/{plan_id}", response_model=Plan)
-async def get_plan(plan_id: UUID):
+async def get_plan(plan_id: UUID, db: Session = Depends(get_db)):
     """Get a specific plan by ID"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, project_id, version, status, margin_target, currency,
-                   created_at, updated_at
-            FROM plans WHERE id = %s
-        """, (str(plan_id),))
-        
-        row = cursor.fetchone()
-        if not row:
+        plan = db.query(PlanModel).filter(PlanModel.id == str(plan_id)).first()
+        if not plan:
             raise HTTPException(status_code=404, detail="Plan not found")
         
-        plan = {
-            "id": row[0],
-            "project_id": row[1],
-            "version": row[2],
-            "status": row[3],
-            "margin_target": float(row[4]),
-            "currency": row[5],
-            "created_at": row[6],
-            "updated_at": row[7],
+        plan_data = {
+            "id": plan.id,
+            "project_id": plan.project_id,
+            "version": plan.version,
+            "status": plan.status,
+            "margin_target": float(plan.margin_target),
+            "currency": plan.currency,
+            "created_at": plan.created_at,
+            "updated_at": plan.updated_at,
             "items": [],
             "total": 0.0
         }
         
         # Get plan items
-        cursor2 = conn.cursor()
-        cursor2.execute("""
-            SELECT id, category, title, description, quantity, unit, unit_price,
-                   unit_price_source, vendor_id, labor_role, labor_hours,
-                   lead_time_days, dependency_ids, risk_level, notes,
-                   subtotal, created_at, updated_at
-            FROM plan_items WHERE plan_id = %s
-        """, (str(plan_id),))
-        
+        items = db.query(PlanItemModel).filter(PlanItemModel.plan_id == plan.id).all()
         total = 0.0
-        for item_row in cursor2.fetchall():
-            item = {
-                "id": item_row[0],
-                "category": item_row[1],
-                "title": item_row[2],
-                "description": item_row[3],
-                "quantity": float(item_row[4]),
-                "unit": item_row[5],
-                "unit_price": float(item_row[6]) if item_row[6] else None,
-                "unit_price_source": json.loads(item_row[7]) if item_row[7] else None,
-                "vendor_id": item_row[8],
-                "labor_role": item_row[9],
-                "labor_hours": float(item_row[10]) if item_row[10] else None,
-                "lead_time_days": float(item_row[11]) if item_row[11] else None,
-                "dependency_ids": json.loads(item_row[12]) if item_row[12] else None,
-                "risk_level": item_row[13],
-                "notes": item_row[14],
-                "subtotal": float(item_row[15]) if item_row[15] else None,
-                "created_at": item_row[16],
-                "updated_at": item_row[17]
+        for item in items:
+            item_data = {
+                "id": item.id,
+                "category": item.category,
+                "title": item.title,
+                "description": item.description,
+                "quantity": float(item.quantity),
+                "unit": item.unit,
+                "unit_price": float(item.unit_price) if item.unit_price else None,
+                "unit_price_source": json.loads(item.unit_price_source) if item.unit_price_source else None,
+                "vendor_id": item.vendor_id,
+                "labor_role": item.labor_role,
+                "labor_hours": float(item.labor_hours) if item.labor_hours else None,
+                "lead_time_days": float(item.lead_time_days) if item.lead_time_days else None,
+                "dependency_ids": json.loads(item.dependency_ids) if item.dependency_ids else None,
+                "risk_level": item.risk_level,
+                "notes": item.notes,
+                "subtotal": float(item.subtotal) if item.subtotal else None,
+                "created_at": item.created_at,
+                "updated_at": item.updated_at
             }
-            plan["items"].append(item)
-            if item_row[15]:
-                total += float(item_row[15])
+            plan_data["items"].append(item_data)
+            if item.subtotal:
+                total += float(item.subtotal)
         
-        cursor2.close()
-        plan["total"] = total
+        plan_data["total"] = total
         
-        cursor.close()
-        conn.close()
-        return plan
+        return plan_data
     
     except HTTPException:
         raise

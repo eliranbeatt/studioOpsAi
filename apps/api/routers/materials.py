@@ -1,85 +1,32 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
-import psycopg2
-import os
+from sqlalchemy.orm import Session
 from uuid import UUID
 
+from database import get_db
+from models import Material as MaterialModel
 from packages.schemas.models import Material, MaterialCreate, MaterialUpdate
 
 router = APIRouter(prefix="/materials", tags=["materials"])
 
-def get_db_connection():
-    """Get a database connection"""
-    try:
-        conn = psycopg2.connect(
-            os.getenv('DATABASE_URL', 'postgresql://studioops:studioops@localhost:5432/studioops')
-        )
-        return conn
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
-
 @router.get("/", response_model=List[Material])
-async def get_materials():
+async def get_materials(db: Session = Depends(get_db)):
     """Get all materials"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, name, spec, unit, category, typical_waste_pct, notes, created_at, updated_at
-            FROM materials ORDER BY name
-        """)
-        
-        materials = []
-        for row in cursor.fetchall():
-            materials.append({
-                "id": row[0],
-                "name": row[1],
-                "spec": row[2],
-                "unit": row[3],
-                "category": row[4],
-                "typical_waste_pct": row[5],
-                "notes": row[6],
-                "created_at": row[7],
-                "updated_at": row[8]
-            })
-        
-        cursor.close()
-        conn.close()
+        materials = db.query(MaterialModel).order_by(MaterialModel.name).all()
         return materials
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching materials: {e}")
 
 @router.get("/{material_id}", response_model=Material)
-async def get_material(material_id: UUID):
+async def get_material(material_id: UUID, db: Session = Depends(get_db)):
     """Get a specific material by ID"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """SELECT id, name, spec, unit, category, typical_waste_pct, notes, created_at, updated_at
-               FROM materials WHERE id = %s""",
-            (str(material_id),)
-        )
-        
-        row = cursor.fetchone()
-        if not row:
+        material = db.query(MaterialModel).filter(MaterialModel.id == str(material_id)).first()
+        if not material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        material = {
-            "id": row[0],
-            "name": row[1],
-            "spec": row[2],
-            "unit": row[3],
-            "category": row[4],
-            "typical_waste_pct": row[5],
-            "notes": row[6],
-            "created_at": row[7],
-            "updated_at": row[8]
-        }
-        
-        cursor.close()
-        conn.close()
         return material
     
     except HTTPException:
@@ -88,76 +35,53 @@ async def get_material(material_id: UUID):
         raise HTTPException(status_code=500, detail=f"Error fetching material: {e}")
 
 @router.post("/", response_model=Material)
-async def create_material(material: MaterialCreate):
+async def create_material(material: MaterialCreate, db: Session = Depends(get_db)):
     """Create a new material"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute(
-            """INSERT INTO materials (name, spec, unit, category, typical_waste_pct, notes)
-               VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, created_at, updated_at""",
-            (material.name, material.spec, material.unit, material.category, 
-             material.typical_waste_pct, material.notes)
+        db_material = MaterialModel(
+            name=material.name,
+            spec=material.spec,
+            unit=material.unit,
+            category=material.category,
+            typical_waste_pct=material.typical_waste_pct,
+            notes=material.notes
         )
         
-        result = cursor.fetchone()
-        conn.commit()
+        db.add(db_material)
+        db.commit()
+        db.refresh(db_material)
         
-        new_material = {
-            "id": result[0],
-            "name": material.name,
-            "spec": material.spec,
-            "unit": material.unit,
-            "category": material.category,
-            "typical_waste_pct": material.typical_waste_pct,
-            "notes": material.notes,
-            "created_at": result[1],
-            "updated_at": result[2]
-        }
-        
-        cursor.close()
-        conn.close()
-        return new_material
+        return db_material
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating material: {e}")
 
 @router.put("/{material_id}", response_model=Material)
-async def update_material(material_id: UUID, material: MaterialUpdate):
+async def update_material(material_id: UUID, material: MaterialUpdate, db: Session = Depends(get_db)):
     """Update a material"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute(
-            """UPDATE materials SET name = %s, spec = %s, unit = %s, category = %s, 
-               typical_waste_pct = %s, notes = %s WHERE id = %s RETURNING created_at, updated_at""",
-            (material.name, material.spec, material.unit, material.category,
-             material.typical_waste_pct, material.notes, str(material_id))
-        )
-        
-        result = cursor.fetchone()
-        if not result:
+        db_material = db.query(MaterialModel).filter(MaterialModel.id == str(material_id)).first()
+        if not db_material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        conn.commit()
+        # Update only provided fields
+        if material.name is not None:
+            db_material.name = material.name
+        if material.spec is not None:
+            db_material.spec = material.spec
+        if material.unit is not None:
+            db_material.unit = material.unit
+        if material.category is not None:
+            db_material.category = material.category
+        if material.typical_waste_pct is not None:
+            db_material.typical_waste_pct = material.typical_waste_pct
+        if material.notes is not None:
+            db_material.notes = material.notes
         
-        updated_material = {
-            "id": material_id,
-            "name": material.name,
-            "spec": material.spec,
-            "unit": material.unit,
-            "category": material.category,
-            "typical_waste_pct": material.typical_waste_pct,
-            "notes": material.notes,
-            "created_at": result[0],
-            "updated_at": result[1]
-        }
+        db.commit()
+        db.refresh(db_material)
         
-        cursor.close()
-        conn.close()
-        return updated_material
+        return db_material
     
     except HTTPException:
         raise
@@ -165,20 +89,15 @@ async def update_material(material_id: UUID, material: MaterialUpdate):
         raise HTTPException(status_code=500, detail=f"Error updating material: {e}")
 
 @router.delete("/{material_id}")
-async def delete_material(material_id: UUID):
+async def delete_material(material_id: UUID, db: Session = Depends(get_db)):
     """Delete a material"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM materials WHERE id = %s RETURNING id", (str(material_id),))
-        
-        if not cursor.fetchone():
+        db_material = db.query(MaterialModel).filter(MaterialModel.id == str(material_id)).first()
+        if not db_material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        conn.commit()
-        cursor.close()
-        conn.close()
+        db.delete(db_material)
+        db.commit()
         
         return {"message": "Material deleted successfully"}
     

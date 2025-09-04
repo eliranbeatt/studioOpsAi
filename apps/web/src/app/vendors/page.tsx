@@ -1,37 +1,32 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-
-interface Vendor {
-  id: string
-  name: string
-  contact: string
-  url: string
-  rating: number
-  notes: string
-}
+import { useVendors, Vendor } from '@/hooks/useVendors'
+import VendorForm from '@/components/VendorForm'
 
 export default function VendorsPage() {
-  const [vendors, setVendors] = useState<Vendor[]>([])
-  const [loading, setLoading] = useState(true)
+  const { vendors, loading, error, createVendor, updateVendor, deleteVendor } = useVendors()
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null)
 
-  useEffect(() => {
-    const fetchVendors = async () => {
+  const handleCreateVendor = async (data: Partial<Vendor>) => {
+    try {
+      await createVendor(data)
+      setShowCreateForm(false)
+    } catch (error) {
+      // Error is handled by the hook
+    }
+  }
+
+  const handleDeleteVendor = async (vendorId: string) => {
+    if (confirm('האם אתה בטוח שברצונך למחוק ספק זה?')) {
       try {
-        const response = await fetch('/api/vendors')
-        if (response.ok) {
-          const data = await response.json()
-          setVendors(data)
-        }
+        await deleteVendor(vendorId)
       } catch (error) {
-        console.error('Error fetching vendors:', error)
-      } finally {
-        setLoading(false)
+        // Error is handled by the hook
       }
     }
-
-    fetchVendors()
-  }, [])
+  }
 
   if (loading) {
     return (
@@ -40,10 +35,13 @@ export default function VendorsPage() {
           <div>
             <h2 className="text-2xl font-bold text-foreground">ניהול ספקים</h2>
             <p className="text-muted-foreground mt-1">
-              צפה וניהול כל הספקים וה�מחירים שלהם
+              צפה וניהול כל הספקים והמחירים שלהם
             </p>
           </div>
-          <button className="btn btn-primary px-4 gradient-bg border-0">
+          <button 
+            className="btn btn-primary px-4 gradient-bg border-0 opacity-50"
+            disabled
+          >
             ➕ ספק חדש
           </button>
         </div>
@@ -57,6 +55,43 @@ export default function VendorsPage() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">ניהול ספקים</h2>
+            <p className="text-muted-foreground mt-1">
+              צפה וניהול כל הספקים והמחירים שלהם
+            </p>
+          </div>
+          <button 
+            className="btn btn-primary px-4 gradient-bg border-0"
+            onClick={() => setShowCreateForm(true)}
+          >
+            ➕ ספק חדש
+          </button>
+        </div>
+        
+        <div className="card border-border/50 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
+          <div className="text-center text-red-500 py-16">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-red-500 text-3xl">⚠️</span>
+            </div>
+            <p className="text-lg font-light mb-2">שגיאה בטעינת ספקים</p>
+            <p className="text-sm">{error.message}</p>
+            <button 
+              className="mt-4 btn btn-primary px-6 gradient-bg border-0"
+              onClick={() => window.location.reload()}
+            >
+              נסה שוב
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -64,10 +99,13 @@ export default function VendorsPage() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">ניהול ספקים</h2>
           <p className="text-muted-foreground mt-1">
-            צפה וניהול כל הספקים וה�מחירים שלהם
+            {vendors.length} ספקים
           </p>
         </div>
-        <button className="btn btn-primary px-4 gradient-bg border-0">
+        <button 
+          className="btn btn-primary px-4 gradient-bg border-0"
+          onClick={() => setShowCreateForm(true)}
+        >
           ➕ ספק חדש
         </button>
       </div>
@@ -80,7 +118,10 @@ export default function VendorsPage() {
             </div>
             <p className="text-lg font-light mb-2">אין ספקים להצגה</p>
             <p className="text-sm">הוסף ספקים כדי לראות אותם כאן</p>
-            <button className="mt-4 btn btn-primary px-6 gradient-bg border-0">
+            <button 
+              className="mt-4 btn btn-primary px-6 gradient-bg border-0"
+              onClick={() => setShowCreateForm(true)}
+            >
               הוסף ספק חדש
             </button>
           </div>
@@ -110,19 +151,41 @@ export default function VendorsPage() {
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground">{vendor.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        <a href={vendor.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
-                          {vendor.url}
-                        </a>
+                        {vendor.url && (
+                          <a href={vendor.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
+                            {vendor.url}
+                          </a>
+                        )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-foreground">{vendor.contact}</td>
+                    <td className="px-4 py-3 text-sm text-foreground">
+                      {vendor.contact && typeof vendor.contact === 'object' 
+                        ? `${vendor.contact.name || ''} ${vendor.contact.phone || ''} ${vendor.contact.email || ''}`.trim()
+                        : vendor.contact}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <div className="text-sm font-medium text-foreground">{vendor.rating}</div>
-                        <div className="ml-1 text-yellow-400">★</div>
+                        <div className="text-sm font-medium text-foreground">{vendor.rating || 'ללא'}</div>
+                        {vendor.rating && <div className="ml-1 text-yellow-400">★</div>}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{vendor.notes}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{vendor.notes || 'ללא הערות'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <button 
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => setSelectedVendor(vendor)}
+                        >
+                          ערוך
+                        </button>
+                        <button 
+                          className="btn btn-ghost btn-sm text-red-500"
+                          onClick={() => handleDeleteVendor(vendor.id)}
+                        >
+                          מחק
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -130,11 +193,37 @@ export default function VendorsPage() {
           </div>
           
           <div className="px-6 py-4 border-t border-border/50">
-            <button className="btn btn-primary px-4 gradient-bg border-0">
+            <button 
+              className="btn btn-primary px-4 gradient-bg border-0"
+              onClick={() => setShowCreateForm(true)}
+            >
               + הוסף ספק חדש
             </button>
           </div>
         </div>
+      )}
+
+      {/* Modals */}
+      {showCreateForm && (
+        <VendorForm
+          onSubmit={handleCreateVendor}
+          onCancel={() => setShowCreateForm(false)}
+        />
+      )}
+
+      {selectedVendor && (
+        <VendorForm
+          vendor={selectedVendor}
+          onSubmit={async (data) => {
+            try {
+              await updateVendor(selectedVendor.id, data);
+              setSelectedVendor(null);
+            } catch (error) {
+              // Error is handled by the hook
+            }
+          }}
+          onCancel={() => setSelectedVendor(null)}
+        />
       )}
     </div>
   )

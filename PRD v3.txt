@@ -1,0 +1,248 @@
+# StudioOps AI — Comprehensive PRD v3.0
+
+*Updated: 2025‑09‑04*
+
+> This PRD consolidates **every feature and decision** from our discussions into one end‑to‑end spec. It is right‑sized for a **small studio**, optimized for **HRAG‑Lite** (SQL + JSONB + Mem0 + Postgres FTS), and integrates Trello (board‑per‑project), a retrieval‑aware ingestion pipeline with clarifications, Hebrew/NIS docs, and optional DesktopOps via UI‑TARS.
+
+---
+
+## 1) Vision & Goals
+
+Deliver a **chat‑first advisor** that helps the studio **price, plan, and execute** projects with confidence:
+
+* Conversational scoping → curated **Plan Editor** → **Hebrew** documents (Quotes & Planning) → **Tasks** exported to **Trello**.
+* **Vendor Cost DB** is the *authoritative* pricing base; shipping is extrapolated from history; labor uses rate cards + priors.
+* **Ingestion** converts past and new documents into **structured facts** (SQL) and **memories** (Mem0), with clarifications when needed.
+* **Hybrid hosting**: always‑on **cloud UI** + private **local data/compute**, connected by a secure tunnel.
+
+**North Star**: Profitable, on‑time projects with explainable, cited decisions—without enterprise‑grade complexity.
+
+---
+
+## 2) Personas
+
+* **Studio Manager (primary):** Runs quotes and plans, approves, exports tasks, reviews clarifications.
+* **Operations Lead (secondary):** Adjusts staffing, logistics; checks feasibility.
+* **Bookkeeper (secondary):** Imports expenses; views Budget vs Actual.
+
+---
+
+## 3) Scope & Non‑Goals
+
+### In scope
+
+* Chat‑assisted scoping, risk surfacing, pricing, and planning.
+* **Plan Editor** with flexible categories; live totals, margin, what‑ifs.
+* **Documents** in **Hebrew** with **logo slot**; **NIS‑only** currency.
+* **Tasks decomposition**; **Trello** export (board per project) + sync.
+* **HRAG‑Lite ingestion** UI with **clarifications**; retrieval‑aware extraction.
+* **Mem0 memory** of reusable facts and decisions.
+* **DesktopOps** (optional) with UI‑TARS for local automations.
+* **Hybrid** architecture: cloud control plane + local data/compute via secure tunnel.
+
+### Out of scope (v3.0)
+
+* Full procurement workflows, invoicing/payroll, complex multi‑user permissions.
+
+---
+
+## 4) Product Principles
+
+1. **User‑in‑control**: AI suggests; the user approves (plan approval gate before docs).
+2. **Citations everywhere**: every numeric fact shows a source.
+3. **Right‑sized tech**: SQL first; FTS for text; vectors/graph only if needed.
+4. **Privacy first**: heavy data/local compute stays on the PC; cloud only mirrors summaries.
+
+---
+
+## 5) High‑Level Architecture
+
+* **Control Plane (Cloud)**: Next.js web app (Hebrew RTL), Auth, API Gateway, LiteLLM router, MCP clients (Trello; read‑only SQL MCP optional), light read‑only mirrors for offline fallback.
+* **Data/Compute Plane (Local)**: FastAPI Core API, Mem0 over Postgres+pgvector, Postgres (truth) + JSONB + FTS, MinIO for files, LangGraph agents, Unstructured/OCR, optional UI‑TARS desktop agent.
+* **Secure Tunnel**: Tailscale/Cloudflare Tunnel (mTLS; allow‑listed routes) between planes.
+
+---
+
+## 6) Major Workflows
+
+### 6.1 Conversational Scoping (Assistant)
+
+* Chat about the project; the agent retrieves prior prices, lead times, similar projects, and risks (HRAG‑Lite path) and proposes options.
+* Context Drawer surfaces: Brief, Assumptions, Open Questions, Risks, Preliminary BOM, Labor Estimates, Price Sources (with citations), Top Memories.
+* Action buttons: Suggest Options, Critique, Estimate Labor, Price Materials, Check Availability, (Optional) Run Desktop Step.
+* **Create Plan** materializes a skeleton plan from the conversation.
+
+### 6.2 Plan Editor (Flexible + AI Assist)
+
+* Default columns: **Employees, Materials, Tools, Rentals, Logistics/Shipping, Construction, Setup, Teardown, Contingency, Misc.**
+* Rows include: title, description, qty/unit, unit price (+source), vendor, labor role/hours, lead time, dependencies, risk, notes, subtotal.
+* Live panels: totals (NIS), margin, timeline deltas, critical path shifts, and **why**.
+* Controls: Add/Remove, Bulk paste, **Reprice**, **Re‑estimate labor**, **Apply Tiers (Good/Better/Best)**, **What‑if Simulator**, **Reconcile with Dossier**.
+* **Approval Gate**: must approve plan before generating docs.
+
+### 6.3 Documents (Hebrew; NIS)
+
+* **Quote (צעת מחיר)**: project description, components, itemized pricing (NIS), assumptions, terms & conditions, payment terms, validity, exclusions. **Logo slot**.
+* **Planning (מסמך תכנון)**: full plan (materials, costs, roles, dates, dependencies, risks, procurement order‑by dates). Export **PDF + JSON**; versioned, with diffs.
+
+### 6.4 Tasks Decomposition & Trello
+
+* Agent creates initial WBS from the approved plan and priors; user edits/adds; AI fills details.
+* **Export to Trello**: one **board per project**; ensure lists/labels/custom fields; idempotent upserts; sync via webhooks (history imported for priors).
+
+### 6.5 Finance (Basics)
+
+* Import expenses/purchases CSVs; match to plan items; show **Budget vs Actual** and margin deltas; suggest change‑orders.
+
+### 6.6 Global Chat
+
+* Non‑project Q\&A with access to SQL/Mem0/FTS; answers always cite sources.
+
+### 6.7 HRAG‑Lite Ingestion UI (Retrieval‑Aware + Clarifications)
+
+* Drag‑drop uploads; per‑page preview with evidence highlights.
+* Pipeline: Parse/OCR → Classify → **Build retrieval context (SQL+Mem0+FTS)** → LLM page‑level extract → Validate/Normalize → **Clarifying questions** (only when needed) → Review → Commit.
+* Commit writes to **SQL canonical tables** (vendor\_prices, purchases, shipping\_quotes, plan\_items), to **Mem0** (price\_hint, lead\_time, decision, pattern), and updates **Project Dossier**.
+
+### 6.8 DesktopOps (Optional)
+
+* **UI‑TARS** desktop agent runs locally to pull data from desktop apps, export CSVs, batch‑rename assets, etc.
+* Scopes, time‑boxes, and audit trail with screenshots and citations; artifacts saved into Documents.
+
+---
+
+## 7) Functional Requirements
+
+### 7.1 Pricing & Estimation
+
+* **Materials**: choose latest vendor price; if multiple → median of top‑k by confidence; fallback to last purchase; finally web price (low confidence) saved into vendor\_prices.
+* **Shipping**: start from **past quotes**; extrapolate unknowns with base + per‑km (+ per‑kg where relevant). Persist predictions with confidence.
+* **Labor**: role rates from `rate_cards`; hours estimated from priors (history/plan category) + complexity factor.
+* **Margin & Minimums**: pricing formula supports **minimum price** when total cost is low; includes Studio Manager salary/overhead and an error margin. Show the **why** for adjustments.
+
+### 7.2 Retrieval & Context (HRAG‑Lite)
+
+* **Structured intent** → SQL (including JSONB filters) returns rows + source\_ref.
+* **Narrative intent** → Postgres **FTS** over `doc_chunks` (scoped), return top spans.
+* Cleaner LLM trims content; **extractive only** with citations.
+
+### 7.3 Documents & Versioning
+
+* PDF renderer supports RTL Hebrew; logo placeholder; store **PDF + JSON**; diff view across versions.
+
+### 7.4 Trello Integration
+
+* One **board per project**. Learn phases from history; user approves standard list template.
+* MCP tool methods: `ensure_board_structure`, `list_*`, `upsert_cards`, `update_card`, `add_checklist`, `add_comment`, `get_actions`.
+* Webhooks backfill history and keep sync; rate‑limited; idempotent.
+
+### 7.5 Ingestion Clarifications
+
+* Trigger on missing required fields, unit/total mismatches, ambiguous vendor/material, or low confidence.
+* Questions are short, single‑fact, often multiple‑choice from retrieval context. Answers saved as `meeting_decision` memories.
+
+### 7.6 Permissions
+
+* **Single user** edit model (initial login). Full audit trail retained.
+
+---
+
+## 8) Non‑Functional Requirements
+
+* **Hebrew‑first** UX (RTL), **NIS‑only** currency.
+* **Performance**: Plan recalc < 3s p95 for 1k items; PDF gen < 10s; ingestion ≥ 500 pages/hour on local PC.
+* **Reliability**: local‑first; cloud mirrors provide read‑only when local is offline; queued writes replay.
+* **Security**: mTLS tunnel, signed webhooks, private object storage, PII encryption, secrets via SOPS/KMS.
+* **Observability**: Langfuse + OTEL traces around chat/plan/pricing/docs/export/ingest; surfacing trace IDs in UI.
+
+---
+
+## 9) Data & Storage (Product‑level)
+
+* **SQL (Postgres)**: `vendors`, `materials`, `vendor_prices`, `purchases`, `shipping_quotes`, `projects`, `plans`, `plan_items`, `documents`, `doc_chunks` (FTS), `extracted_items` (staging/audit), alias tables, `ingest_events`.
+* **Mem0 (pgvector backend)**: memories (`price_hint`, `lead_time`, `pattern`, `meeting_decision`) with scopes `{project_id, vendor_id, material_id}` and `source_ref`.
+* **Files**: MinIO private bucket; signed URLs; store originals, OCR text, previews, evidence snapshots.
+
+---
+
+## 10) Agents & Services
+
+* **Assistant Agent** (chat): orchestrates retrieval (SQL/Mem0/FTS), risk critique, saves to Dossier.
+* **Quote Agent**: BOM + pricing + tiers + risks; cites Vendor DB.
+* **Planner Agent**: constructs/updates plan; computes durations; prepares WBS.
+* **Finance Agent**: imports expenses; BvA; change‑order suggestions.
+* **DesktopOps Agent** (optional): UI‑TARS bridge; scoped actions; artifacts to Documents.
+
+---
+
+## 11) MCP Integrations
+
+* **Trello MCP**: board/list/card ops, actions history, comments/checklists; idempotent writes.
+* **SQL MCP (read‑only)**: parameterized, whitelisted `SELECT` with enforced `LIMIT`; used for structured intent retrieval.
+* **OpenMemory MCP (optional)**: shared memory across tools on top of Mem0.
+* **Desktop (UI‑TARS) MCP/bridge**: `computer_use.start|run|stop` with scoped paths/apps; confirm/dry‑run modes.
+
+---
+
+## 12) UI/UX Requirements (Hebrew RTL)
+
+* **Project Workspace** tabs: **שיחה**, **תוכנית**, **מסמכים**, **משימות**, **ניתוח**.
+* **Global Chat** entry point.
+* **Ingestion** screen: upload table with status chips; review drawer with evidence highlights; clarifications panel; linking widget (vendor/material/project).
+* **Plan Editor** grid with inline AI and validation; What‑if simulator; Apply Tiers; Reprice; Re‑estimate Labor; Approve Plan.
+* **Docs** tab: list PDFs/JSON with versioning and diffs; logo placeholder.
+* **Tasks** tab: WBS editor + Trello export + sync status.
+
+---
+
+## 13) APIs (Product‑level)
+
+* `/projects` CRUD; `/projects/{id}/dossier`
+* `/projects/{id}/chat` (SSE)
+* `/projects/{id}/plan/from_context`, `/plan/upsert`, `/plan/reprice`, `/plan/reestimate_labor`, `/approve_plan`
+* `/projects/{id}/documents/generate` (quote/planning)
+* `/projects/{id}/tasks/draft`, `/tasks/export/trello`
+* `/vendor_prices/search`, `/shipping/estimate`, `/rate_cards`
+* **Ingestion**: `/ingest/upload`, `/ingest/run/{doc}`, `/ingest/{doc}`, `/ingest/{doc}/answer`, `/ingest/{doc}/commit`, `/ingest/queue`
+
+---
+
+## 14) Security & Privacy
+
+* Local data is primary; cloud holds minimal mirrors.
+* mTLS tunnel; allow‑listed routes; no open inbound local ports.
+* Signed/replay‑protected webhooks; request logging with redaction; no chain‑of‑thought stored.
+
+---
+
+## 15) Observability & Metrics
+
+* Traces for each agent step and MCP call; per‑stage ingestion metrics (coverage, latency, cost).
+* Business KPIs: time‑to‑first‑quote, win‑rate, margin %, estimation error %, change‑order rate.
+
+---
+
+## 16) Rollout & Milestones
+
+* **MVP**: Chat → Plan skeleton → Plan Editor → Approve → Hebrew PDFs → Tasks draft → Trello export; Vendor DB; Mem0 basics; Ingestion (quotes/receipts) with clarifications.
+* **Beta**: Shipping v1 (history‑based), Labor v1, Observability, What‑ifs, Tiers.
+* **GA**: Hybrid split (cloud gateway + tunnel + mirrors), DesktopOps optional, expanded ingestion types, analytics dashboards.
+
+---
+
+## 17) Risks & Mitigations
+
+* **Extraction errors**: validators + clarifications + evidence required; staging review.
+* **Price volatility**: timestamped sources; reprice button; ranges.
+* **Schema creep**: JSONB `attrs` with GIN; promote to columns only when stable.
+* **Trello limits**: backoff + idempotency keys; batch writes.
+
+---
+
+## 18) Definition of Done (Product)
+
+* User can run the **full flow** (chat → plan → docs → tasks) in Hebrew/NIS with citations.
+* Ingestion converts uploads into SQL facts + Mem0 memories; clarifications resolved; provenance stored.
+* Trello export idempotent; history imported; boards kept in sync.
+* Local‑first works; cloud mirror provides read‑only when local is offline.
+* Observability dashboards live; KPIs tracked; backups running.
