@@ -3,7 +3,7 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Float, JSON, Boolean, Date, Numeric, BigInteger
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 import uuid
 
 Base = declarative_base()
@@ -83,7 +83,7 @@ class Project(Base):
     """Project management"""
     __tablename__ = "projects"
     
-    id = Column(String, primary_key=True, default=generate_ulid)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     client_name = Column(String, nullable=True)
     board_id = Column(String, nullable=True)  # Trello board ID
@@ -93,7 +93,7 @@ class Project(Base):
     budget_planned = Column(Numeric(14, 2), nullable=True)
     budget_actual = Column(Numeric(14, 2), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     def __repr__(self):
         return f"<Project(name={self.name}, client={self.client_name})>"
@@ -145,12 +145,14 @@ class Vendor(Base):
     """Vendor information"""
     __tablename__ = "vendors"
     
-    id = Column(String, primary_key=True, default=generate_ulid)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     contact = Column(JSON, nullable=True)
     url = Column(String, nullable=True)
     rating = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     def __repr__(self):
         return f"<Vendor(name={self.name})>"
@@ -159,13 +161,15 @@ class Material(Base):
     """Material specifications"""
     __tablename__ = "materials"
     
-    id = Column(String, primary_key=True, default=generate_ulid)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     spec = Column(Text, nullable=True)
     unit = Column(String, nullable=False)
     category = Column(String, nullable=True)
     typical_waste_pct = Column(Numeric(5, 2), default=0)
     notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     def __repr__(self):
         return f"<Material(name={self.name}, unit={self.unit})>"

@@ -2,31 +2,43 @@
 
 ## Phase 1: Infrastructure Foundation (Critical Priority)
 
-- [ ] 1. Fix Docker Compose Configuration
+- [x] 1. Fix Docker Compose Configuration
+
+
   - Update `infra/docker-compose.yml` with proper service dependencies and health checks
   - Add proper volume mounts for data persistence
   - Fix network configuration and port mappings
   - Add environment variable templates and validation
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 1.1 Fix PostgreSQL Service Configuration
+- [x] 1.1 Fix PostgreSQL Service Configuration
+
+
   - Add proper health checks with pg_isready command
   - Ensure pgvector extension is available in the image
   - Fix initialization script execution order
   - Add proper volume persistence for database data
   - _Requirements: 1.2, 2.4_
 
-- [ ] 1.2 Fix MinIO Service Configuration
+
+- [x] 1.2 Fix MinIO Service Configuration
+
+
+
+
+
   - Add proper health checks for MinIO service
   - Configure default buckets for document storage
   - Set up proper access credentials and policies
   - Add volume persistence for object storage
+
   - _Requirements: 1.2, 7.5_
 
 - [ ] 1.3 Fix Langfuse Service Configuration
   - Add proper database dependency and health checks
   - Configure environment variables for Langfuse setup
   - Add proper initialization and migration handling
+
   - Fix service startup order dependencies
   - _Requirements: 1.2, 8.1_
 
@@ -34,17 +46,22 @@
   - Create complete `.env.example` files for all services
   - Add environment variable validation at startup
   - Implement proper default values for development
+
+
+
   - Add documentation for all configuration options
   - _Requirements: 9.1, 9.2, 9.3_
 
 ## Phase 2: Database Schema and Migrations (Critical Priority)
 
-- [ ] 2. Fix Database Schema Consistency
+- [x] 2. Fix Database Schema Consistency
+
   - Generate comprehensive Alembic migration from current models
   - Fix column name mismatches between models and expected schema
   - Add proper foreign key constraints and indexes
   - Ensure all required PostgreSQL extensions are installed
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
 
 - [ ] 2.1 Create Initial Database Migration
   - Generate Alembic migration from `models.py` definitions
@@ -53,11 +70,13 @@
   - Include all required indexes for performance
   - _Requirements: 2.1, 2.2_
 
+
 - [ ] 2.2 Fix Model Definitions and Relationships
   - Fix column name mismatches in SQLAlchemy models
   - Add proper foreign key relationships with constraints
   - Implement proper ULID generation for all ID fields
   - Add missing model fields from TDD specification
+
   - _Requirements: 2.2, 2.3_
 
 - [ ] 2.3 Create Comprehensive Seed Data

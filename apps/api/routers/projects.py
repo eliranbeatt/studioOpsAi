@@ -23,7 +23,7 @@ async def get_projects(db: Session = Depends(get_db)):
 async def get_project(project_id: UUID, db: Session = Depends(get_db)):
     """Get a specific project by ID"""
     try:
-        project = db.query(ProjectModel).filter(ProjectModel.id == str(project_id)).first()
+        project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
         
@@ -61,7 +61,7 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
 async def update_project(project_id: UUID, project: ProjectUpdate, db: Session = Depends(get_db)):
     """Update a project"""
     try:
-        db_project = db.query(ProjectModel).filter(ProjectModel.id == str(project_id)).first()
+        db_project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
         if not db_project:
             raise HTTPException(status_code=404, detail="Project not found")
         
@@ -95,7 +95,7 @@ async def update_project(project_id: UUID, project: ProjectUpdate, db: Session =
 async def delete_project(project_id: UUID, db: Session = Depends(get_db)):
     """Delete a project"""
     try:
-        db_project = db.query(ProjectModel).filter(ProjectModel.id == str(project_id)).first()
+        db_project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
         if not db_project:
             raise HTTPException(status_code=404, detail="Project not found")
         

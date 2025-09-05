@@ -18,6 +18,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   minio:
     image: minio/minio:latest
@@ -28,14 +29,45 @@ services:
     environment:
       MINIO_ROOT_USER: studioops
       MINIO_ROOT_PASSWORD: studioops123
+      MINIO_DEFAULT_BUCKETS: "documents,uploads,exports,temp"
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+      - ./minio-init.sh:/docker-entrypoint-initdb.d/minio-init.sh
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: studioops-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: studioops
+      MINIO_ROOT_PASSWORD: studioops123
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO to be ready...';
+      sleep 10;
+      /usr/bin/mc alias set minio http://minio:9000 studioops studioops123;
+      echo 'Creating buckets...';
+      /usr/bin/mc mb minio/documents --ignore-existing;
+      /usr/bin/mc mb minio/uploads --ignore-existing;
+      /usr/bin/mc mb minio/exports --ignore-existing;
+      /usr/bin/mc mb minio/temp --ignore-existing;
+      echo 'Setting bucket policies...';
+      /usr/bin/mc anonymous set download minio/exports;
+      /usr/bin/mc anonymous set upload minio/uploads;
+      echo 'MinIO initialization completed successfully';
+      exit 0;
+      "
+    restart: "no"
 
   langfuse:
     image: langfuse/langfuse:latest
@@ -47,6 +79,9 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-your-secret-here}
       NEXTAUTH_URL: http://localhost:3100
       LANGFUSE_SECRET: ${LANGFUSE_SECRET:-your-langfuse-secret}
+      # Disable ClickHouse for local development
+      CLICKHOUSE_URL: ""
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,6 +90,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
 
   api:
     build:
@@ -68,6 +104,12 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: studioops
       MINIO_SECRET_KEY: studioops123
+      MINIO_SECURE: "false"
+      MINIO_REGION: us-east-1
+      MINIO_DOCUMENTS_BUCKET: documents
+      MINIO_UPLOADS_BUCKET: uploads
+      MINIO_EXPORTS_BUCKET: exports
+      MINIO_TEMP_BUCKET: temp
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_HOST: http://langfuse:3100
@@ -79,8 +121,15 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      langfuse:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
 volumes:
   postgres_data:
