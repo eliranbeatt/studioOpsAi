@@ -8,7 +8,15 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from routers import vendors, materials, mem0, chat, projects, plans, auth, estimation, instructor, ingest, vendor_prices, purchases, shipping_quotes, rate_cards
+from routers import vendors, materials, mem0, chat, projects, plans, auth, estimation, ingest, vendor_prices, purchases, shipping_quotes, rate_cards
+
+# Conditionally import instructor router if dependencies are available
+try:
+    from routers import instructor
+    INSTRUCTOR_AVAILABLE = True
+except ImportError as e:
+    print(f"Instructor router not available: {e}")
+    INSTRUCTOR_AVAILABLE = False
 
 # Conditionally import documents router if WeasyPrint is available
 try:
@@ -31,7 +39,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3009"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,7 +65,8 @@ app.include_router(vendor_prices.router)
 app.include_router(purchases.router)
 app.include_router(shipping_quotes.router)
 app.include_router(rate_cards.router)
-app.include_router(instructor.router)
+if INSTRUCTOR_AVAILABLE:
+    app.include_router(instructor.router)
 app.include_router(ingest.router)
 
 def get_db_connection():

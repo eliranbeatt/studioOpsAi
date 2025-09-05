@@ -44,7 +44,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/chat/message', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
         
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: data.message,
+          text: data.message || data.response || 'תשובה התקבלה',
           isUser: false,
           timestamp: new Date(),
           data: data
@@ -68,17 +68,26 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
 
         setMessages(prev => [...prev, aiMessage])
         
-        // Check if plan suggestion is offered
-        if (data.suggest_plan && onPlanSuggest) {
-          onPlanSuggest(true)
+        // Check if AI suggests creating a plan
+        if (data.suggests_plan || data.suggest_plan || data.message?.includes('תוכנית')) {
+          if (onPlanSuggest) {
+            onPlanSuggest(true)
+          }
         }
       } else {
-        throw new Error('Failed to get response')
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: 'מצטער, אירעה שגיאה. נסה שוב.',
+          isUser: false,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, errorMessage])
       }
     } catch (error) {
+      console.error('Chat error:', error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, there was an error processing your message.',
+        text: 'בעיה בחיבור לשרת. בדוק את החיבור.',
         isUser: false,
         timestamp: new Date()
       }
@@ -98,7 +107,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   const handleGeneratePlan = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/chat/generate_plan', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/plans/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,11 +132,14 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
           timestamp: new Date()
         }
         setMessages(prev => [...prev, successMessage])
+      } else {
+        throw new Error('Failed to generate plan')
       }
     } catch (error) {
+      console.error('Plan generation error:', error)
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
-        text: 'שגיאה ביצירת התוכנית. נסה שוב.',
+        text: 'שגיאה ביצירת התוכנית. בדוק שהשרת פועל.',
         isUser: false,
         timestamp: new Date()
       }

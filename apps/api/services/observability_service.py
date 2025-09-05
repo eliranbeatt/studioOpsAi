@@ -8,8 +8,6 @@ from uuid import UUID
 import json
 
 from langfuse import Langfuse
-from langfuse.model import CreateTrace, CreateSpan, CreateGeneration, CreateEvent
-from langfuse.decorators import observe, langfuse_context
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +48,14 @@ class ObservabilityService:
             return None
             
         try:
-            trace = self.langfuse.trace(CreateTrace(
+            trace_id = self.langfuse.create_trace_id()
+            self.langfuse.update_current_trace(
                 name=name,
                 user_id=user_id,
                 session_id=session_id,
                 metadata=metadata or {}
-            ))
-            return trace.id
+            )
+            return trace_id
         except Exception as e:
             logger.error(f"Failed to create trace: {e}")
             return None
@@ -72,13 +71,12 @@ class ObservabilityService:
             return None
             
         try:
-            span = self.langfuse.span(CreateSpan(
-                trace_id=trace_id,
+            span = self.langfuse.start_span(
                 name=name,
                 metadata=metadata or {},
                 start_time=start_time,
                 end_time=end_time
-            ))
+            )
             return span.id
         except Exception as e:
             logger.error(f"Failed to create span: {e}")
@@ -97,15 +95,14 @@ class ObservabilityService:
             return None
             
         try:
-            generation = self.langfuse.generation(CreateGeneration(
-                trace_id=trace_id,
+            generation = self.langfuse.start_generation(
                 name=name,
                 input=input,
                 output=output,
                 metadata=metadata or {},
                 model=model,
                 model_parameters=model_parameters or {}
-            ))
+            )
             return generation.id
         except Exception as e:
             logger.error(f"Failed to create generation: {e}")
@@ -120,11 +117,10 @@ class ObservabilityService:
             return None
             
         try:
-            event = self.langfuse.event(CreateEvent(
-                trace_id=trace_id,
+            event = self.langfuse.create_event(
                 name=name,
                 metadata=metadata or {}
-            ))
+            )
             return event.id
         except Exception as e:
             logger.error(f"Failed to create event: {e}")
@@ -203,6 +199,28 @@ class ObservabilityService:
             metadata=metadata
         )
     
+    def get_current_trace_id(self) -> Optional[str]:
+        """
+        Get the current trace ID using the new Langfuse API (v3.3.4+)
+        
+        Note: This replaces the deprecated langfuse.context API from v2.x
+        
+        Returns:
+            Optional[str]: Current trace ID if available, None if disabled or error
+        """
+        if not self.enabled:
+            return None
+            
+        try:
+            # Use the new Langfuse API to get current trace
+            current_trace = self.langfuse.get_current_trace()
+            if current_trace:
+                return current_trace.id
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get current trace ID: {e}")
+            return None
+
     def flush(self):
         """Flush any pending events to Langfuse"""
         if self.enabled:

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 }
 
 import Sidebar from '@/components/Sidebar'
+import ConnectionStatus from '@/components/ConnectionStatus'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 
 export default function RootLayout({
@@ -32,6 +33,7 @@ export default function RootLayout({
                     <h2 className="text-lg font-semibold text-foreground">
                       StudioOps AI Dashboard
                     </h2>
+                    <ConnectionStatus />
                   </div>
                   
                   {/* User menu */}

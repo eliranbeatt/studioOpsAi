@@ -7,8 +7,8 @@ import os
 from pathlib import Path
 import json
 
-from ..services.unstructured_service import unstructured_service
-from ..services.observability_service import observability_service
+from services.unstructured_service import unstructured_service
+from services.observability_service import observability_service
 
 router = APIRouter(prefix="/unstructured", tags=["unstructured"])
 

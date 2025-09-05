@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import os
 import sys
 from mcp.server.stdio import stdio_server
 from mcp import ClientSession
@@ -16,7 +17,7 @@ async def test_mcp_server():
         "command": "python",
         "args": ["apps/api/mcp_server.py"],
         "env": {
-            "DATABASE_URL": "postgresql://studioops:studioops123@localhost:5432/studioops"
+            "DATABASE_URL": os.getenv('DATABASE_URL', 'postgresql://studioops:studioops123@localhost:5432/studioops')
         }
     }
     

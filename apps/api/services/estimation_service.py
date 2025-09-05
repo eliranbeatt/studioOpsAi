@@ -135,7 +135,7 @@ class EstimationService:
             if observability_service.enabled:
                 duration_ms = (time.time() - start_time) * 1000
                 observability_service.track_estimation(
-                    trace_id=getattr(observability_service.langfuse.context, 'get_current_trace_id', lambda: None)(),
+                    trace_id=observability_service.get_current_trace_id(),
                     estimation_type="shipping",
                     request=request.dict(),
                     response=result.dict(),
@@ -152,7 +152,7 @@ class EstimationService:
             if observability_service.enabled:
                 duration_ms = (time.time() - start_time) * 1000
                 observability_service.track_error(
-                    trace_id=getattr(observability_service.langfuse.context, 'get_current_trace_id', lambda: None)(),
+                    trace_id=observability_service.get_current_trace_id(),
                     error_type=type(e).__name__,
                     error_message=str(e),
                     context={
@@ -322,6 +322,11 @@ class EstimationService:
                 base_rate=100.0,
                 regular_hours=request.hours_required,
                 regular_cost=request.hours_required * 100.0,
+                overtime_hours=0.0,
+                overtime_rate=150.0,  # 1.5x base rate
+                overtime_cost=0.0,
+                complexity_multiplier=1.0,
+                tool_surcharge=0.0,
                 total_cost=request.hours_required * 100.0,
                 confidence=0.5,
                 estimated_days=request.hours_required / 8.0,

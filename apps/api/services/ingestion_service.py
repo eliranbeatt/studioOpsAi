@@ -9,10 +9,10 @@ import tempfile
 from datetime import datetime
 from uuid import UUID
 
-from ..services.ocr_service import ocr_service
-from ..services.unstructured_service import unstructured_service
-from ..services.instructor_service import instructor_service
-from ..services.observability_service import observability_service
+from services.ocr_service import ocr_service
+from services.unstructured_service import unstructured_service
+from services.instructor_service import instructor_service
+from services.observability_service import observability_service
 
 logger = logging.getLogger(__name__)
 

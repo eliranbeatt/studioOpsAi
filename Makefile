@@ -7,7 +7,7 @@ dev-down:
 	docker-compose -f infra/docker-compose.yaml down
 
 db-migrate:
-	cd apps/api && alembic upgrade head
+	python infra/migrations/run_migrations.py
 
 db-seed:
 	cd packages/db && python seed.py

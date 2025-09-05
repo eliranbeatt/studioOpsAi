@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Chat from '@/components/Chat'
 import PlanEditor from '@/components/PlanEditor'
 
@@ -19,6 +20,7 @@ export default function Home() {
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null)
   const [showPlanEditor, setShowPlanEditor] = useState(false)
   const [planSuggestion, setPlanSuggestion] = useState(false)
+  const router = useRouter()
 
   const handlePlanSuggest = (suggest: boolean) => {
     setPlanSuggestion(suggest)
@@ -38,6 +40,18 @@ export default function Home() {
     // TODO: Implement plan saving
     console.log('Saving plan:', currentPlan)
     alert('תוכנית נשמרה successfully!')
+  }
+
+  const handleNavigateToProjects = () => {
+    router.push('/projects')
+  }
+
+  const handleNavigateToChat = () => {
+    router.push('/chat')
+  }
+
+  const handleNavigateToAnalytics = () => {
+    router.push('/plans')
   }
 
   return (
@@ -62,7 +76,10 @@ export default function Home() {
         </p>
         
         <div className="mt-6 flex justify-center space-x-4 space-x-reverse">
-          <button className="btn btn-primary btn-lg px-6 gradient-bg border-0">
+          <button 
+            onClick={handleNavigateToProjects}
+            className="btn btn-primary btn-lg px-6 gradient-bg border-0"
+          >
             🚀 התחל עכשיו
           </button>
           <button className="btn btn-outline btn-lg px-6">
@@ -83,7 +100,10 @@ export default function Home() {
             <p className="card-description mb-4 text-muted-foreground/80 leading-relaxed text-sm">
               התחל פרויקט חדש עם תכנון אוטומטי וניהול מלא
             </p>
-            <button className="btn btn-primary w-full gradient-bg border-0 hover:shadow-lg text-sm">
+            <button 
+              onClick={handleNavigateToProjects}
+              className="btn btn-primary w-full gradient-bg border-0 hover:shadow-lg text-sm"
+            >
               צור פרויקט
             </button>
           </div>
@@ -99,7 +119,10 @@ export default function Home() {
             <p className="card-description mb-4 text-muted-foreground/80 leading-relaxed text-sm">
               קבל ייעוץ והמלצות מבינה מלאכותית בזמן אמת
             </p>
-            <button className="btn w-full bg-gradient-to-r from-green-600 to-green-700 text-white border-0 hover:shadow-lg hover:from-green-700 hover:to-green-800 text-sm">
+            <button 
+              onClick={handleNavigateToChat}
+              className="btn w-full bg-gradient-to-r from-green-600 to-green-700 text-white border-0 hover:shadow-lg hover:from-green-700 hover:to-green-800 text-sm"
+            >
               התחל שיחה
             </button>
           </div>
@@ -115,7 +138,10 @@ export default function Home() {
             <p className="card-description mb-4 text-muted-foreground/80 leading-relaxed text-sm">
               צפה בדוחות וניתוחים מתקדמים על הביצועים שלך
             </p>
-            <button className="btn w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white border-0 hover:shadow-lg hover:from-purple-700 hover:to-purple-800 text-sm">
+            <button 
+              onClick={handleNavigateToAnalytics}
+              className="btn w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white border-0 hover:shadow-lg hover:from-purple-700 hover:to-purple-800 text-sm"
+            >
               צפה בדוחות
             </button>
           </div>

@@ -8,7 +8,7 @@ from fastapi.routing import APIRoute
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from ..services.observability_service import observability_service
+from services.observability_service import observability_service
 
 class ObservabilityMiddleware(BaseHTTPMiddleware):
     """Middleware for automatic request tracing and observability"""

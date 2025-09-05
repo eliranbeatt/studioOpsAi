@@ -14,7 +14,7 @@ class TrelloService:
     
     def __init__(self):
         self.api_key = os.getenv('TRELLO_API_KEY')
-        self.api_token = os.getenv('TRELLO_API_TOKEN')
+        self.api_token = os.getenv('TRELLO_TOKEN')
         self.client = None
         
         if self.api_key and self.api_token:

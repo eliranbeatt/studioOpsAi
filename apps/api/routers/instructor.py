@@ -5,8 +5,8 @@ from typing import List, Optional, Dict, Any, Type
 from pydantic import BaseModel, Field
 import json
 
-from ..services.instructor_service import instructor_service
-from ..services.observability_service import observability_service
+from services.instructor_service import instructor_service
+from services.observability_service import observability_service
 
 router = APIRouter(prefix="/instructor", tags=["instructor"])
 

@@ -1,0 +1,182 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]: S
+        - heading "StudioOps AI" [level=1] [ref=e8]
+      - navigation [ref=e9]:
+        - link "🏠 בית" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e11] [cursor=pointer]: 🏠
+          - generic [ref=e12] [cursor=pointer]: בית
+        - link "📋 פרויקטים" [ref=e13] [cursor=pointer]:
+          - /url: /projects
+          - generic [ref=e14] [cursor=pointer]: 📋
+          - generic [ref=e15] [cursor=pointer]: פרויקטים
+        - link "🏢 ספקים" [ref=e16] [cursor=pointer]:
+          - /url: /vendors
+          - generic [ref=e17] [cursor=pointer]: 🏢
+          - generic [ref=e18] [cursor=pointer]: ספקים
+        - link "📦 חומרים" [ref=e19] [cursor=pointer]:
+          - /url: /materials
+          - generic [ref=e20] [cursor=pointer]: 📦
+          - generic [ref=e21] [cursor=pointer]: חומרים
+        - link "💬 שיחה עם AI" [ref=e22] [cursor=pointer]:
+          - /url: /chat
+          - generic [ref=e23] [cursor=pointer]: 💬
+          - generic [ref=e24] [cursor=pointer]: שיחה עם AI
+        - link "📊 תוכניות" [active] [ref=e25] [cursor=pointer]:
+          - /url: /plans
+          - generic [ref=e26] [cursor=pointer]: 📊
+          - generic [ref=e27] [cursor=pointer]: תוכניות
+        - link "⚙️ הגדרות" [ref=e28] [cursor=pointer]:
+          - /url: /settings
+          - generic [ref=e29] [cursor=pointer]: ⚙️
+          - generic [ref=e30] [cursor=pointer]: הגדרות
+        - link "📤 טעינת נתונים" [ref=e31] [cursor=pointer]:
+          - /url: /data-loading
+          - generic [ref=e32] [cursor=pointer]: 📤
+          - generic [ref=e33] [cursor=pointer]: טעינת נתונים
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: ערכת עיצוב
+          - button "Toggle theme" [ref=e37] [cursor=pointer]:
+            - generic [ref=e38] [cursor=pointer]: Toggle theme
+            - generic [ref=e40] [cursor=pointer]:
+              - generic [ref=e41] [cursor=pointer]: ☀️
+              - generic [ref=e42] [cursor=pointer]: 🌙
+        - generic [ref=e43]:
+          - generic [ref=e45]: 👤
+          - generic [ref=e46]:
+            - paragraph [ref=e47]: משתמש
+            - paragraph [ref=e48]: מנהל מערכת
+    - generic [ref=e49]:
+      - banner [ref=e50]:
+        - generic [ref=e51]:
+          - heading "StudioOps AI Dashboard" [level=2] [ref=e53]
+          - generic [ref=e54]:
+            - button "🔔" [ref=e55] [cursor=pointer]:
+              - generic [ref=e56] [cursor=pointer]: 🔔
+            - generic [ref=e58]: 👤
+      - main [ref=e59]:
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - heading "🛠️ עורך תוכניות" [level=1] [ref=e63]
+            - paragraph [ref=e64]: צור וערוך תוכניות פרויקטים עם חישוב אוטומטי של עלויות, רווחים וניתוח כלכלי
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - button "🆕 תוכנית חדשה" [ref=e67] [cursor=pointer]
+              - generic [ref=e68]:
+                - generic [ref=e69]: "פרויקט:"
+                - generic [ref=e70]: פרויקט חדש
+            - generic [ref=e72]:
+              - generic [ref=e73]: "סה\"כ:"
+              - generic [ref=e74]: ‏3,000.00 ‏NIS
+          - generic [ref=e76]:
+            - generic [ref=e77]:
+              - heading "עורך תוכנית - פרויקט חדש" [level=3] [ref=e78]
+              - paragraph [ref=e79]:
+                - text: "סך הכל:"
+                - generic [ref=e80]: ‏3,000.00 ‏NIS
+                - text: "|2 פריטים | יעד רווח: 0.25%"
+            - table [ref=e82]:
+              - rowgroup [ref=e83]:
+                - row "קטגוריה תיאור כמות יחידה מחיר ליחידה סה\"כ פעולות" [ref=e84]:
+                  - cell "קטגוריה" [ref=e85]
+                  - cell "תיאור" [ref=e86]
+                  - cell "כמות" [ref=e87]
+                  - cell "יחידה" [ref=e88]
+                  - cell "מחיר ליחידה" [ref=e89]
+                  - cell "סה\"כ" [ref=e90]
+                  - cell "פעולות" [ref=e91]
+              - rowgroup [ref=e92]:
+                - row "📦 חומרים עץ לבוד 4x8 עץ לבוד איכותי ממחסן חומרי בניין 5 לוח ‏120.00 ‏NIS ‏600.00 ‏NIS 🗑️ מחק" [ref=e93]:
+                  - cell "📦 חומרים" [ref=e94]:
+                    - generic [ref=e96] [cursor=pointer]: 📦 חומרים
+                  - cell "עץ לבוד 4x8 עץ לבוד איכותי ממחסן חומרי בניין" [ref=e97]:
+                    - generic [ref=e98] [cursor=pointer]:
+                      - generic [ref=e99] [cursor=pointer]: עץ לבוד 4x8
+                      - generic [ref=e100] [cursor=pointer]: עץ לבוד איכותי ממחסן חומרי בניין
+                  - cell "5" [ref=e101]:
+                    - generic [ref=e103] [cursor=pointer]: "5"
+                  - cell "לוח" [ref=e104]:
+                    - generic [ref=e106] [cursor=pointer]: לוח
+                  - cell "‏120.00 ‏NIS" [ref=e107]:
+                    - generic [ref=e109] [cursor=pointer]: ‏120.00 ‏NIS
+                  - cell "‏600.00 ‏NIS" [ref=e110]
+                  - cell "🗑️ מחק" [ref=e111]:
+                    - button "🗑️ מחק" [ref=e112] [cursor=pointer]
+                - row "👷 עבודה עבודה נגרית שירותי נגרות מקצועיים 16 שעה ‏150.00 ‏NIS ‏2,400.00 ‏NIS 🗑️ מחק" [ref=e113]:
+                  - cell "👷 עבודה" [ref=e114]:
+                    - generic [ref=e116] [cursor=pointer]: 👷 עבודה
+                  - cell "עבודה נגרית שירותי נגרות מקצועיים" [ref=e117]:
+                    - generic [ref=e118] [cursor=pointer]:
+                      - generic [ref=e119] [cursor=pointer]: עבודה נגרית
+                      - generic [ref=e120] [cursor=pointer]: שירותי נגרות מקצועיים
+                  - cell "16" [ref=e121]:
+                    - generic [ref=e123] [cursor=pointer]: "16"
+                  - cell "שעה" [ref=e124]:
+                    - generic [ref=e126] [cursor=pointer]: שעה
+                  - cell "‏150.00 ‏NIS" [ref=e127]:
+                    - generic [ref=e129] [cursor=pointer]: ‏150.00 ‏NIS
+                  - cell "‏2,400.00 ‏NIS" [ref=e130]
+                  - cell "🗑️ מחק" [ref=e131]:
+                    - button "🗑️ מחק" [ref=e132] [cursor=pointer]
+              - rowgroup [ref=e133]:
+                - 'row "סה\"כ פרויקט: ‏3,000.00 ‏NIS" [ref=e134]':
+                  - cell "סה\"כ פרויקט:" [ref=e135]
+                  - cell "‏3,000.00 ‏NIS" [ref=e136]
+                  - cell [ref=e137]
+            - generic [ref=e139]:
+              - button "➕ הוסף שורה" [ref=e140] [cursor=pointer]
+              - button "💾 שמור תוכנית" [ref=e141] [cursor=pointer]
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - heading "📊 סטטיסטיקות" [level=3] [ref=e144]
+              - generic [ref=e145]:
+                - generic [ref=e146]:
+                  - generic [ref=e147]: "מספר פריטים:"
+                  - generic [ref=e148]: "2"
+                - generic [ref=e149]:
+                  - generic [ref=e150]: "יעד רווח:"
+                  - generic [ref=e151]: 25.0%
+                - generic [ref=e152]:
+                  - generic [ref=e153]: "רווח צפוי:"
+                  - generic [ref=e154]: ‏750.00 ‏NIS
+            - generic [ref=e155]:
+              - heading "📦 חומרים" [level=3] [ref=e156]
+              - generic [ref=e157]:
+                - generic [ref=e158]:
+                  - generic [ref=e159]: "פריטי חומרים:"
+                  - generic [ref=e160]: "1"
+                - generic [ref=e161]:
+                  - generic [ref=e162]: "עלות חומרים:"
+                  - generic [ref=e163]: ‏600.00 ‏NIS
+            - generic [ref=e164]:
+              - heading "👷 עבודה" [level=3] [ref=e165]
+              - generic [ref=e166]:
+                - generic [ref=e167]:
+                  - generic [ref=e168]: "פריטי עבודה:"
+                  - generic [ref=e169]: "1"
+                - generic [ref=e170]:
+                  - generic [ref=e171]: "עלות עבודה:"
+                  - generic [ref=e172]: ‏2,400.00 ‏NIS
+          - generic [ref=e173]:
+            - heading "⚡ פעולות מהירות" [level=3] [ref=e174]
+            - generic [ref=e175]:
+              - button "📄 ייצוא ל-PDF" [ref=e176] [cursor=pointer]
+              - button "📊 ניתוח כלכלי" [ref=e177] [cursor=pointer]
+              - button "🎯 השוואת מחירים" [ref=e178] [cursor=pointer]
+              - button "📋 ייצוא ל-Trello" [ref=e179] [cursor=pointer]
+      - contentinfo [ref=e180]:
+        - generic [ref=e181]:
+          - paragraph [ref=e182]: © 2024 StudioOps AI. כל הזכויות שמורות.
+          - generic [ref=e183]:
+            - generic [ref=e184]: גרסה 2.0.0
+            - generic [ref=e185]: •
+            - generic [ref=e186]: מערכת ניהול פרויקטים חכמה
+  - alert [ref=e187]
+```

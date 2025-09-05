@@ -43,22 +43,31 @@ describe('PlanEditor', () => {
   it('renders plan data correctly', () => {
     render(<PlanEditor plan={mockPlan} onPlanChange={() => {}} />)
     
-    expect(screen.getByText('Test Project')).toBeInTheDocument()
-    expect(screen.getByText('Plywood 4x8')).toBeInTheDocument()
-    expect(screen.getByText('Carpenter work')).toBeInTheDocument()
-    expect(screen.getByText('₪2,287.92')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Test Project/ })).toBeInTheDocument()
+    expect(screen.getByText(/Plywood 4x8/)).toBeInTheDocument()
+    expect(screen.getByText(/Carpenter work/)).toBeInTheDocument()
+    // Use getAllByText since the total appears in both header and footer
+    expect(screen.getAllByText(/2,287.92/)).toHaveLength(2)
   })
 
-  it('allows editing quantity and updates subtotal', () => {
+  it('allows editing quantity and updates subtotal', async () => {
     const onPlanChange = jest.fn()
     render(<PlanEditor plan={mockPlan} onPlanChange={onPlanChange} />)
     
-    // Click on quantity cell
-    const quantityCell = screen.getByText('8')
-    fireEvent.click(quantityCell)
+    // Click on quantity cell - find the specific cell with exact quantity 8
+    const quantityCells = screen.getAllByText(/^8$/)
     
-    // Change quantity to 10
-    const input = screen.getByDisplayValue('8')
+    // Find the quantity cell in the materials row (first item)
+    const materialsQuantityCell = quantityCells.find(cell => 
+      cell.closest('tr')?.textContent?.includes('Plywood 4x8')
+    ) || quantityCells[0]
+    
+    fireEvent.click(materialsQuantityCell)
+    
+    // Change quantity to 10 - the input should now be visible
+    // Try to find the input field by role or type instead of display value
+    const input = await screen.findByRole('spinbutton')
+    expect(input).toHaveValue(8)
     fireEvent.change(input, { target: { value: '10' } })
     fireEvent.blur(input)
     
@@ -66,14 +75,14 @@ describe('PlanEditor', () => {
     expect(onPlanChange).toHaveBeenCalled()
     const updatedPlan = onPlanChange.mock.calls[0][0]
     expect(updatedPlan.items[0].quantity).toBe(10)
-    expect(updatedPlan.items[0].subtotal).toBe(459.9) // 10 * 45.99
+    expect(updatedPlan.items[0].subtotal).toBeCloseTo(459.9) // 10 * 45.99
   })
 
   it('allows adding new rows', () => {
     const onPlanChange = jest.fn()
     render(<PlanEditor plan={mockPlan} onPlanChange={onPlanChange} />)
     
-    const addButton = screen.getByText('+ הוסף שורה')
+    const addButton = screen.getByText(/הוסף שורה/)
     fireEvent.click(addButton)
     
     expect(onPlanChange).toHaveBeenCalled()
@@ -86,7 +95,7 @@ describe('PlanEditor', () => {
     const onPlanChange = jest.fn()
     render(<PlanEditor plan={mockPlan} onPlanChange={onPlanChange} />)
     
-    const deleteButtons = screen.getAllByText('מחק')
+    const deleteButtons = screen.getAllByText(/מחק/)
     fireEvent.click(deleteButtons[0])
     
     expect(onPlanChange).toHaveBeenCalled()

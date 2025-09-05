@@ -34,13 +34,18 @@ class ChatMessage(BaseModel):
 
 # Mock data for testing
 mock_vendors = [
-    {"id": "1", "name": "Home Center", "contact": "03-1234567", "url": "https://homecenter.co.il", "rating": 4.5, "notes": "Good for basic materials"},
-    {"id": "2", "name": "ACE Hardware", "contact": "03-7654321", "url": "https://ace.co.il", "rating": 4.2, "notes": "Professional tools"}
+    {"id": "1", "name": "Home Center", "contact": "03-1234567", "url": "https://homecenter.co.il", "rating": 4.5, "notes": "Good for basic materials", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
+    {"id": "2", "name": "ACE Hardware", "contact": "03-7654321", "url": "https://ace.co.il", "rating": 4.2, "notes": "Professional tools", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
 ]
 
 mock_materials = [
-    {"id": "1", "name": "Plywood 4x8", "spec": "18mm", "unit": "sheet", "category": "wood", "typical_waste_pct": 10.0, "notes": "Standard plywood"},
-    {"id": "2", "name": "2x4 Lumber", "spec": "2x4x8", "unit": "piece", "category": "wood", "typical_waste_pct": 5.0, "notes": "Construction lumber"}
+    {"id": "1", "name": "Plywood 4x8", "spec": "18mm", "unit": "sheet", "category": "wood", "typical_waste_pct": 10.0, "notes": "Standard plywood", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
+    {"id": "2", "name": "2x4 Lumber", "spec": "2x4x8", "unit": "piece", "category": "wood", "typical_waste_pct": 5.0, "notes": "Construction lumber", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
+]
+
+mock_projects = [
+    {"id": "1", "name": "Kitchen Renovation", "client_name": "John Doe", "status": "active", "start_date": "2024-01-15", "due_date": "2024-03-15", "budget_planned": 50000, "budget_actual": 0, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
+    {"id": "2", "name": "Bathroom Remodel", "client_name": "Jane Smith", "status": "draft", "start_date": "2024-02-01", "due_date": "2024-04-01", "budget_planned": 30000, "budget_actual": 0, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
 ]
 
 async def simulate_ai_response(message: str):
@@ -169,15 +174,179 @@ async def generate_plan_skeleton(plan_request: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating plan: {e}")
 
-@app.get("/api/vendors")
+@app.get("/projects")
+async def get_projects():
+    """Get all projects"""
+    return mock_projects
+
+@app.post("/projects")
+async def create_project(project: dict):
+    """Create a new project"""
+    new_project = {
+        "id": str(len(mock_projects) + 1),
+        "name": project.get("name", "New Project"),
+        "client_name": project.get("client_name"),
+        "status": project.get("status", "draft"),
+        "start_date": project.get("start_date"),
+        "due_date": project.get("due_date"),
+        "budget_planned": project.get("budget_planned"),
+        "budget_actual": 0,
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-01-01T00:00:00Z"
+    }
+    mock_projects.append(new_project)
+    return new_project
+
+@app.delete("/projects/{project_id}")
+async def delete_project(project_id: str):
+    """Delete a project"""
+    global mock_projects
+    mock_projects = [p for p in mock_projects if p["id"] != project_id]
+    return {"message": "Project deleted successfully"}
+
+@app.get("/vendors")
 async def get_vendors():
     """Get all vendors"""
     return mock_vendors
 
-@app.get("/api/materials")
+@app.post("/vendors")
+async def create_vendor(vendor: dict):
+    """Create a new vendor"""
+    new_vendor = {
+        "id": str(len(mock_vendors) + 1),
+        "name": vendor.get("name", "New Vendor"),
+        "contact": vendor.get("contact"),
+        "url": vendor.get("url"),
+        "rating": vendor.get("rating"),
+        "notes": vendor.get("notes"),
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-01-01T00:00:00Z"
+    }
+    mock_vendors.append(new_vendor)
+    return new_vendor
+
+@app.delete("/vendors/{vendor_id}")
+async def delete_vendor(vendor_id: str):
+    """Delete a vendor"""
+    global mock_vendors
+    mock_vendors = [v for v in mock_vendors if v["id"] != vendor_id]
+    return {"message": "Vendor deleted successfully"}
+
+@app.get("/materials")
 async def get_materials():
     """Get all materials"""
     return mock_materials
 
+@app.post("/materials")
+async def create_material(material: dict):
+    """Create a new material"""
+    new_material = {
+        "id": str(len(mock_materials) + 1),
+        "name": material.get("name", "New Material"),
+        "spec": material.get("spec"),
+        "unit": material.get("unit", "unit"),
+        "category": material.get("category"),
+        "typical_waste_pct": material.get("typical_waste_pct", 0),
+        "notes": material.get("notes"),
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-01-01T00:00:00Z"
+    }
+    mock_materials.append(new_material)
+    return new_material
+
+@app.delete("/materials/{material_id}")
+async def delete_material(material_id: str):
+    """Delete a material"""
+    global mock_materials
+    mock_materials = [m for m in mock_materials if m["id"] != material_id]
+    return {"message": "Material deleted successfully"}
+
+@app.post("/chat")
+async def chat_message_v2(chat_message: ChatMessage):
+    """Direct chat endpoint without /api prefix"""
+    try:
+        response = await simulate_ai_response(chat_message.message)
+        
+        # Check if the message suggests creating a plan
+        should_suggest_plan = any(word in chat_message.message.lower() for word in [
+            'plan', 'תוכנית', 'project', 'פרויקט', 'build', 'בנייה', 'create', 'יצירה'
+        ])
+        
+        return {
+            "message": response,
+            "response": response,  # Alternative field name
+            "context": {
+                "assumptions": ["הנחה 1", "הנחה 2"],
+                "risks": ["סיכון 1", "סיכון 2"],
+                "suggestions": ["הצעה 1", "הצעה 2"]
+            },
+            "suggests_plan": should_suggest_plan,
+            "suggest_plan": should_suggest_plan,
+            "timestamp": time.time()
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing chat message: {e}")
+
+@app.post("/plans/generate")
+async def generate_plan_v2(plan_request: dict):
+    """Direct plan generation endpoint without /api prefix"""
+    try:
+        project_name = plan_request.get('project_name', 'New Project')
+        project_description = plan_request.get('project_description', '')
+        
+        # Mock plan generation
+        items = [
+            {
+                "category": "materials",
+                "title": "Plywood 4x8",
+                "description": "Standard plywood sheet",
+                "quantity": 5.0,
+                "unit": "sheet",
+                "unit_price": 120.0,
+                "subtotal": 600.0
+            },
+            {
+                "category": "materials",
+                "title": "2x4 Lumber",
+                "description": "Construction lumber",
+                "quantity": 20.0,
+                "unit": "piece",
+                "unit_price": 25.0,
+                "subtotal": 500.0
+            },
+            {
+                "category": "labor",
+                "title": "Carpenter work",
+                "description": "Professional carpentry services",
+                "quantity": 16.0,
+                "unit": "hour",
+                "unit_price": 150.0,
+                "subtotal": 2400.0
+            }
+        ]
+        
+        total = sum(item["subtotal"] for item in items)
+        
+        plan_skeleton = {
+            "project_id": plan_request.get('project_id'),
+            "project_name": project_name,
+            "items": items,
+            "total": total,
+            "margin_target": 0.25,
+            "currency": "NIS",
+            "metadata": {
+                "generated_at": time.time(),
+                "items_count": len(items),
+                "materials_count": len([i for i in items if i['category'] == 'materials']),
+                "labor_count": len([i for i in items if i['category'] == 'labor'])
+            }
+        }
+        
+        return plan_skeleton
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating plan: {e}")
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

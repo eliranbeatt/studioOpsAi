@@ -20,17 +20,13 @@ def test_services():
         
         # Test material pricing
         material_price = pricing_resolver.get_material_price('Plywood 4x8')
-        if material_price:
-            print(f"Plywood price: {material_price['price']}")
-        else:
-            print("Plywood price not found (using mock data)")
+        assert material_price is not None, "Material price should not be None"
+        print(f"Plywood price: {material_price['price']}")
         
         # Test labor rates
         labor_rate = pricing_resolver.get_labor_rate('Carpenter')
-        if labor_rate:
-            print(f"Carpenter rate: {labor_rate['hourly_rate']}")
-        else:
-            print("Carpenter rate not found (using mock data)")
+        assert labor_rate is not None, "Labor rate should not be None"
+        print(f"Carpenter rate: {labor_rate['hourly_rate']}")
         
         print("\nTesting estimation service...")
         
@@ -41,6 +37,7 @@ def test_services():
             method=ShippingMethod.STANDARD
         )
         shipping_estimate = estimation_service.estimate_shipping(shipping_request)
+        assert shipping_estimate.total_cost > 0, "Shipping cost should be positive"
         print(f"Shipping estimate: {shipping_estimate.total_cost}")
         
         # Test labor estimation
@@ -49,16 +46,16 @@ def test_services():
             hours_required=40.0
         )
         labor_estimate = estimation_service.estimate_labor(labor_request)
+        assert labor_estimate.total_cost > 0, "Labor cost should be positive"
         print(f"Labor estimate: {labor_estimate.total_cost}")
         
         print("\n✅ All services working correctly!")
-        return True
         
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        raise
 
 if __name__ == "__main__":
     success = test_services()

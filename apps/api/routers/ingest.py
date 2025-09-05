@@ -13,11 +13,31 @@ import psycopg2
 import os
 from uuid import UUID
 
-from ..services.observability_service import observability_service
-from ..services.instructor_service import instructor_service
-from ..services.ocr_service import ocr_service
-from ..services.unstructured_service import unstructured_service
-from ..services.ingestion_service import ingestion_service
+from services.observability_service import observability_service
+try:
+    from services.instructor_service import instructor_service
+    INSTRUCTOR_AVAILABLE = True
+except ImportError:
+    instructor_service = None
+    INSTRUCTOR_AVAILABLE = False
+try:
+    from services.ocr_service import ocr_service
+    OCR_AVAILABLE = True
+except ImportError:
+    ocr_service = None
+    OCR_AVAILABLE = False
+try:
+    from services.unstructured_service import unstructured_service
+    UNSTRUCTURED_AVAILABLE = True
+except ImportError:
+    unstructured_service = None
+    UNSTRUCTURED_AVAILABLE = False
+try:
+    from services.ingestion_service import ingestion_service
+    INGESTION_AVAILABLE = True
+except ImportError:
+    ingestion_service = None
+    INGESTION_AVAILABLE = False
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 

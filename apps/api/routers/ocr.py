@@ -9,8 +9,8 @@ from pathlib import Path
 import uuid
 import shutil
 
-from ..services.ocr_service import ocr_service
-from ..services.observability_service import observability_service
+from services.ocr_service import ocr_service
+from services.observability_service import observability_service
 
 router = APIRouter(prefix="/ocr", tags=["ocr"])
 
