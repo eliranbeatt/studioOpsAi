@@ -73,7 +73,7 @@ def get_db_connection():
     """Get a database connection"""
     try:
         conn = psycopg2.connect(
-            os.getenv('DATABASE_URL', 'postgresql://studioops:studioops@localhost:5432/studioops')
+            os.getenv('DATABASE_URL', 'postgresql://studioops:studioops123@localhost:5432/studioops')
         )
         return conn
     except Exception as e:

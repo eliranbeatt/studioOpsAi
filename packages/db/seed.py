@@ -4,6 +4,7 @@ Seed script for StudioOps AI database
 """
 import os
 import psycopg2
+import psycopg2.extras as pg_extras
 import csv
 from pathlib import Path
 
@@ -13,6 +14,7 @@ def run_seeds():
     # Get database connection string from environment
     database_url = os.getenv('DATABASE_URL', 'postgresql://studioops:studioops@localhost:5432/studioops')
     
+    conn = None
     try:
         # Connect to database
         conn = psycopg2.connect(database_url)
@@ -99,7 +101,7 @@ def run_seeds():
         for role, rate, overtime, efficiency in rate_cards:
             cursor.execute(
                 "INSERT INTO rate_cards (role, hourly_rate_nis, overtime_rules_json, default_efficiency) VALUES (%s, %s, %s, %s) ON CONFLICT (role) DO UPDATE SET hourly_rate_nis = EXCLUDED.hourly_rate_nis",
-                (role, rate, overtime, efficiency)
+                (role, rate, pg_extras.Json(overtime), efficiency)
             )
         
         print("Seeding completed successfully")
@@ -108,8 +110,11 @@ def run_seeds():
         print(f"Error running seeds: {e}")
         raise
     finally:
-        if conn:
-            conn.close()
+        try:
+            if conn:
+                conn.close()
+        except NameError:
+            pass
 
 if __name__ == "__main__":
     run_seeds()
