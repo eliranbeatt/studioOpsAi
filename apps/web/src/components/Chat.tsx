@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { API_BASE_URL } from '@/lib/api'
 
 interface Message {
   id: string
@@ -44,7 +45,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
+      const response = await fetch(`${API_BASE_URL}/chat/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +108,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   const handleGeneratePlan = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/plans/generate`, {
+      const response = await fetch(`${API_BASE_URL}/chat/generate_plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

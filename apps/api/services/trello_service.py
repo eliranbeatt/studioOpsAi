@@ -16,6 +16,8 @@ class TrelloService:
         self.api_key = os.getenv('TRELLO_API_KEY')
         # Accept both TRELLO_API_TOKEN and legacy TRELLO_TOKEN
         self.api_token = os.getenv('TRELLO_API_TOKEN') or os.getenv('TRELLO_TOKEN')
+        # Default board ID configuration
+        self.default_board_id = os.getenv('TRELLO_DEFAULT_BOARD_ID')
         self.client = None
         
         if self.api_key and self.api_token:
@@ -26,6 +28,9 @@ class TrelloService:
                 logger.error(f"Failed to initialize Trello client: {e}")
         else:
             logger.warning("Trello API credentials not found. Trello integration will be disabled.")
+            
+        if self.default_board_id:
+            logger.info(f"Using default Trello board ID: {self.default_board_id}")
     
     def is_configured(self) -> bool:
         """Check if Trello is properly configured"""
@@ -37,24 +42,40 @@ class TrelloService:
             return None
         
         try:
-            # For this version, we'll use a simplified approach
-            # Create board name with project identifier
-            board_name = f"StudioOps - {project_name} ({project_id})"
-            
-            # In this basic implementation, we'll just return a structure
-            # The actual board creation would need more complex API calls
-            return {
-                'board_id': f"board_{project_id}",  # Placeholder
-                'board_name': board_name,
-                'board_url': f"https://trello.com/b/placeholder/{project_id}",
-                'lists': {
-                    'to do': {'id': 'todo', 'name': 'לעשות', 'english_name': 'To Do'},
-                    'in progress': {'id': 'progress', 'name': 'בתהליך', 'english_name': 'In Progress'},
-                    'review': {'id': 'review', 'name': 'ביקורת', 'english_name': 'Review'},
-                    'completed': {'id': 'completed', 'name': 'הושלם', 'english_name': 'Completed'}
-                },
-                'created': False  # Indicates we didn't actually create a board
-            }
+            # Use default board ID if configured, otherwise create project-specific board
+            if self.default_board_id:
+                # Use the default board
+                board_name = f"StudioOps - {project_name} ({project_id})"
+                return {
+                    'board_id': self.default_board_id,
+                    'board_name': board_name,
+                    'board_url': f"https://trello.com/b/{self.default_board_id}",
+                    'lists': {
+                        'to do': {'id': 'todo', 'name': 'לעשות', 'english_name': 'To Do'},
+                        'in progress': {'id': 'progress', 'name': 'בתהליך', 'english_name': 'In Progress'},
+                        'review': {'id': 'review', 'name': 'ביקורת', 'english_name': 'Review'},
+                        'completed': {'id': 'completed', 'name': 'הושלם', 'english_name': 'Completed'}
+                    },
+                    'created': False  # Using existing board, not creating new one
+                }
+            else:
+                # Create board name with project identifier
+                board_name = f"StudioOps - {project_name} ({project_id})"
+                
+                # In this basic implementation, we'll just return a structure
+                # The actual board creation would need more complex API calls
+                return {
+                    'board_id': f"board_{project_id}",  # Placeholder
+                    'board_name': board_name,
+                    'board_url': f"https://trello.com/b/placeholder/{project_id}",
+                    'lists': {
+                        'to do': {'id': 'todo', 'name': 'לעשות', 'english_name': 'To Do'},
+                        'in progress': {'id': 'progress', 'name': 'בתהליך', 'english_name': 'In Progress'},
+                        'review': {'id': 'review', 'name': 'ביקורת', 'english_name': 'Review'},
+                        'completed': {'id': 'completed', 'name': 'הושלם', 'english_name': 'Completed'}
+                    },
+                    'created': False  # Indicates we didn't actually create a board
+                }
             
         except Exception as e:
             logger.error(f"Unexpected error ensuring board structure: {e}")

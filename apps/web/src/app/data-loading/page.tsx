@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useApi } from '@/hooks/useApi'
+import { API_BASE_URL } from '@/lib/api'
 
 interface UploadStatus {
   file: File
@@ -46,9 +47,8 @@ export default function DataLoadingPage() {
 
   const uploadFile = async (uploadStatus: UploadStatus) => {
     const formData = new FormData()
-    formData.append('file', uploadStatus.file)
-    formData.append('source', 'web_upload')
-    formData.append('document_type', 'manual')
+    // Backend expects field name 'files' (can be multiple)
+    formData.append('files', uploadStatus.file)
 
     try {
       // Update status to uploading
@@ -68,7 +68,7 @@ export default function DataLoadingPage() {
       }, 200)
 
       // Upload to API
-      const response = await fetch('http://localhost:8000/rag/upload', {
+      const response = await fetch(`${API_BASE_URL}/ingest/upload`, {
         method: 'POST',
         body: formData,
       })
