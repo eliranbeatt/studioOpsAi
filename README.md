@@ -15,8 +15,33 @@ What you need to install:
 ### Installation
 
 1. Clone the repository
-2. Install dependencies: `npm install`
-3. Start development server: `npm run dev`
+2. Install dependencies for web app: `cd apps/web && npm install`
+3. Install dependencies for API: `cd apps/api && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt`
+
+### Running the Application
+
+You can start both the web app and API server using one of the provided run scripts:
+
+**Windows (Command Prompt):**
+```bash
+run_dev.bat
+```
+
+**Windows (PowerShell):**
+```powershell
+./run_dev.ps1
+```
+
+**Linux/Mac:**
+```bash
+chmod +x run_dev.sh
+./run_dev.sh
+```
+
+This will start:
+- Web app on http://localhost:3000
+- API server on http://localhost:8001
+- API documentation on http://localhost:8001/docs
 
 ## Usage
 
