@@ -6,6 +6,7 @@ import asyncio
 import time
 from pydantic import BaseModel
 from services.pricing_resolver import pricing_resolver
+from llm_service import llm_service
 import psycopg2
 import os
 from dotenv import load_dotenv
@@ -219,13 +220,23 @@ def extract_keywords(message: str) -> List[str]:
     return keywords
 
 async def generate_streaming_response(message: str, project_id: str = None, session_id: str = None):
-    """Generate streaming response for SSE with context"""
-    response = await simulate_ai_response(message, project_id, session_id)
+    """Generate streaming response for SSE with real LLM"""
+    # Get project context
+    project_context = await get_project_context(project_id) if project_id else {}
+    
+    # Use real LLM service
+    llm_response = await llm_service.generate_response(
+        message=message,
+        session_id=session_id,
+        project_context=project_context
+    )
+    
+    response = llm_response["message"]
     
     # Simulate streaming by sending words one by one
     words = response.split()
     for i, word in enumerate(words):
-        yield f"data: {json.dumps({'token': word + ' ', 'finished': i == len(words) - 1})}\n\n"
+        yield f"data: {json.dumps({'token': word + ' ', 'finished': i == len(words) - 1, 'ai_enabled': llm_service.use_openai})}\n\n"
         await asyncio.sleep(0.1)
 
 @router.post("/stream")
@@ -242,21 +253,19 @@ async def chat_stream(chat_message: ChatMessage):
 
 @router.post("/message")
 async def chat_message(chat_message: ChatMessage):
-    """Simple chat endpoint (non-streaming) with context"""
+    """Real chat endpoint with LLM integration and memory"""
     try:
-        response = await simulate_ai_response(
-            chat_message.message, 
-            chat_message.project_id, 
-            chat_message.session_id
+        # Get project context for LLM
+        project_context = await get_project_context(chat_message.project_id) if chat_message.project_id else {}
+        
+        # Use real LLM service with context and memory
+        llm_response = await llm_service.generate_response(
+            message=chat_message.message,
+            session_id=chat_message.session_id,
+            project_context=project_context
         )
         
-        # Check if the message suggests creating a plan
-        should_suggest_plan = any(word in chat_message.message.lower() for word in [
-            'plan', 'תוכנית', 'project', 'פרויקט', 'build', 'בנייה', 'create', 'יצירה'
-        ])
-        
-        # Get actual context from database
-        project_context = await get_project_context(chat_message.project_id) if chat_message.project_id else {}
+        # Get additional context for response enrichment
         rag_context = []
         if chat_message.message:
             keywords = extract_keywords(chat_message.message)
@@ -266,7 +275,7 @@ async def chat_message(chat_message: ChatMessage):
                     rag_context.extend(docs)
         
         return {
-            "message": response,
+            "message": llm_response["message"],
             "context": {
                 "project": project_context,
                 "rag_documents": rag_context,
@@ -274,9 +283,11 @@ async def chat_message(chat_message: ChatMessage):
                 "risks": ["זמינות חומרים עשויה להשתנות", "שינויים בלוח הזמנים אפשריים"],
                 "suggestions": ["מומלץ לקבל הצעות מחיר מכמה ספקים", "לתכנן מרווח ביטחון של 15% בעלויות"]
             },
-            "suggest_plan": should_suggest_plan,
-            "session_id": chat_message.session_id or f"session_{int(time.time())}",
-            "timestamp": time.time()
+            "suggest_plan": llm_response.get("suggest_plan", False),
+            "session_id": llm_response.get("session_id", chat_message.session_id or f"session_{int(time.time())}"),
+            "timestamp": time.time(),
+            "ai_enabled": llm_service.use_openai,
+            "error_info": llm_response.get("error_info")
         }
     
     except Exception as e:

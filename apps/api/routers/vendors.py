@@ -14,7 +14,23 @@ async def get_vendors(db: Session = Depends(get_db)):
     """Get all vendors"""
     try:
         vendors = db.query(VendorModel).order_by(VendorModel.name).all()
-        return vendors
+        
+        # Convert to dict to handle serialization issues
+        result = []
+        for vendor in vendors:
+            vendor_dict = {
+                "id": str(vendor.id),
+                "name": vendor.name,
+                "contact": vendor.contact,
+                "url": vendor.url,
+                "rating": vendor.rating,
+                "notes": vendor.notes,
+                "created_at": vendor.created_at,
+                "updated_at": vendor.updated_at
+            }
+            result.append(vendor_dict)
+        
+        return result
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching vendors: {e}")
@@ -23,18 +39,30 @@ async def get_vendors(db: Session = Depends(get_db)):
 async def get_vendor(vendor_id: UUID, db: Session = Depends(get_db)):
     """Get a specific vendor by ID"""
     try:
-        vendor = db.query(VendorModel).filter(VendorModel.id == str(vendor_id)).first()
+        vendor = db.query(VendorModel).filter(VendorModel.id == vendor_id).first()
         if not vendor:
             raise HTTPException(status_code=404, detail="Vendor not found")
         
-        return vendor
+        # Convert to dict to handle serialization issues
+        vendor_dict = {
+            "id": str(vendor.id),
+            "name": vendor.name,
+            "contact": vendor.contact,
+            "url": vendor.url,
+            "rating": vendor.rating,
+            "notes": vendor.notes,
+            "created_at": vendor.created_at,
+            "updated_at": vendor.updated_at
+        }
+        
+        return vendor_dict
     
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching vendor: {e}")
 
-@router.post("/", response_model=Vendor)
+@router.post("/", response_model=Vendor, status_code=201)
 async def create_vendor(vendor: VendorCreate, db: Session = Depends(get_db)):
     """Create a new vendor"""
     try:
@@ -50,7 +78,19 @@ async def create_vendor(vendor: VendorCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_vendor)
         
-        return db_vendor
+        # Convert to dict to handle serialization issues
+        vendor_dict = {
+            "id": str(db_vendor.id),
+            "name": db_vendor.name,
+            "contact": db_vendor.contact,
+            "url": db_vendor.url,
+            "rating": db_vendor.rating,
+            "notes": db_vendor.notes,
+            "created_at": db_vendor.created_at,
+            "updated_at": db_vendor.updated_at
+        }
+        
+        return vendor_dict
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating vendor: {e}")
@@ -59,7 +99,7 @@ async def create_vendor(vendor: VendorCreate, db: Session = Depends(get_db)):
 async def update_vendor(vendor_id: UUID, vendor: VendorUpdate, db: Session = Depends(get_db)):
     """Update a vendor"""
     try:
-        db_vendor = db.query(VendorModel).filter(VendorModel.id == str(vendor_id)).first()
+        db_vendor = db.query(VendorModel).filter(VendorModel.id == vendor_id).first()
         if not db_vendor:
             raise HTTPException(status_code=404, detail="Vendor not found")
         
@@ -78,7 +118,19 @@ async def update_vendor(vendor_id: UUID, vendor: VendorUpdate, db: Session = Dep
         db.commit()
         db.refresh(db_vendor)
         
-        return db_vendor
+        # Convert to dict to handle serialization issues
+        vendor_dict = {
+            "id": str(db_vendor.id),
+            "name": db_vendor.name,
+            "contact": db_vendor.contact,
+            "url": db_vendor.url,
+            "rating": db_vendor.rating,
+            "notes": db_vendor.notes,
+            "created_at": db_vendor.created_at,
+            "updated_at": db_vendor.updated_at
+        }
+        
+        return vendor_dict
     
     except HTTPException:
         raise
@@ -89,7 +141,7 @@ async def update_vendor(vendor_id: UUID, vendor: VendorUpdate, db: Session = Dep
 async def delete_vendor(vendor_id: UUID, db: Session = Depends(get_db)):
     """Delete a vendor"""
     try:
-        db_vendor = db.query(VendorModel).filter(VendorModel.id == str(vendor_id)).first()
+        db_vendor = db.query(VendorModel).filter(VendorModel.id == vendor_id).first()
         if not db_vendor:
             raise HTTPException(status_code=404, detail="Vendor not found")
         

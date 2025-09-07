@@ -1,0 +1,389 @@
+{
+  "summary": {
+    "total_tests": 51,
+    "passed_tests": 45,
+    "failed_tests": 6,
+    "success_rate": 88.23529411764706
+  },
+  "categories": {
+    "Database Operations": {
+      "passed": 17,
+      "total": 20
+    },
+    "AI Services": {
+      "passed": 8,
+      "total": 9
+    },
+    "MCP Integration": {
+      "passed": 7,
+      "total": 7
+    },
+    "Data Consistency": {
+      "passed": 9,
+      "total": 12
+    },
+    "Cross-Component": {
+      "passed": 3,
+      "total": 4
+    }
+  },
+  "detailed_results": [
+    {
+      "test": "Table Structure - projects",
+      "success": true,
+      "message": "All required columns present (11 total)",
+      "timestamp": "2025-09-07T15:12:34.265805",
+      "details": null
+    },
+    {
+      "test": "Data Operations - projects",
+      "success": true,
+      "message": "Count: 16, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.267396",
+      "details": null
+    },
+    {
+      "test": "Table Structure - vendors",
+      "success": true,
+      "message": "All required columns present (8 total)",
+      "timestamp": "2025-09-07T15:12:34.268845",
+      "details": null
+    },
+    {
+      "test": "Data Operations - vendors",
+      "success": true,
+      "message": "Count: 34, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.269731",
+      "details": null
+    },
+    {
+      "test": "Table Structure - materials",
+      "success": true,
+      "message": "All required columns present (9 total)",
+      "timestamp": "2025-09-07T15:12:34.271085",
+      "details": null
+    },
+    {
+      "test": "Data Operations - materials",
+      "success": true,
+      "message": "Count: 27, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.272056",
+      "details": null
+    },
+    {
+      "test": "Table Structure - vendor_prices",
+      "success": true,
+      "message": "All required columns present (10 total)",
+      "timestamp": "2025-09-07T15:12:34.273502",
+      "details": null
+    },
+    {
+      "test": "Data Operations - vendor_prices",
+      "success": true,
+      "message": "Count: 10, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.274561",
+      "details": null
+    },
+    {
+      "test": "Table Structure - purchases",
+      "success": true,
+      "message": "All required columns present (14 total)",
+      "timestamp": "2025-09-07T15:12:34.276168",
+      "details": null
+    },
+    {
+      "test": "Data Operations - purchases",
+      "success": true,
+      "message": "Count: 0, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.277747",
+      "details": null
+    },
+    {
+      "test": "Table Structure - rag_documents",
+      "success": true,
+      "message": "All required columns present (10 total)",
+      "timestamp": "2025-09-07T15:12:34.279311",
+      "details": null
+    },
+    {
+      "test": "Data Operations - rag_documents",
+      "success": true,
+      "message": "Count: 5, Query time: 0.001s",
+      "timestamp": "2025-09-07T15:12:34.280880",
+      "details": null
+    },
+    {
+      "test": "Table Structure - chat_sessions",
+      "success": true,
+      "message": "All required columns present (8 total)",
+      "timestamp": "2025-09-07T15:12:34.282296",
+      "details": null
+    },
+    {
+      "test": "Data Operations - chat_sessions",
+      "success": true,
+      "message": "Count: 0, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.283237",
+      "details": null
+    },
+    {
+      "test": "Table Structure - chat_messages",
+      "success": true,
+      "message": "All required columns present (8 total)",
+      "timestamp": "2025-09-07T15:12:34.284589",
+      "details": null
+    },
+    {
+      "test": "Data Operations - chat_messages",
+      "success": true,
+      "message": "Count: 0, Query time: 0.000s",
+      "timestamp": "2025-09-07T15:12:34.285309",
+      "details": null
+    },
+    {
+      "test": "Complex Joins",
+      "success": true,
+      "message": "Retrieved 10 joined records",
+      "timestamp": "2025-09-07T15:12:34.286377",
+      "details": null
+    },
+    {
+      "test": "Foreign Key Constraints",
+      "success": true,
+      "message": "Found 11 foreign key constraints",
+      "timestamp": "2025-09-07T15:12:34.297025",
+      "details": null
+    },
+    {
+      "test": "AI Test Project Creation",
+      "success": true,
+      "message": "Created project: 2e4a9390-a3f4-4c44-89c6-6bc24e1ed180",
+      "timestamp": "2025-09-07T15:12:34.373024",
+      "details": null
+    },
+    {
+      "test": "AI Context Test 1",
+      "success": true,
+      "message": "Response: hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nproject: ai context test project 32da228b\nrelevant kno...",
+      "timestamp": "2025-09-07T15:12:34.398641",
+      "details": null
+    },
+    {
+      "test": "AI Session Management 1",
+      "success": true,
+      "message": "Session ID: session_1757247154",
+      "timestamp": "2025-09-07T15:12:34.398840",
+      "details": null
+    },
+    {
+      "test": "AI Context Test 2",
+      "success": true,
+      "message": "Response: hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nproject: ai context test project 32da228b...",
+      "timestamp": "2025-09-07T15:12:34.409515",
+      "details": null
+    },
+    {
+      "test": "AI Session Management 2",
+      "success": true,
+      "message": "Session ID: session_1757247154",
+      "timestamp": "2025-09-07T15:12:34.409779",
+      "details": null
+    },
+    {
+      "test": "AI Context Test 3",
+      "success": true,
+      "message": "Response: hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nproject: ai context test project 32da228b...",
+      "timestamp": "2025-09-07T15:12:34.419840",
+      "details": null
+    },
+    {
+      "test": "AI Session Management 3",
+      "success": true,
+      "message": "Session ID: session_1757247154",
+      "timestamp": "2025-09-07T15:12:34.419983",
+      "details": null
+    },
+    {
+      "test": "AI Conversation Memory",
+      "success": false,
+      "message": "Follow-up failed: 500",
+      "timestamp": "2025-09-07T15:12:34.429957",
+      "details": null
+    },
+    {
+      "test": "AI Plan Generation with Context",
+      "success": true,
+      "message": "Generated 5 items, 3 relevant to project",
+      "timestamp": "2025-09-07T15:12:34.454536",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Implementation",
+      "success": true,
+      "message": "All required components present",
+      "timestamp": "2025-09-07T15:12:34.455065",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Error Handling",
+      "success": true,
+      "message": "Error handling implemented",
+      "timestamp": "2025-09-07T15:12:34.455139",
+      "details": null
+    },
+    {
+      "test": "MCP Configuration",
+      "success": true,
+      "message": "Found 2 MCP servers configured",
+      "timestamp": "2025-09-07T15:12:34.455358",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Config",
+      "success": true,
+      "message": "Trello MCP server configured",
+      "timestamp": "2025-09-07T15:12:34.455426",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Syntax",
+      "success": true,
+      "message": "Trello MCP server syntax is valid",
+      "timestamp": "2025-09-07T15:12:34.500925",
+      "details": null
+    },
+    {
+      "test": "MCP Project Data",
+      "success": true,
+      "message": "Project data suitable for MCP export",
+      "timestamp": "2025-09-07T15:12:34.508601",
+      "details": null
+    },
+    {
+      "test": "Consistency - name",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.520635",
+      "details": null
+    },
+    {
+      "test": "Consistency - client_name",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.520713",
+      "details": null
+    },
+    {
+      "test": "Consistency - status",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.520778",
+      "details": null
+    },
+    {
+      "test": "Consistency - start_date",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.520842",
+      "details": null
+    },
+    {
+      "test": "Consistency - due_date",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.520902",
+      "details": null
+    },
+    {
+      "test": "Consistency - budget_planned",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.520947",
+      "details": null
+    },
+    {
+      "test": "Consistency - budget_actual",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.521001",
+      "details": null
+    },
+    {
+      "test": "Consistency - id",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.521059",
+      "details": null
+    },
+    {
+      "test": "Consistency - board_id",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T15:12:34.521103",
+      "details": null
+    },
+    {
+      "test": "Consistency - created_at",
+      "success": false,
+      "message": "API: 2025-09-07T12:12:34.360568Z != DB: 2025-09-07T12:12:34.360568+00:00",
+      "timestamp": "2025-09-07T15:12:34.521146",
+      "details": null
+    },
+    {
+      "test": "Consistency - updated_at",
+      "success": false,
+      "message": "API: 2025-09-07T12:12:34.360568Z != DB: 2025-09-07T12:12:34.360568+00:00",
+      "timestamp": "2025-09-07T15:12:34.521207",
+      "details": null
+    },
+    {
+      "test": "Data Consistency",
+      "success": false,
+      "message": "Test failed: invalid input syntax for type uuid: \"session_1757247154\"\nLINE 1: SELECT * FROM chat_sessions WHERE id = 'session_1757247154'\n                                               ^\n",
+      "timestamp": "2025-09-07T15:12:34.521761",
+      "details": null
+    },
+    {
+      "test": "Workflow - Plan Generation",
+      "success": true,
+      "message": "Generated plan with 5 items",
+      "timestamp": "2025-09-07T15:12:34.547392",
+      "details": null
+    },
+    {
+      "test": "Workflow - Plan Discussion",
+      "success": true,
+      "message": "AI can discuss generated plan",
+      "timestamp": "2025-09-07T15:12:34.557793",
+      "details": null
+    },
+    {
+      "test": "Workflow - MCP Export Ready",
+      "success": true,
+      "message": "Project data ready for MCP export",
+      "timestamp": "2025-09-07T15:12:34.575658",
+      "details": null
+    },
+    {
+      "test": "Workflow - Chat-Project Link",
+      "success": false,
+      "message": "No chat messages linked to project",
+      "timestamp": "2025-09-07T15:12:34.583234",
+      "details": null
+    },
+    {
+      "test": "Cleanup - Test Project",
+      "success": true,
+      "message": "Test project deleted",
+      "timestamp": "2025-09-07T15:12:34.590202",
+      "details": null
+    },
+    {
+      "test": "Cleanup - Chat Data",
+      "success": false,
+      "message": "Chat cleanup failed: invalid input syntax for type uuid: \"session_1757247154\"\nLINE 1: DELETE FROM chat_messages WHERE session_id = 'session_175724...\n                                                     ^\n",
+      "timestamp": "2025-09-07T15:12:34.597814",
+      "details": null
+    }
+  ]
+}

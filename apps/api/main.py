@@ -24,6 +24,7 @@ try:
     DOCUMENTS_AVAILABLE = True
 except ImportError as e:
     print(f"Documents router not available: {e}")
+    print("Continuing without PDF generation functionality")
     DOCUMENTS_AVAILABLE = False
 from middleware.observability_middleware import ObservabilityMiddleware, ObservableAPIRoute
 from services.observability_service import observability_service

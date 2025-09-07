@@ -1,0 +1,176 @@
+[
+  {
+    "test": "Health Check",
+    "success": true,
+    "message": "API and database are healthy",
+    "timestamp": "2025-09-07T11:07:12.586418"
+  },
+  {
+    "test": "Vendor CREATE",
+    "success": true,
+    "message": "Created vendor with ID: c4331dd3-a504-402b-8129-44da53fa195a",
+    "timestamp": "2025-09-07T11:07:12.593640"
+  },
+  {
+    "test": "Vendor READ (single)",
+    "success": true,
+    "message": "Retrieved vendor matches created data",
+    "timestamp": "2025-09-07T11:07:12.598715"
+  },
+  {
+    "test": "Vendor READ (all)",
+    "success": true,
+    "message": "Found vendor in list of 35 vendors",
+    "timestamp": "2025-09-07T11:07:12.604184"
+  },
+  {
+    "test": "Vendor UPDATE",
+    "success": true,
+    "message": "Vendor updated successfully",
+    "timestamp": "2025-09-07T11:07:12.611916"
+  },
+  {
+    "test": "Material CREATE",
+    "success": true,
+    "message": "Created material with ID: 2dd63c7b-81ad-46ac-8dde-1463e0695790",
+    "timestamp": "2025-09-07T11:07:12.618537"
+  },
+  {
+    "test": "Material READ (single)",
+    "success": true,
+    "message": "Retrieved material matches created data",
+    "timestamp": "2025-09-07T11:07:12.623363"
+  },
+  {
+    "test": "Material READ (all)",
+    "success": true,
+    "message": "Found material in list of 28 materials",
+    "timestamp": "2025-09-07T11:07:12.628714"
+  },
+  {
+    "test": "Material UPDATE",
+    "success": true,
+    "message": "Material updated successfully",
+    "timestamp": "2025-09-07T11:07:12.635859"
+  },
+  {
+    "test": "Project CREATE",
+    "success": true,
+    "message": "Created project with ID: 2e6ce4ed-a7cc-47d4-80d6-2acacd5a8403",
+    "timestamp": "2025-09-07T11:07:12.644244"
+  },
+  {
+    "test": "Project READ (single)",
+    "success": true,
+    "message": "Retrieved project matches created data",
+    "timestamp": "2025-09-07T11:07:12.649955"
+  },
+  {
+    "test": "Project READ (all)",
+    "success": true,
+    "message": "Found project in list of 13 projects",
+    "timestamp": "2025-09-07T11:07:12.655574"
+  },
+  {
+    "test": "Project UPDATE",
+    "success": true,
+    "message": "Project updated successfully",
+    "timestamp": "2025-09-07T11:07:12.662533"
+  },
+  {
+    "test": "Vendor Price FK CREATE",
+    "success": true,
+    "message": "Created vendor price with FK relationships",
+    "timestamp": "2025-09-07T11:07:12.669585"
+  },
+  {
+    "test": "Vendor Price FK QUERY (by vendor)",
+    "success": true,
+    "message": "Found price by vendor FK",
+    "timestamp": "2025-09-07T11:07:12.675270"
+  },
+  {
+    "test": "Vendor Price FK QUERY (by material)",
+    "success": true,
+    "message": "Found price by material FK",
+    "timestamp": "2025-09-07T11:07:12.679596"
+  },
+  {
+    "test": "Purchase CREATE",
+    "success": true,
+    "message": "Created purchase with ID: 9ecae4b2-7567-46eb-be67-caee1b3815b3",
+    "timestamp": "2025-09-07T11:07:12.687898"
+  },
+  {
+    "test": "Purchase READ (single)",
+    "success": true,
+    "message": "Retrieved purchase matches created data",
+    "timestamp": "2025-09-07T11:07:12.694119"
+  },
+  {
+    "test": "Purchase QUERY (by vendor)",
+    "success": true,
+    "message": "Found purchase by vendor",
+    "timestamp": "2025-09-07T11:07:12.699155"
+  },
+  {
+    "test": "Shipping Quote CREATE",
+    "success": true,
+    "message": "Created shipping quote with ID: 48dab2ff-839a-495f-ac22-060d3b512072",
+    "timestamp": "2025-09-07T11:07:12.708036"
+  },
+  {
+    "test": "Shipping Quote READ (single)",
+    "success": true,
+    "message": "Retrieved quote matches created data",
+    "timestamp": "2025-09-07T11:07:12.715858"
+  },
+  {
+    "test": "Shipping Quote ESTIMATE",
+    "success": true,
+    "message": "Estimate calculated: 276.0 NIS",
+    "timestamp": "2025-09-07T11:07:12.722027"
+  },
+  {
+    "test": "Rate Card CREATE",
+    "success": true,
+    "message": "Created rate card for role: test-developer",
+    "timestamp": "2025-09-07T11:07:12.729119"
+  },
+  {
+    "test": "Rate Card READ (single)",
+    "success": true,
+    "message": "Retrieved rate card matches created data",
+    "timestamp": "2025-09-07T11:07:12.734208"
+  },
+  {
+    "test": "Rate Card READ (all)",
+    "success": true,
+    "message": "Found rate card in list of 6 cards",
+    "timestamp": "2025-09-07T11:07:12.739578"
+  },
+  {
+    "test": "Data Integrity - Invalid Vendor Rating",
+    "success": true,
+    "message": "Correctly rejected invalid rating",
+    "timestamp": "2025-09-07T11:07:12.743123"
+  },
+  {
+    "test": "Data Integrity - Invalid Waste Percentage",
+    "success": true,
+    "message": "Correctly rejected invalid waste percentage",
+    "timestamp": "2025-09-07T11:07:12.746725"
+  },
+  {
+    "test": "Data Integrity - Missing Required Field",
+    "success": true,
+    "message": "Correctly rejected missing required field",
+    "timestamp": "2025-09-07T11:07:12.751192"
+  },
+  {
+    "test": "Complex Query - Vendor Price Search",
+    "success": true,
+    "message": "Search returned 2 results",
+    "timestamp": "2025-09-07T11:07:12.756842"
+  }
+]

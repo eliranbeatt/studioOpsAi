@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
@@ -15,6 +16,23 @@ from rag_service import rag_service
 
 # Load environment variables
 load_dotenv()
+
+
+def fix_datetime_tz(dt):
+    """Ensure datetime has timezone info for consistent API responses"""
+    if dt is None:
+        return None
+    if hasattr(dt, 'tzinfo'):
+        if dt.tzinfo is None:
+            # Add UTC timezone if missing
+            return dt.replace(tzinfo=timezone.utc).isoformat()
+        else:
+            # Ensure consistent format with +00:00 instead of Z
+            iso_str = dt.isoformat()
+            if iso_str.endswith('Z'):
+                return iso_str[:-1] + '+00:00'
+            return iso_str
+    return str(dt)
 
 app = FastAPI(
     title="StudioOps AI API",
@@ -71,6 +89,7 @@ class ChatMessageRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
     project_context: Optional[Dict[str, Any]] = None
+    project_id: Optional[str] = None
 
 class ChatMessageResponse(BaseModel):
     message: str
@@ -136,8 +155,8 @@ async def get_projects():
                 "start_date": row[4].isoformat() if row[4] else None,
                 "due_date": row[5].isoformat() if row[5] else None,
                 "budget_planned": float(row[6]) if row[6] else None,
-                "created_at": row[7].isoformat(),
-                "updated_at": row[8].isoformat() if row[8] else None
+                "created_at": fix_datetime_tz(row[7]),
+                "updated_at": fix_datetime_tz(row[8])
             })
         
         cursor.close()
@@ -184,8 +203,8 @@ async def create_project(project: ProjectCreate):
             "start_date": result[4].isoformat() if result[4] else None,
             "due_date": result[5].isoformat() if result[5] else None,
             "budget_planned": float(result[6]) if result[6] else None,
-            "created_at": result[7].isoformat(),
-            "updated_at": result[8].isoformat() if result[8] else None
+            "created_at": fix_datetime_tz(result[7]),
+            "updated_at": fix_datetime_tz(result[8])
         }
         
     except Exception as e:
@@ -218,11 +237,18 @@ async def delete_project(project_id: str):
 async def chat_message(chat_request: ChatMessageRequest):
     """Real chat endpoint with LLM integration and memory"""
     try:
+        # Handle both project_context and project_id formats
+        project_context = chat_request.project_context or {}
+        
+        # If project_id is provided directly, add it to context
+        if chat_request.project_id:
+            project_context['project_id'] = chat_request.project_id
+        
         # Get AI response with memory
         response = await llm_service.generate_response(
             chat_request.message, 
             chat_request.session_id, 
-            chat_request.project_context
+            project_context
         )
         
         return {

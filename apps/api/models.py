@@ -15,8 +15,8 @@ class ChatMessage(Base):
     """Chat message storage for memory"""
     __tablename__ = "chat_messages"
     
-    id = Column(String, primary_key=True, default=generate_ulid)
-    session_id = Column(String, index=True, nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(UUID(as_uuid=True), index=True, nullable=False)
     message = Column(Text, nullable=False)
     response = Column(Text, nullable=False)
     is_user = Column(Boolean, default=True)
@@ -31,9 +31,9 @@ class ChatSession(Base):
     """Chat session management"""
     __tablename__ = "chat_sessions"
     
-    id = Column(String, primary_key=True, default=generate_ulid)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(String, index=True, nullable=True)
-    project_id = Column(String, index=True, nullable=True)
+    project_id = Column(UUID(as_uuid=True), index=True, nullable=True)
     title = Column(String, nullable=True)
     context = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)
@@ -152,7 +152,7 @@ class Vendor(Base):
     rating = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     def __repr__(self):
         return f"<Vendor(name={self.name})>"
@@ -169,7 +169,7 @@ class Material(Base):
     typical_waste_pct = Column(Numeric(5, 2), default=0)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     def __repr__(self):
         return f"<Material(name={self.name}, unit={self.unit})>"
@@ -187,6 +187,7 @@ class VendorPrice(Base):
     source_url = Column(String, nullable=True)
     confidence = Column(Numeric(3, 2), default=0.8)
     is_quote = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     def __repr__(self):
         return f"<VendorPrice(price={self.price_nis}, confidence={self.confidence})>"
@@ -199,11 +200,16 @@ class Purchase(Base):
     vendor_id = Column(String, nullable=True)
     material_id = Column(String, nullable=True)
     project_id = Column(String, nullable=True)
+    sku = Column(String, nullable=True)
     qty = Column(Numeric(14, 3), nullable=True)
+    unit = Column(String, nullable=True)
     unit_price_nis = Column(Numeric(14, 2), nullable=True)
+    total_nis = Column(Numeric(14, 2), nullable=True)
+    currency = Column(String, default="NIS")
     tax_vat_pct = Column(Numeric(5, 2), nullable=True)
     occurred_at = Column(Date, nullable=True)
     receipt_path = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     def __repr__(self):
         return f"<Purchase(qty={self.qty}, price={self.unit_price_nis})>"

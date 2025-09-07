@@ -29,7 +29,7 @@ class AuthService:
     """Service for authentication and user management"""
     
     def __init__(self):
-        self.db_url = os.getenv('DATABASE_URL', 'postgresql://studioops:studioops@localhost:5432/studioops')
+        self.db_url = os.getenv('DATABASE_URL', 'postgresql://studioops:studioops123@localhost:5432/studioops')
     
     def get_db_connection(self):
         """Get database connection"""
@@ -230,16 +230,17 @@ class AuthService:
     def _store_refresh_token(self, user_id: UUID, refresh_token: str):
         """Store refresh token in database"""
         expires_at = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        refresh_token_hash = self.get_password_hash(refresh_token)
         
         conn = self.get_db_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO user_sessions (user_id, session_token, expires_at)
+                INSERT INTO user_sessions (user_id, refresh_token_hash, expires_at)
                 VALUES (%s, %s, %s)
                 """,
-                (str(user_id), refresh_token, expires_at)
+                (str(user_id), refresh_token_hash, expires_at)
             )
             conn.commit()
         except psycopg2.Error as e:
@@ -295,12 +296,16 @@ class AuthService:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                SELECT id FROM user_sessions 
-                WHERE user_id = %s AND session_token = %s AND expires_at > NOW()
+                SELECT refresh_token_hash FROM user_sessions 
+                WHERE user_id = %s AND expires_at > NOW()
                 """,
-                (str(user_id), refresh_token)
+                (str(user_id),)
             )
-            return cursor.fetchone() is not None
+            
+            for row in cursor.fetchall():
+                if self.verify_password(refresh_token, row[0]):
+                    return True
+            return False
         finally:
             conn.close()
     

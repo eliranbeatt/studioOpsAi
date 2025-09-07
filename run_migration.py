@@ -1,41 +1,60 @@
 #!/usr/bin/env python3
+"""
+Run database migration for ID standardization
+"""
 
-import psycopg2
+import asyncio
+import asyncpg
 import os
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv('apps/api/.env')
-
-def run_migration():
+async def run_migration():
+    """Run the ID standardization migration"""
+    DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://studioops:studioops123@localhost:5432/studioops')
+    
+    # Read migration SQL
+    with open('id_standardization_migration.sql', 'r') as f:
+        migration_sql = f.read()
+    
     try:
-        conn = psycopg2.connect(
-            os.getenv('DATABASE_URL', 'postgresql://studioops:studioops123@localhost:5432/studioops')
-        )
-        cursor = conn.cursor()
+        conn = await asyncpg.connect(DATABASE_URL)
+        print("✅ Connected to database")
         
-        # Read the migration file
-        with open('packages/db/migrations/001_initial_schema_no_vector.sql', 'r', encoding='utf-8') as f:
-            migration_sql = f.read()
+        print("🔄 Running ID standardization migration...")
         
-        # Execute the migration
-        cursor.execute(migration_sql)
-        conn.commit()
+        # Execute migration
+        await conn.execute(migration_sql)
+        print("✅ Migration completed successfully")
         
-        print("SUCCESS: Database migration completed!")
+        # Verify migration results
+        print("\n📊 Migration Results:")
         
-        # Verify the projects table exists
-        cursor.execute("SELECT COUNT(*) FROM projects")
-        count = cursor.fetchone()[0]
-        print(f"Projects table created with {count} rows")
+        # Check new columns exist
+        sessions_cols = await conn.fetch("""
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'chat_sessions' 
+            AND column_name IN ('new_id', 'new_project_id')
+        """)
+        print(f"Chat sessions new columns: {dict(sessions_cols)}")
         
-        cursor.close()
-        conn.close()
-        return True
+        messages_cols = await conn.fetch("""
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'chat_messages' 
+            AND column_name IN ('new_id', 'new_session_id')
+        """)
+        print(f"Chat messages new columns: {dict(messages_cols)}")
+        
+        # Check data migration
+        sessions_count = await conn.fetchval("SELECT COUNT(*) FROM chat_sessions")
+        messages_count = await conn.fetchval("SELECT COUNT(*) FROM chat_messages")
+        print(f"Sessions: {sessions_count}, Messages: {messages_count}")
+        
+        await conn.close()
         
     except Exception as e:
-        print(f"ERROR: Database migration failed: {e}")
-        return False
+        print(f"❌ Migration failed: {e}")
+        raise
 
 if __name__ == "__main__":
-    run_migration()
+    asyncio.run(run_migration())

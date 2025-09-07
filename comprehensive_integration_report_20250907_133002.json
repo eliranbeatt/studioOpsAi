@@ -1,0 +1,417 @@
+{
+  "summary": {
+    "total_tests": 55,
+    "passed_tests": 40,
+    "failed_tests": 15,
+    "success_rate": 72.72727272727273
+  },
+  "categories": {
+    "Database Operations": {
+      "passed": 12,
+      "total": 21
+    },
+    "AI Services": {
+      "passed": 9,
+      "total": 9
+    },
+    "MCP Integration": {
+      "passed": 3,
+      "total": 6
+    },
+    "Data Consistency": {
+      "passed": 13,
+      "total": 17
+    },
+    "Cross-Component": {
+      "passed": 2,
+      "total": 4
+    }
+  },
+  "detailed_results": [
+    {
+      "test": "Table Structure - projects",
+      "success": false,
+      "message": "Missing columns: ['description']",
+      "timestamp": "2025-09-07T13:30:02.108972",
+      "details": null
+    },
+    {
+      "test": "Data Operations - projects",
+      "success": true,
+      "message": "Count: 14, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.110244",
+      "details": null
+    },
+    {
+      "test": "Table Structure - vendors",
+      "success": false,
+      "message": "Missing columns: ['contact_info']",
+      "timestamp": "2025-09-07T13:30:02.111978",
+      "details": null
+    },
+    {
+      "test": "Data Operations - vendors",
+      "success": true,
+      "message": "Count: 34, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.112879",
+      "details": null
+    },
+    {
+      "test": "Table Structure - materials",
+      "success": true,
+      "message": "All required columns present (9 total)",
+      "timestamp": "2025-09-07T13:30:02.114322",
+      "details": null
+    },
+    {
+      "test": "Data Operations - materials",
+      "success": true,
+      "message": "Count: 27, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.115153",
+      "details": null
+    },
+    {
+      "test": "Table Structure - vendor_prices",
+      "success": false,
+      "message": "Missing columns: ['price']",
+      "timestamp": "2025-09-07T13:30:02.116587",
+      "details": null
+    },
+    {
+      "test": "Data Operations - vendor_prices",
+      "success": true,
+      "message": "Count: 10, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.117368",
+      "details": null
+    },
+    {
+      "test": "Table Structure - purchases",
+      "success": false,
+      "message": "Missing columns: ['total_amount']",
+      "timestamp": "2025-09-07T13:30:02.119080",
+      "details": null
+    },
+    {
+      "test": "Data Operations - purchases",
+      "success": true,
+      "message": "Count: 0, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.119962",
+      "details": null
+    },
+    {
+      "test": "Table Structure - rag_documents",
+      "success": true,
+      "message": "All required columns present (10 total)",
+      "timestamp": "2025-09-07T13:30:02.121515",
+      "details": null
+    },
+    {
+      "test": "Data Operations - rag_documents",
+      "success": true,
+      "message": "Count: 5, Query time: 0.001s",
+      "timestamp": "2025-09-07T13:30:02.123207",
+      "details": null
+    },
+    {
+      "test": "Table Structure - chat_sessions",
+      "success": true,
+      "message": "All required columns present (8 total)",
+      "timestamp": "2025-09-07T13:30:02.124694",
+      "details": null
+    },
+    {
+      "test": "Data Operations - chat_sessions",
+      "success": true,
+      "message": "Count: 0, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.126928",
+      "details": null
+    },
+    {
+      "test": "Table Structure - chat_messages",
+      "success": false,
+      "message": "Missing columns: ['role', 'content']",
+      "timestamp": "2025-09-07T13:30:02.128487",
+      "details": null
+    },
+    {
+      "test": "Data Operations - chat_messages",
+      "success": true,
+      "message": "Count: 42, Query time: 0.000s",
+      "timestamp": "2025-09-07T13:30:02.129578",
+      "details": null
+    },
+    {
+      "test": "Complex Joins",
+      "success": false,
+      "message": "Join query failed: column vp.price does not exist\nLINE 3: ...                           m.name as material_name, vp.price\n                                                               ^\n",
+      "timestamp": "2025-09-07T13:30:02.130817",
+      "details": null
+    },
+    {
+      "test": "Foreign Key Constraints",
+      "success": false,
+      "message": "FK check failed: current transaction is aborted, commands ignored until end of transaction block\n",
+      "timestamp": "2025-09-07T13:30:02.131850",
+      "details": null
+    },
+    {
+      "test": "AI Test Project Creation",
+      "success": true,
+      "message": "Created project: 777a56c3-dd09-4012-a59f-38e709e962a4",
+      "timestamp": "2025-09-07T13:30:02.195834",
+      "details": null
+    },
+    {
+      "test": "AI Context Test 1",
+      "success": true,
+      "message": "Response: hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nproject: ai context test project 050edd61\nrelevant kno...",
+      "timestamp": "2025-09-07T13:30:02.233251",
+      "details": null
+    },
+    {
+      "test": "AI Session Management 1",
+      "success": true,
+      "message": "Session ID: session_1757241002",
+      "timestamp": "2025-09-07T13:30:02.233650",
+      "details": null
+    },
+    {
+      "test": "AI Context Test 2",
+      "success": true,
+      "message": "Response: hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nproject: ai context test project 050edd61...",
+      "timestamp": "2025-09-07T13:30:02.244633",
+      "details": null
+    },
+    {
+      "test": "AI Session Management 2",
+      "success": true,
+      "message": "Session ID: session_1757241002",
+      "timestamp": "2025-09-07T13:30:02.244820",
+      "details": null
+    },
+    {
+      "test": "AI Context Test 3",
+      "success": true,
+      "message": "Response: hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nproject: ai context test project 050edd61...",
+      "timestamp": "2025-09-07T13:30:02.265070",
+      "details": null
+    },
+    {
+      "test": "AI Session Management 3",
+      "success": true,
+      "message": "Session ID: session_1757241002",
+      "timestamp": "2025-09-07T13:30:02.265281",
+      "details": null
+    },
+    {
+      "test": "AI Conversation Memory",
+      "success": true,
+      "message": "Follow-up response: \u05de\u05e6\u05d5\u05d9\u05df! \u05d0\u05e0\u05d9 \u05db\u05d0\u05df \u05db\u05d3\u05d9 \u05dc\u05e2\u05d6\u05d5\u05e8 \u05e2\u05dd \u05e0\u05d9\u05d4\u05d5\u05dc \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8.\nProject: AI Context Test Project 050edd61 \u05d0\u05d5\u05db\u05dc \u05dc\u05e1\u05d9\u05d9\u05e2 \u05d1\u05ea\u05db\u05e0...",
+      "timestamp": "2025-09-07T13:30:02.279571",
+      "details": null
+    },
+    {
+      "test": "AI Plan Generation with Context",
+      "success": true,
+      "message": "Generated 5 items, 3 relevant to project",
+      "timestamp": "2025-09-07T13:30:02.304448",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Implementation",
+      "success": true,
+      "message": "All required components present",
+      "timestamp": "2025-09-07T13:30:02.305109",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Error Handling",
+      "success": true,
+      "message": "Error handling implemented",
+      "timestamp": "2025-09-07T13:30:02.305179",
+      "details": null
+    },
+    {
+      "test": "MCP Configuration",
+      "success": false,
+      "message": "No MCP servers configured",
+      "timestamp": "2025-09-07T13:30:02.305410",
+      "details": null
+    },
+    {
+      "test": "Trello MCP Syntax",
+      "success": true,
+      "message": "Trello MCP server syntax is valid",
+      "timestamp": "2025-09-07T13:30:02.352963",
+      "details": null
+    },
+    {
+      "test": "MCP Project Data",
+      "success": false,
+      "message": "Missing fields for MCP: ['description']",
+      "timestamp": "2025-09-07T13:30:02.366941",
+      "details": null
+    },
+    {
+      "test": "Consistency - name",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.378832",
+      "details": null
+    },
+    {
+      "test": "Consistency - client_name",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.378912",
+      "details": null
+    },
+    {
+      "test": "Consistency - status",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.378967",
+      "details": null
+    },
+    {
+      "test": "Consistency - start_date",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.379021",
+      "details": null
+    },
+    {
+      "test": "Consistency - due_date",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.379073",
+      "details": null
+    },
+    {
+      "test": "Consistency - budget_planned",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.379129",
+      "details": null
+    },
+    {
+      "test": "Consistency - budget_actual",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.379169",
+      "details": null
+    },
+    {
+      "test": "Consistency - id",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.379222",
+      "details": null
+    },
+    {
+      "test": "Consistency - board_id",
+      "success": true,
+      "message": "Values match",
+      "timestamp": "2025-09-07T13:30:02.379276",
+      "details": null
+    },
+    {
+      "test": "Consistency - created_at",
+      "success": false,
+      "message": "API: 2025-09-07T10:30:02.191959Z != DB: 2025-09-07T10:30:02.191959+00:00",
+      "timestamp": "2025-09-07T13:30:02.379324",
+      "details": null
+    },
+    {
+      "test": "Consistency - updated_at",
+      "success": false,
+      "message": "API: 2025-09-07T10:30:02.191959Z != DB: 2025-09-07T10:30:02.191959+00:00",
+      "timestamp": "2025-09-07T13:30:02.379382",
+      "details": null
+    },
+    {
+      "test": "Chat Session Consistency",
+      "success": false,
+      "message": "Chat session project mismatch",
+      "timestamp": "2025-09-07T13:30:02.380194",
+      "details": null
+    },
+    {
+      "test": "Referential Integrity - vendor_prices",
+      "success": true,
+      "message": "No orphaned records",
+      "timestamp": "2025-09-07T13:30:02.380899",
+      "details": null
+    },
+    {
+      "test": "Referential Integrity - vendor_prices",
+      "success": true,
+      "message": "No orphaned records",
+      "timestamp": "2025-09-07T13:30:02.381397",
+      "details": null
+    },
+    {
+      "test": "Referential Integrity - purchases",
+      "success": true,
+      "message": "No orphaned records",
+      "timestamp": "2025-09-07T13:30:02.381833",
+      "details": null
+    },
+    {
+      "test": "Referential Integrity - purchases",
+      "success": true,
+      "message": "No orphaned records",
+      "timestamp": "2025-09-07T13:30:02.382210",
+      "details": null
+    },
+    {
+      "test": "Data Consistency",
+      "success": false,
+      "message": "Test failed: operator does not exist: character varying = uuid\nLINE 4: ...                 LEFT JOIN projects p ON c.project_id = p.id\n                                                                 ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n",
+      "timestamp": "2025-09-07T13:30:02.382755",
+      "details": null
+    },
+    {
+      "test": "Workflow - Plan Generation",
+      "success": true,
+      "message": "Generated plan with 5 items",
+      "timestamp": "2025-09-07T13:30:02.418182",
+      "details": null
+    },
+    {
+      "test": "Workflow - Plan Discussion",
+      "success": true,
+      "message": "AI can discuss generated plan",
+      "timestamp": "2025-09-07T13:30:02.429175",
+      "details": null
+    },
+    {
+      "test": "Workflow - MCP Export Ready",
+      "success": false,
+      "message": "Missing data for MCP export",
+      "timestamp": "2025-09-07T13:30:02.445795",
+      "details": null
+    },
+    {
+      "test": "Cross-Component Workflows",
+      "success": false,
+      "message": "Test failed: column cm.content does not exist\nLINE 2:                             SELECT cm.content, cs.project_id\n                                           ^\nHINT:  Perhaps you meant to reference the column \"cs.context\".\n",
+      "timestamp": "2025-09-07T13:30:02.453305",
+      "details": null
+    },
+    {
+      "test": "Cleanup - Test Project",
+      "success": true,
+      "message": "Test project deleted",
+      "timestamp": "2025-09-07T13:30:02.477827",
+      "details": null
+    },
+    {
+      "test": "Cleanup - Chat Data",
+      "success": true,
+      "message": "Chat data cleaned up",
+      "timestamp": "2025-09-07T13:30:02.485785",
+      "details": null
+    }
+  ]
+}

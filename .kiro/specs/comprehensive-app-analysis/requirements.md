@@ -2,33 +2,42 @@
 
 ## Introduction
 
-This specification addresses a comprehensive analysis and remediation of the StudioOps AI application, focusing on identifying and fixing critical issues across loading, functionality, server connections, API integrations, RAG system, memory management, project management, AI chat functionality, document handling, and Trello MCP integration. The goal is to create a robust, fully functional application with comprehensive testing and analysis capabilities.
+This specification addresses the critical connectivity and functionality issues in the StudioOps AI application. Based on comprehensive codebase analysis and testing, we've identified specific bugs preventing project creation, vendor management, API connectivity, and Trello integration. The goal is to fix these confirmed issues to restore full application functionality.
+
+## Critical Issues Identified
+
+1. **API Server Fragmentation**: Three different API servers with only minimal_api.py working
+2. **Database Schema Mismatch**: UUID vs String ID inconsistencies causing 500 errors
+3. **Missing Trello MCP**: Empty trello-mcp directory with no implementation
+4. **Frontend Connectivity**: API endpoints failing due to schema mismatches
+5. **AI Services Issues**: LLM fallback mode and RAG duplicate key errors
+6. **Missing Dependencies**: WeasyPrint and other Windows-specific dependency issues
 
 ## Requirements
 
-### Requirement 1: Application Loading and Startup Analysis
+### Requirement 1: Fix API Server Connectivity Issues
 
-**User Story:** As a developer, I want to identify and fix all application loading issues, so that the system starts reliably and all services are properly initialized.
-
-#### Acceptance Criteria
-
-1. WHEN the application starts THEN all required services SHALL initialize successfully
-2. WHEN database connections are established THEN they SHALL be verified and tested
-3. WHEN environment variables are missing THEN the system SHALL provide clear error messages
-4. WHEN dependencies are missing THEN the system SHALL gracefully handle the situation
-5. IF startup fails THEN detailed diagnostic information SHALL be provided
-
-### Requirement 2: Server Connection and API Functionality
-
-**User Story:** As a system administrator, I want all server connections and API endpoints to work correctly, so that the application can communicate with external services and databases.
+**User Story:** As a user, I want the API server to start successfully and handle all endpoints, so that I can create projects and manage vendors without errors.
 
 #### Acceptance Criteria
 
-1. WHEN API endpoints are called THEN they SHALL respond with correct status codes
-2. WHEN database queries are executed THEN they SHALL return expected results
-3. WHEN external API calls are made THEN proper error handling SHALL be implemented
-4. WHEN connection timeouts occur THEN the system SHALL retry with exponential backoff
-5. IF authentication is required THEN JWT tokens SHALL be properly validated
+1. WHEN the main API server starts THEN it SHALL load without dependency errors
+2. WHEN the /projects endpoint is called THEN it SHALL return valid project data
+3. WHEN creating a new project THEN it SHALL save successfully to the database
+4. WHEN the frontend connects to the API THEN all endpoints SHALL respond correctly
+5. IF dependencies are missing THEN the system SHALL provide clear installation instructions
+
+### Requirement 2: Fix Database Schema and ID Consistency
+
+**User Story:** As a developer, I want consistent ID handling across all API endpoints, so that database operations work correctly without type errors.
+
+#### Acceptance Criteria
+
+1. WHEN projects are created THEN UUID primary keys SHALL be handled correctly
+2. WHEN API endpoints receive ID parameters THEN they SHALL convert types properly
+3. WHEN database queries are executed THEN they SHALL use correct ID formats
+4. WHEN foreign key relationships are used THEN they SHALL maintain referential integrity
+5. IF ID conversion fails THEN clear error messages SHALL be provided
 
 ### Requirement 3: OpenAI Models Integration
 
@@ -102,17 +111,17 @@ This specification addresses a comprehensive analysis and remediation of the Stu
 4. WHEN file storage limits are reached THEN appropriate warnings SHALL be shown
 5. IF document processing fails THEN error details SHALL be provided
 
-### Requirement 9: Trello MCP Integration
+### Requirement 9: Implement Trello MCP Integration
 
-**User Story:** As a project manager, I want tasks to be automatically sent to Trello boards via MCP, so that project management workflows are streamlined.
+**User Story:** As a project manager, I want to export project tasks to Trello boards, so that I can manage tasks in my preferred project management tool.
 
 #### Acceptance Criteria
 
-1. WHEN tasks are created THEN they SHALL be sent to configured Trello boards
-2. WHEN Trello API credentials are provided THEN they SHALL be validated
-3. WHEN MCP server is available THEN it SHALL be used for Trello operations
-4. WHEN board structures are needed THEN they SHALL be created automatically
-5. IF Trello integration fails THEN fallback options SHALL be available
+1. WHEN the Trello MCP server is started THEN it SHALL connect successfully
+2. WHEN project tasks are exported THEN they SHALL create Trello cards
+3. WHEN Trello boards don't exist THEN they SHALL be created automatically
+4. WHEN task status changes THEN it SHALL sync with Trello
+5. IF Trello API fails THEN error messages SHALL be logged clearly
 
 ### Requirement 10: Comprehensive Testing Framework
 

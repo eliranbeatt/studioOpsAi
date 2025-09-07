@@ -1,0 +1,62 @@
+[
+  {
+    "test": "Trello MCP Structure",
+    "success": false,
+    "message": "Missing components: ['trello_api_key', 'trello_token']",
+    "timestamp": "2025-09-07T13:19:41.907665"
+  },
+  {
+    "test": "Trello MCP Import",
+    "success": true,
+    "message": "Successfully imported TrelloMCPServer",
+    "timestamp": "2025-09-07T13:19:41.907687"
+  },
+  {
+    "test": "Trello MCP Instantiation",
+    "success": true,
+    "message": "Successfully created TrelloMCPServer instance",
+    "timestamp": "2025-09-07T13:19:41.907688"
+  },
+  {
+    "test": "Trello MCP Methods",
+    "success": true,
+    "message": "All required methods present",
+    "timestamp": "2025-09-07T13:19:41.907689"
+  },
+  {
+    "test": "Config File requirements.txt",
+    "success": true,
+    "message": "Configuration file exists",
+    "timestamp": "2025-09-07T13:19:41.907690"
+  },
+  {
+    "test": "Config File pyproject.toml",
+    "success": false,
+    "message": "Configuration file missing",
+    "timestamp": "2025-09-07T13:19:41.907691"
+  },
+  {
+    "test": "MCP Server Startup",
+    "success": true,
+    "message": "MCP server structure ready for startup",
+    "timestamp": "2025-09-07T13:19:41.907691"
+  },
+  {
+    "test": "Task Export Structure",
+    "success": true,
+    "message": "Successfully structured 3 cards",
+    "timestamp": "2025-09-07T13:19:41.907692"
+  },
+  {
+    "test": "Board Creation Structure",
+    "success": true,
+    "message": "Board structure ready: Project: Test Integration Project",
+    "timestamp": "2025-09-07T13:19:41.907693"
+  },
+  {
+    "test": "List Structure",
+    "success": true,
+    "message": "Would create 2 lists: ['Materials', 'Labor']",
+    "timestamp": "2025-09-07T13:19:41.907693"
+  }
+]

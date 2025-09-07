@@ -24,7 +24,7 @@ class Project(ProjectBase):
     id: UUID
     board_id: Optional[str] = Field(None, description="Trello board ID")
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = Field(None, description="Last updated timestamp")
 
     class Config:
         from_attributes = True

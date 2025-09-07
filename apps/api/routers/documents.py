@@ -7,8 +7,24 @@ import json
 from datetime import datetime, timezone
 
 from packages.schemas.projects import Document, DocumentCreate
-from services.pdf_service import pdf_service
-from services.trello_service import trello_service
+
+# Optional service imports
+try:
+    from services.pdf_service import pdf_service
+    PDF_SERVICE_AVAILABLE = True
+except (ImportError, OSError) as e:
+    print(f"PDF service not available: {e}")
+    print("Using PDF service stub")
+    from services.pdf_service_stub import pdf_service
+    PDF_SERVICE_AVAILABLE = False
+
+try:
+    from services.trello_service import trello_service
+    TRELLO_SERVICE_AVAILABLE = True
+except ImportError as e:
+    print(f"Trello service not available: {e}")
+    TRELLO_SERVICE_AVAILABLE = False
+    trello_service = None
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -306,6 +322,8 @@ async def download_document(document_id: UUID):
         
         # For quotes, generate the PDF on demand if needed
         if document_path.endswith('.pdf') and snapshot:
+            if not PDF_SERVICE_AVAILABLE:
+                raise HTTPException(status_code=503, detail="PDF generation not available")
             # Generate PDF file
             pdf_path = pdf_service.generate_quote_pdf(snapshot)
             
@@ -385,6 +403,8 @@ async def generate_quote_document(project_id: UUID):
         }
         
         # Generate actual PDF file
+        if not PDF_SERVICE_AVAILABLE:
+            raise HTTPException(status_code=503, detail="PDF generation not available")
         document_path = pdf_service.generate_quote_pdf(snapshot)
         
         # Create relative path for storage

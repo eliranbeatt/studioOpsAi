@@ -14,7 +14,24 @@ async def get_materials(db: Session = Depends(get_db)):
     """Get all materials"""
     try:
         materials = db.query(MaterialModel).order_by(MaterialModel.name).all()
-        return materials
+        
+        # Convert to dict to handle serialization issues
+        result = []
+        for material in materials:
+            material_dict = {
+                "id": str(material.id),
+                "name": material.name,
+                "spec": material.spec,
+                "unit": material.unit,
+                "category": material.category,
+                "typical_waste_pct": float(material.typical_waste_pct) if material.typical_waste_pct else 0.0,
+                "notes": material.notes,
+                "created_at": material.created_at,
+                "updated_at": material.updated_at
+            }
+            result.append(material_dict)
+        
+        return result
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching materials: {e}")
@@ -23,18 +40,31 @@ async def get_materials(db: Session = Depends(get_db)):
 async def get_material(material_id: UUID, db: Session = Depends(get_db)):
     """Get a specific material by ID"""
     try:
-        material = db.query(MaterialModel).filter(MaterialModel.id == str(material_id)).first()
+        material = db.query(MaterialModel).filter(MaterialModel.id == material_id).first()
         if not material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        return material
+        # Convert to dict to handle serialization issues
+        material_dict = {
+            "id": str(material.id),
+            "name": material.name,
+            "spec": material.spec,
+            "unit": material.unit,
+            "category": material.category,
+            "typical_waste_pct": float(material.typical_waste_pct) if material.typical_waste_pct else 0.0,
+            "notes": material.notes,
+            "created_at": material.created_at,
+            "updated_at": material.updated_at
+        }
+        
+        return material_dict
     
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching material: {e}")
 
-@router.post("/", response_model=Material)
+@router.post("/", response_model=Material, status_code=201)
 async def create_material(material: MaterialCreate, db: Session = Depends(get_db)):
     """Create a new material"""
     try:
@@ -51,7 +81,20 @@ async def create_material(material: MaterialCreate, db: Session = Depends(get_db
         db.commit()
         db.refresh(db_material)
         
-        return db_material
+        # Convert to dict to handle serialization issues
+        material_dict = {
+            "id": str(db_material.id),
+            "name": db_material.name,
+            "spec": db_material.spec,
+            "unit": db_material.unit,
+            "category": db_material.category,
+            "typical_waste_pct": float(db_material.typical_waste_pct) if db_material.typical_waste_pct else 0.0,
+            "notes": db_material.notes,
+            "created_at": db_material.created_at,
+            "updated_at": db_material.updated_at
+        }
+        
+        return material_dict
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating material: {e}")
@@ -60,7 +103,7 @@ async def create_material(material: MaterialCreate, db: Session = Depends(get_db
 async def update_material(material_id: UUID, material: MaterialUpdate, db: Session = Depends(get_db)):
     """Update a material"""
     try:
-        db_material = db.query(MaterialModel).filter(MaterialModel.id == str(material_id)).first()
+        db_material = db.query(MaterialModel).filter(MaterialModel.id == material_id).first()
         if not db_material:
             raise HTTPException(status_code=404, detail="Material not found")
         
@@ -81,7 +124,20 @@ async def update_material(material_id: UUID, material: MaterialUpdate, db: Sessi
         db.commit()
         db.refresh(db_material)
         
-        return db_material
+        # Convert to dict to handle serialization issues
+        material_dict = {
+            "id": str(db_material.id),
+            "name": db_material.name,
+            "spec": db_material.spec,
+            "unit": db_material.unit,
+            "category": db_material.category,
+            "typical_waste_pct": float(db_material.typical_waste_pct) if db_material.typical_waste_pct else 0.0,
+            "notes": db_material.notes,
+            "created_at": db_material.created_at,
+            "updated_at": db_material.updated_at
+        }
+        
+        return material_dict
     
     except HTTPException:
         raise
@@ -92,7 +148,7 @@ async def update_material(material_id: UUID, material: MaterialUpdate, db: Sessi
 async def delete_material(material_id: UUID, db: Session = Depends(get_db)):
     """Delete a material"""
     try:
-        db_material = db.query(MaterialModel).filter(MaterialModel.id == str(material_id)).first()
+        db_material = db.query(MaterialModel).filter(MaterialModel.id == material_id).first()
         if not db_material:
             raise HTTPException(status_code=404, detail="Material not found")
         

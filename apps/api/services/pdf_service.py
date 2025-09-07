@@ -3,9 +3,26 @@
 from typing import Dict, Any, List
 from datetime import datetime
 import os
-from weasyprint import HTML, CSS
-from weasyprint.text.fonts import FontConfiguration
 import tempfile
+
+# Optional WeasyPrint import
+try:
+    from weasyprint import HTML, CSS
+    from weasyprint.text.fonts import FontConfiguration
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    print("WeasyPrint not available - PDF generation disabled")
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
+    CSS = None
+    FontConfiguration = None
+except OSError as e:
+    print(f"WeasyPrint system libraries not available: {e}")
+    print("PDF generation disabled")
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
+    CSS = None
+    FontConfiguration = None
 
 class PDFService:
     """Service for generating PDF documents with Hebrew support"""
@@ -13,9 +30,13 @@ class PDFService:
     def __init__(self):
         self.output_dir = os.getenv('PDF_OUTPUT_DIR', '/tmp/documents')
         os.makedirs(self.output_dir, exist_ok=True)
+        self.available = WEASYPRINT_AVAILABLE
     
     def generate_quote_pdf(self, quote_data: Dict[str, Any], output_path: str = None) -> str:
         """Generate a quote PDF with Hebrew RTL support"""
+        
+        if not self.available:
+            raise RuntimeError("PDF generation not available - WeasyPrint not installed")
         
         # Prepare HTML content with RTL support
         html_content = self._generate_quote_html(quote_data)

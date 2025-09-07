@@ -1,11 +1,23 @@
 {
-  "studioops-postgres": {
-    "command": "python",
-    "args": [
-      "apps/api/mcp_server.py"
-    ],
-    "env": {
-      "DATABASE_URL": "postgresql://studioops:studioops123@localhost:5432/studioops"
+  "mcpServers": {
+    "studioops-postgres": {
+      "command": "python",
+      "args": [
+        "apps/api/mcp_server.py"
+      ],
+      "env": {
+        "DATABASE_URL": "postgresql://studioops:studioops123@localhost:5432/studioops"
+      }
+    },
+    "trello-mcp": {
+      "command": "python",
+      "args": [
+        "apps/trello-mcp/server.py"
+      ],
+      "env": {
+        "TRELLO_API_KEY": "${TRELLO_API_KEY}",
+        "TRELLO_TOKEN": "${TRELLO_TOKEN}"
+      }
     }
   }
 }

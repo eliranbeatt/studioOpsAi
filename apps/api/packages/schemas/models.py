@@ -35,8 +35,13 @@ class MaterialBase(BaseModel):
 class MaterialCreate(MaterialBase):
     pass
 
-class MaterialUpdate(MaterialBase):
-    pass
+class MaterialUpdate(BaseModel):
+    name: Optional[str] = Field(None, description="Material name")
+    spec: Optional[str] = Field(None, description="Material specification")
+    unit: Optional[str] = Field(None, description="Unit of measurement")
+    category: Optional[str] = Field(None, description="Material category")
+    typical_waste_pct: Optional[float] = Field(None, ge=0, le=100, description="Typical waste percentage")
+    notes: Optional[str] = Field(None, description="Additional notes")
 
 class Material(MaterialBase):
     id: UUID
@@ -56,7 +61,7 @@ class VendorPriceBase(BaseModel):
     is_quote: bool = Field(False, description="Whether this is a quote price")
 
 class VendorPriceCreate(VendorPriceBase):
-    pass
+    fetched_at: datetime = Field(..., description="When the price was fetched")
 
 class VendorPriceUpdate(VendorPriceBase):
     pass

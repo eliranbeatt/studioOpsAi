@@ -1,0 +1,156 @@
+[
+  {
+    "test": "Database Version Check",
+    "success": true,
+    "message": "Connected to PostgreSQL 15.4 (Debian 15.4-2.pgdg120+1) on x86_6...",
+    "timestamp": "2025-09-07T13:19:02.176650",
+    "details": null
+  },
+  {
+    "test": "Table Existence",
+    "success": true,
+    "message": "All required tables exist: 21 total",
+    "timestamp": "2025-09-07T13:19:02.178376",
+    "details": null
+  },
+  {
+    "test": "Chat Tables",
+    "success": true,
+    "message": "Found chat tables: ['chat_messages', 'chat_sessions']",
+    "timestamp": "2025-09-07T13:19:02.178471",
+    "details": null
+  },
+  {
+    "test": "Data Counts",
+    "success": true,
+    "message": "Projects: 14, Vendors: 34",
+    "timestamp": "2025-09-07T13:19:02.179490",
+    "details": null
+  },
+  {
+    "test": "API Health Check",
+    "success": true,
+    "message": "API server is running",
+    "timestamp": "2025-09-07T13:19:02.205692",
+    "details": null
+  },
+  {
+    "test": "Projects API",
+    "success": true,
+    "message": "Retrieved 14 projects",
+    "timestamp": "2025-09-07T13:19:02.211755",
+    "details": null
+  },
+  {
+    "test": "Project Creation",
+    "success": true,
+    "message": "Created project with ID: 9b3f20b8-7e71-4941-a832-b82b5e9b06f0",
+    "timestamp": "2025-09-07T13:19:02.260897",
+    "details": null
+  },
+  {
+    "test": "Vendors API",
+    "success": true,
+    "message": "Retrieved 34 vendors",
+    "timestamp": "2025-09-07T13:19:02.267712",
+    "details": null
+  },
+  {
+    "test": "Materials API",
+    "success": true,
+    "message": "Retrieved 27 materials",
+    "timestamp": "2025-09-07T13:19:02.297494",
+    "details": null
+  },
+  {
+    "test": "AI Chat Response",
+    "success": true,
+    "message": "Received AI response: Hello! \u05d0\u05d9\u05da \u05d0\u05e0\u05d9 \u05d9\u05db\u05d5\u05dc \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05da \u05e2\u05dd \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d9\u05d5\u05dd?\nProject: Integration Test Project e74e8864...",
+    "timestamp": "2025-09-07T13:19:02.307831",
+    "details": null
+  },
+  {
+    "test": "AI Project Context",
+    "success": true,
+    "message": "AI response includes project context",
+    "timestamp": "2025-09-07T13:19:02.308016",
+    "details": null
+  },
+  {
+    "test": "AI Service Status",
+    "success": true,
+    "message": "AI enabled: False",
+    "timestamp": "2025-09-07T13:19:02.308231",
+    "details": null
+  },
+  {
+    "test": "Memory Search",
+    "success": false,
+    "message": "Memory search failed: 500",
+    "timestamp": "2025-09-07T13:19:04.206958",
+    "details": null
+  },
+  {
+    "test": "Plan Generation",
+    "success": true,
+    "message": "Generated plan with 5 items",
+    "timestamp": "2025-09-07T13:19:04.234748",
+    "details": null
+  },
+  {
+    "test": "Trello MCP Server",
+    "success": false,
+    "message": "Trello MCP server integration not directly accessible via API",
+    "timestamp": "2025-09-07T13:19:04.235157",
+    "details": null
+  },
+  {
+    "test": "Trello MCP Implementation",
+    "success": true,
+    "message": "Trello MCP server code is implemented",
+    "timestamp": "2025-09-07T13:19:04.235503",
+    "details": null
+  },
+  {
+    "test": "MCP Integration Status",
+    "success": true,
+    "message": "API server running - MCP integration would be external",
+    "timestamp": "2025-09-07T13:19:04.238344",
+    "details": null
+  },
+  {
+    "test": "Data Consistency - name",
+    "success": true,
+    "message": "Values match: Integration Test Project e74e8864",
+    "timestamp": "2025-09-07T13:19:04.261392",
+    "details": null
+  },
+  {
+    "test": "Data Consistency - status",
+    "success": true,
+    "message": "Values match: active",
+    "timestamp": "2025-09-07T13:19:04.261476",
+    "details": null
+  },
+  {
+    "test": "Overall Data Consistency",
+    "success": true,
+    "message": "All fields consistent between API and DB",
+    "timestamp": "2025-09-07T13:19:04.261557",
+    "details": null
+  },
+  {
+    "test": "Foreign Key Relationships",
+    "success": true,
+    "message": "Found 0 vendor-material relationships",
+    "timestamp": "2025-09-07T13:19:04.262300",
+    "details": null
+  },
+  {
+    "test": "Test Data Cleanup",
+    "success": true,
+    "message": "Test project deleted successfully",
+    "timestamp": "2025-09-07T13:19:04.291346",
+    "details": null
+  }
+]
