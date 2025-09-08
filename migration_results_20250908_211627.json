@@ -1,0 +1,376 @@
+{
+  "timestamp": "2025-09-08T21:16:26.926717",
+  "success": false,
+  "backup": {
+    "timestamp": "2025-09-08T21:16:26.958001",
+    "success": false,
+    "backup_location": null,
+    "backup_size": null,
+    "errors": [
+      "Backup creation failed: [WinError 2] The system cannot find the file specified"
+    ]
+  },
+  "health_check_before": {
+    "timestamp": "2025-09-08T21:16:26.926837",
+    "overall_status": "unhealthy",
+    "connection": {
+      "status": "failed",
+      "database": "studioops",
+      "user": "studioops",
+      "version": "PostgreSQL 15.4 (Debian 15.4-2.pgdg120+1) on x86_6..."
+    },
+    "tables": {
+      "status": "healthy",
+      "details": {
+        "total_tables": 21,
+        "required_tables": 11,
+        "missing_tables": [],
+        "extra_tables": [
+          "doc_chunks",
+          "extracted_items",
+          "generated_documents",
+          "ingest_events",
+          "material_aliases",
+          "outbox",
+          "project_knowledge",
+          "rate_cards",
+          "shipping_quotes",
+          "vendor_aliases"
+        ],
+        "all_tables": [
+          "chat_messages",
+          "chat_sessions",
+          "doc_chunks",
+          "documents",
+          "extracted_items",
+          "generated_documents",
+          "ingest_events",
+          "material_aliases",
+          "materials",
+          "outbox",
+          "plan_items",
+          "plans",
+          "project_knowledge",
+          "projects",
+          "purchases",
+          "rag_documents",
+          "rate_cards",
+          "shipping_quotes",
+          "vendor_aliases",
+          "vendor_prices",
+          "vendors"
+        ]
+      }
+    },
+    "foreign_keys": {
+      "status": "healthy",
+      "details": {
+        "total_foreign_keys": 11,
+        "project_related_fks": 4,
+        "issues": [],
+        "all_foreign_keys": [
+          "chat_messages.session_id -> chat_sessions.id [NO ACTION]",
+          "chat_sessions.project_id -> projects.id [SET NULL]",
+          "documents.project_id -> projects.id [SET NULL]",
+          "plan_items.plan_id -> plans.id [CASCADE]",
+          "plan_items.vendor_id -> vendors.id [NO ACTION]",
+          "plans.project_id -> projects.id [CASCADE]",
+          "purchases.material_id -> materials.id [NO ACTION]",
+          "purchases.project_id -> projects.id [SET NULL]",
+          "purchases.vendor_id -> vendors.id [NO ACTION]",
+          "vendor_prices.material_id -> materials.id [NO ACTION]",
+          "vendor_prices.vendor_id -> vendors.id [NO ACTION]"
+        ]
+      }
+    },
+    "indexes": {
+      "status": "healthy",
+      "details": {
+        "total_indexes": 31,
+        "indexes_by_table": {
+          "chat_messages": [
+            "chat_messages_pkey"
+          ],
+          "chat_sessions": [
+            "chat_sessions_pkey",
+            "idx_chat_sessions_project_id",
+            "ix_chat_sessions_user_id"
+          ],
+          "doc_chunks": [
+            "doc_chunks_pkey"
+          ],
+          "documents": [
+            "documents_content_sha256_key",
+            "documents_pkey",
+            "idx_documents_project_id"
+          ],
+          "extracted_items": [
+            "extracted_items_pkey"
+          ],
+          "generated_documents": [
+            "generated_documents_pkey"
+          ],
+          "ingest_events": [
+            "ingest_events_pkey"
+          ],
+          "material_aliases": [
+            "material_aliases_pkey"
+          ],
+          "materials": [
+            "materials_pkey"
+          ],
+          "outbox": [
+            "outbox_pkey"
+          ],
+          "plan_items": [
+            "idx_plan_items_plan_id",
+            "plan_items_pkey"
+          ],
+          "plans": [
+            "plans_pkey",
+            "plans_project_id_version_key"
+          ],
+          "project_knowledge": [
+            "ix_project_knowledge_project_id",
+            "project_knowledge_pkey"
+          ],
+          "projects": [
+            "projects_pkey"
+          ],
+          "purchases": [
+            "idx_purchases_project_id",
+            "purchases_pkey"
+          ],
+          "rag_documents": [
+            "rag_documents_pkey"
+          ],
+          "rate_cards": [
+            "rate_cards_pkey"
+          ],
+          "shipping_quotes": [
+            "shipping_quotes_pkey"
+          ],
+          "vendor_aliases": [
+            "vendor_aliases_pkey"
+          ],
+          "vendor_prices": [
+            "idx_vendor_prices_material_fetched",
+            "vendor_prices_pkey",
+            "vendor_prices_vendor_id_material_id_sku_fetched_at_key"
+          ],
+          "vendors": [
+            "vendors_pkey"
+          ]
+        }
+      }
+    },
+    "data_integrity": {
+      "status": "unknown",
+      "details": {}
+    },
+    "performance": {
+      "status": "unknown",
+      "details": {}
+    },
+    "warnings": [],
+    "errors": [
+      "operator does not exist: uuid = text\nLINE 3:                             WHERE project_id NOT IN (SELECT ...\n                                                     ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n"
+    ]
+  },
+  "foreign_key_fixes": {
+    "timestamp": "2025-09-08T21:16:26.964350",
+    "success": true,
+    "constraints_fixed": [],
+    "constraints_already_correct": [
+      {
+        "constraint": "chat_sessions.project_id",
+        "rule": "SET NULL"
+      },
+      {
+        "constraint": "documents.project_id",
+        "rule": "SET NULL"
+      },
+      {
+        "constraint": "purchases.project_id",
+        "rule": "SET NULL"
+      },
+      {
+        "constraint": "plans.project_id",
+        "rule": "CASCADE"
+      }
+    ],
+    "errors": [],
+    "rollback_info": []
+  },
+  "health_check_after": {
+    "timestamp": "2025-09-08T21:16:26.995264",
+    "overall_status": "unhealthy",
+    "connection": {
+      "status": "failed",
+      "database": "studioops",
+      "user": "studioops",
+      "version": "PostgreSQL 15.4 (Debian 15.4-2.pgdg120+1) on x86_6..."
+    },
+    "tables": {
+      "status": "healthy",
+      "details": {
+        "total_tables": 21,
+        "required_tables": 11,
+        "missing_tables": [],
+        "extra_tables": [
+          "doc_chunks",
+          "extracted_items",
+          "generated_documents",
+          "ingest_events",
+          "material_aliases",
+          "outbox",
+          "project_knowledge",
+          "rate_cards",
+          "shipping_quotes",
+          "vendor_aliases"
+        ],
+        "all_tables": [
+          "chat_messages",
+          "chat_sessions",
+          "doc_chunks",
+          "documents",
+          "extracted_items",
+          "generated_documents",
+          "ingest_events",
+          "material_aliases",
+          "materials",
+          "outbox",
+          "plan_items",
+          "plans",
+          "project_knowledge",
+          "projects",
+          "purchases",
+          "rag_documents",
+          "rate_cards",
+          "shipping_quotes",
+          "vendor_aliases",
+          "vendor_prices",
+          "vendors"
+        ]
+      }
+    },
+    "foreign_keys": {
+      "status": "healthy",
+      "details": {
+        "total_foreign_keys": 11,
+        "project_related_fks": 4,
+        "issues": [],
+        "all_foreign_keys": [
+          "chat_messages.session_id -> chat_sessions.id [NO ACTION]",
+          "chat_sessions.project_id -> projects.id [SET NULL]",
+          "documents.project_id -> projects.id [SET NULL]",
+          "plan_items.plan_id -> plans.id [CASCADE]",
+          "plan_items.vendor_id -> vendors.id [NO ACTION]",
+          "plans.project_id -> projects.id [CASCADE]",
+          "purchases.material_id -> materials.id [NO ACTION]",
+          "purchases.project_id -> projects.id [SET NULL]",
+          "purchases.vendor_id -> vendors.id [NO ACTION]",
+          "vendor_prices.material_id -> materials.id [NO ACTION]",
+          "vendor_prices.vendor_id -> vendors.id [NO ACTION]"
+        ]
+      }
+    },
+    "indexes": {
+      "status": "healthy",
+      "details": {
+        "total_indexes": 31,
+        "indexes_by_table": {
+          "chat_messages": [
+            "chat_messages_pkey"
+          ],
+          "chat_sessions": [
+            "chat_sessions_pkey",
+            "idx_chat_sessions_project_id",
+            "ix_chat_sessions_user_id"
+          ],
+          "doc_chunks": [
+            "doc_chunks_pkey"
+          ],
+          "documents": [
+            "documents_content_sha256_key",
+            "documents_pkey",
+            "idx_documents_project_id"
+          ],
+          "extracted_items": [
+            "extracted_items_pkey"
+          ],
+          "generated_documents": [
+            "generated_documents_pkey"
+          ],
+          "ingest_events": [
+            "ingest_events_pkey"
+          ],
+          "material_aliases": [
+            "material_aliases_pkey"
+          ],
+          "materials": [
+            "materials_pkey"
+          ],
+          "outbox": [
+            "outbox_pkey"
+          ],
+          "plan_items": [
+            "idx_plan_items_plan_id",
+            "plan_items_pkey"
+          ],
+          "plans": [
+            "plans_pkey",
+            "plans_project_id_version_key"
+          ],
+          "project_knowledge": [
+            "ix_project_knowledge_project_id",
+            "project_knowledge_pkey"
+          ],
+          "projects": [
+            "projects_pkey"
+          ],
+          "purchases": [
+            "idx_purchases_project_id",
+            "purchases_pkey"
+          ],
+          "rag_documents": [
+            "rag_documents_pkey"
+          ],
+          "rate_cards": [
+            "rate_cards_pkey"
+          ],
+          "shipping_quotes": [
+            "shipping_quotes_pkey"
+          ],
+          "vendor_aliases": [
+            "vendor_aliases_pkey"
+          ],
+          "vendor_prices": [
+            "idx_vendor_prices_material_fetched",
+            "vendor_prices_pkey",
+            "vendor_prices_vendor_id_material_id_sku_fetched_at_key"
+          ],
+          "vendors": [
+            "vendors_pkey"
+          ]
+        }
+      }
+    },
+    "data_integrity": {
+      "status": "unknown",
+      "details": {}
+    },
+    "performance": {
+      "status": "unknown",
+      "details": {}
+    },
+    "warnings": [],
+    "errors": [
+      "operator does not exist: uuid = text\nLINE 3:                             WHERE project_id NOT IN (SELECT ...\n                                                     ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n"
+    ]
+  },
+  "errors": [
+    "Migration completed with errors"
+  ],
+  "duration_seconds": 0.09493231773376465
+}

@@ -15,8 +15,8 @@ import psycopg2
 from minio import Minio
 import requests
 
-from services.health_monitoring_service import health_monitoring_service
-from services.service_degradation_service import service_degradation_service, DegradationLevel
+from .health_monitoring_service import health_monitoring_service
+from .service_degradation_service import service_degradation_service, DegradationLevel
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,28 @@ class StartupValidationService:
         """Validate environment configuration"""
         logger.info("Validating environment configuration...")
         
+        # First, run comprehensive configuration validation
+        try:
+            from .config_validation_service import config_validator
+            
+            validation_results = config_validator.validate_all()
+            summary = config_validator.get_validation_summary()
+            
+            # Log configuration issues
+            critical_issues = [r for r in validation_results if r.severity.value in ['critical', 'error']]
+            if critical_issues:
+                logger.warning(f"Found {len(critical_issues)} critical configuration issues")
+                for issue in critical_issues[:3]:  # Log first 3 issues
+                    logger.warning(f"  - {issue.key}: {issue.message}")
+            
+        except ImportError:
+            logger.warning("Configuration validation service not available")
+            summary = {'is_valid': True, 'total_checks': 0}
+        except Exception as e:
+            logger.error(f"Error in configuration validation: {e}")
+            summary = {'is_valid': False, 'total_checks': 0}
+        
+        # Legacy environment variable checks
         required_env_vars = [
             "DATABASE_URL"
         ]
@@ -97,7 +119,8 @@ class StartupValidationService:
             "required_vars": {},
             "optional_vars": {},
             "missing_required": [],
-            "missing_optional": []
+            "missing_optional": [],
+            "config_validation": summary
         }
         
         # Check required environment variables
@@ -114,7 +137,13 @@ class StartupValidationService:
             if not value:
                 env_status["missing_optional"].append(var)
         
-        env_status["status"] = "success" if not env_status["missing_required"] else "error"
+        # Determine overall status
+        if env_status["missing_required"]:
+            env_status["status"] = "error"
+        elif not summary.get('is_valid', True):
+            env_status["status"] = "degraded"
+        else:
+            env_status["status"] = "success"
         
         return env_status
     
@@ -400,7 +429,7 @@ class StartupValidationService:
             cursor.execute("""
                 SELECT table_name FROM information_schema.tables 
                 WHERE table_schema = 'public' 
-                AND table_name IN ('projects', 'users', 'documents', 'chat_sessions', 'plans', 'purchases')
+                AND table_name IN ('projects', 'documents', 'chat_sessions', 'plans', 'purchases', 'vendors', 'materials')
             """)
             tables = [row[0] for row in cursor.fetchall()]
             
@@ -431,7 +460,7 @@ class StartupValidationService:
             cursor.close()
             conn.close()
             
-            required_tables = ['projects', 'users', 'documents', 'chat_sessions', 'plans', 'purchases']
+            required_tables = ['projects', 'documents', 'chat_sessions', 'plans', 'purchases', 'vendors', 'materials']
             missing_tables = [table for table in required_tables if table not in tables]
             
             return {

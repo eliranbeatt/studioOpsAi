@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { checkConnection, checkSystemStatus, checkDetailedHealth } from '@/lib/api';
+import { useConnectionMonitor } from '@/hooks/useApi';
+import { LoadingSpinner, InlineLoading } from '@/components/LoadingComponents';
+import { ErrorMessage, RetryableError } from '@/components/ErrorComponents';
 
 interface SystemStatus {
   status: 'healthy' | 'degraded' | 'critical' | 'error';
@@ -30,81 +33,91 @@ interface DetailedHealth {
 }
 
 export default function ConnectionStatus() {
-  const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [detailedHealth, setDetailedHealth] = useState<DetailedHealth | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [lastError, setLastError] = useState<Error | null>(null);
+  
+  // Use the connection monitor hook
+  const { isOnline, lastCheck, recheckConnection } = useConnectionMonitor(30000);
 
-  const checkApiConnection = async () => {
+  const checkFullSystemStatus = useCallback(async () => {
+    if (!isOnline) return;
+    
     setIsChecking(true);
+    setLastError(null);
+    
     try {
-      // Check basic connection
-      const connected = await checkConnection();
-      setIsConnected(connected);
+      // Get system status for user-friendly display
+      const status = await checkSystemStatus();
+      setSystemStatus(status);
 
-      if (connected) {
-        // Get system status for user-friendly display
-        try {
-          const status = await checkSystemStatus();
-          setSystemStatus(status);
-        } catch (error) {
-          console.warn('System status check failed:', error);
-        }
-
-        // Get detailed health if showing details
-        if (showDetails) {
-          try {
-            const health = await checkDetailedHealth();
-            setDetailedHealth(health);
-          } catch (error) {
-            console.warn('Detailed health check failed:', error);
-          }
-        }
-      } else {
-        setSystemStatus(null);
-        setDetailedHealth(null);
+      // Get detailed health if showing details
+      if (showDetails) {
+        const health = await checkDetailedHealth();
+        setDetailedHealth(health);
       }
     } catch (error) {
-      setIsConnected(false);
+      console.warn('System status check failed:', error);
+      setLastError(error as Error);
       setSystemStatus(null);
-      setDetailedHealth(null);
+      if (showDetails) {
+        setDetailedHealth(null);
+      }
     } finally {
       setIsChecking(false);
     }
-  };
+  }, [isOnline, showDetails]);
 
-  const toggleDetails = async () => {
-    setShowDetails(!showDetails);
-    if (!showDetails && isConnected) {
+  const toggleDetails = useCallback(async () => {
+    const newShowDetails = !showDetails;
+    setShowDetails(newShowDetails);
+    
+    if (newShowDetails && isOnline && !detailedHealth) {
       // Load detailed health when showing details
+      setIsChecking(true);
       try {
         const health = await checkDetailedHealth();
         setDetailedHealth(health);
       } catch (error) {
         console.warn('Detailed health check failed:', error);
+        setLastError(error as Error);
+      } finally {
+        setIsChecking(false);
       }
     }
-  };
+  }, [showDetails, isOnline, detailedHealth]);
 
+  const handleRetry = useCallback(async () => {
+    await recheckConnection();
+    if (isOnline) {
+      await checkFullSystemStatus();
+    }
+  }, [recheckConnection, isOnline, checkFullSystemStatus]);
+
+  // Check system status when connection comes online
   useEffect(() => {
-    checkApiConnection();
-    // Check connection every 30 seconds
-    const interval = setInterval(checkApiConnection, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (isOnline) {
+      checkFullSystemStatus();
+    } else {
+      setSystemStatus(null);
+      setDetailedHealth(null);
+      setLastError(null);
+    }
+  }, [isOnline, checkFullSystemStatus]);
 
   // Update detailed health when showing details
   useEffect(() => {
-    if (showDetails && isConnected) {
-      checkApiConnection();
+    if (showDetails && isOnline && !isChecking) {
+      checkFullSystemStatus();
     }
-  }, [showDetails]);
+  }, [showDetails, isOnline, isChecking, checkFullSystemStatus]);
 
-  if (isChecking && isConnected === null) {
+  if (isChecking && isOnline === null) {
     return (
       <div className="flex items-center space-x-2 text-yellow-600">
-        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+        <LoadingSpinner size="small" color="muted" />
         <span className="text-sm">בודק חיבור...</span>
       </div>
     );
@@ -135,35 +148,40 @@ export default function ConnectionStatus() {
       {/* Main Status Display */}
       <div className="flex items-center space-x-2">
         <div className={`w-2 h-2 rounded-full ${
-          isConnected 
+          isOnline 
             ? getStatusDotColor(systemStatus?.status)
             : 'bg-red-500'
-        } ${isConnected ? 'animate-pulse' : ''}`}></div>
+        } ${isOnline ? 'animate-pulse' : ''}`}></div>
         
         <span className={`text-sm ${
-          isConnected 
+          isOnline 
             ? getStatusColor(systemStatus?.status)
             : 'text-red-600'
         }`}>
-          {isConnected 
+          {isOnline 
             ? (systemStatus?.message || 'מחובר לשרת')
             : 'אין חיבור לשרת'
           }
         </span>
 
+        {/* Loading indicator for status checks */}
+        {isChecking && isOnline && (
+          <LoadingSpinner size="small" color="muted" />
+        )}
+
         {/* Action Buttons */}
         <div className="flex items-center space-x-1">
-          {!isConnected && (
+          {!isOnline && (
             <button
-              onClick={checkApiConnection}
-              className="text-xs underline text-blue-600 hover:text-blue-800"
+              onClick={handleRetry}
+              className="text-xs underline text-blue-600 hover:text-blue-800 disabled:opacity-50"
               disabled={isChecking}
             >
-              נסה שוב
+              {isChecking ? 'בודק...' : 'נסה שוב'}
             </button>
           )}
           
-          {isConnected && (
+          {isOnline && (
             <button
               onClick={toggleDetails}
               className="text-xs underline text-blue-600 hover:text-blue-800"
@@ -174,6 +192,23 @@ export default function ConnectionStatus() {
           )}
         </div>
       </div>
+
+      {/* Error Display */}
+      {lastError && (
+        <div className="text-xs">
+          <ErrorMessage 
+            error={lastError} 
+            className="border-none bg-red-100 p-2"
+          />
+        </div>
+      )}
+
+      {/* Last Check Info */}
+      {lastCheck && (
+        <div className="text-xs text-muted-foreground">
+          בדיקה אחרונה: {lastCheck.toLocaleTimeString('he-IL')}
+        </div>
+      )}
 
       {/* Service Impacts */}
       {systemStatus?.service_impacts && systemStatus.service_impacts.length > 0 && (

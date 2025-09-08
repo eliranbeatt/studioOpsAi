@@ -62,7 +62,7 @@ class StandardErrorResponse(BaseModel):
     success: bool = Field(False, description="Always false for errors")
     error: bool = Field(True, description="Always true for errors")
     correlation_id: str = Field(..., description="Unique correlation ID for tracking")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat(), description="Error timestamp in ISO format")
     
     # Error details
     status_code: int = Field(..., description="HTTP status code")

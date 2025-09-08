@@ -1,0 +1,193 @@
+{
+  "summary": {
+    "total_tests": 26,
+    "passed_tests": 22,
+    "failed_tests": 4,
+    "success_rate": 84.61538461538461,
+    "duration_seconds": 37.378700733184814
+  },
+  "test_results": [
+    {
+      "test": "FK Constraint chat_sessions.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: SET NULL",
+      "timestamp": "2025-09-08T22:08:10.265612",
+      "details": null
+    },
+    {
+      "test": "FK Constraint documents.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: SET NULL",
+      "timestamp": "2025-09-08T22:08:10.265696",
+      "details": null
+    },
+    {
+      "test": "FK Constraint purchases.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: SET NULL",
+      "timestamp": "2025-09-08T22:08:10.265736",
+      "details": null
+    },
+    {
+      "test": "FK Constraint plans.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: CASCADE",
+      "timestamp": "2025-09-08T22:08:10.265861",
+      "details": null
+    },
+    {
+      "test": "Project Creation for Deletion Test",
+      "success": true,
+      "message": "Created project: 0e34334f-6a96-40ef-a176-ec3920fb6271",
+      "timestamp": "2025-09-08T22:08:12.331614",
+      "details": null
+    },
+    {
+      "test": "Deletion Impact Analysis",
+      "success": true,
+      "message": "Analysis successful: Test Project Deletion 81575964",
+      "timestamp": "2025-09-08T22:08:14.371167",
+      "details": null
+    },
+    {
+      "test": "Project Deletion",
+      "success": true,
+      "message": "Deletion successful: Project deleted successfully",
+      "timestamp": "2025-09-08T22:08:16.448698",
+      "details": null
+    },
+    {
+      "test": "Trello Mock API Integration",
+      "success": false,
+      "message": "Failed to create mock board",
+      "timestamp": "2025-09-08T22:08:16.451795",
+      "details": null
+    },
+    {
+      "test": "Trello Real API Connection",
+      "success": false,
+      "message": "API credentials not available",
+      "timestamp": "2025-09-08T22:08:16.451856",
+      "details": null
+    },
+    {
+      "test": "Document Upload",
+      "success": true,
+      "message": "Uploaded document: 70bb4c58-926d-47d3-9fea-62a7e00a2899",
+      "timestamp": "2025-09-08T22:08:18.535182",
+      "details": null
+    },
+    {
+      "test": "MinIO Integration",
+      "success": true,
+      "message": "MinIO service available and accessible",
+      "timestamp": "2025-09-08T22:08:18.595220",
+      "details": null
+    },
+    {
+      "test": "AI Service Config",
+      "success": false,
+      "message": "OpenAI API key not configured",
+      "timestamp": "2025-09-08T22:08:18.595493",
+      "details": null
+    },
+    {
+      "test": "AI Fallback Mechanism",
+      "success": false,
+      "message": "Fallback not triggered correctly",
+      "timestamp": "2025-09-08T22:08:28.657698",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Health Check",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:08:30.720675",
+      "details": null
+    },
+    {
+      "test": "API Endpoint System Status",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:08:32.784430",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Detailed Health",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:08:36.228622",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Vendors List",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:08:38.284786",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Materials List",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:08:40.378086",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Projects List",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:08:42.427509",
+      "details": null
+    },
+    {
+      "test": "Health Monitoring Structure",
+      "success": true,
+      "message": "All expected health data present",
+      "timestamp": "2025-09-08T22:08:45.603797",
+      "details": null
+    },
+    {
+      "test": "Service Health database",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-09-08T22:08:45.603879",
+      "details": null
+    },
+    {
+      "test": "Service Health minio",
+      "success": true,
+      "message": "Status: degraded",
+      "timestamp": "2025-09-08T22:08:45.603919",
+      "details": null
+    },
+    {
+      "test": "Service Health trello_mcp",
+      "success": true,
+      "message": "Status: degraded",
+      "timestamp": "2025-09-08T22:08:45.603957",
+      "details": null
+    },
+    {
+      "test": "Service Health ai_service",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-09-08T22:08:45.603983",
+      "details": null
+    },
+    {
+      "test": "Service Health observability",
+      "success": true,
+      "message": "Status: degraded",
+      "timestamp": "2025-09-08T22:08:45.604020",
+      "details": null
+    },
+    {
+      "test": "Service Health system_resources",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-09-08T22:08:45.604049",
+      "details": null
+    }
+  ]
+}

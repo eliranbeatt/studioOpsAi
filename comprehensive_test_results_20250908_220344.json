@@ -1,0 +1,179 @@
+{
+  "summary": {
+    "total_tests": 24,
+    "passed_tests": 18,
+    "failed_tests": 6,
+    "success_rate": 75.0,
+    "duration_seconds": 29.315924882888794
+  },
+  "test_results": [
+    {
+      "test": "FK Constraint chat_sessions.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: SET NULL",
+      "timestamp": "2025-09-08T22:03:15.550031",
+      "details": null
+    },
+    {
+      "test": "FK Constraint documents.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: SET NULL",
+      "timestamp": "2025-09-08T22:03:15.550189",
+      "details": null
+    },
+    {
+      "test": "FK Constraint purchases.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: SET NULL",
+      "timestamp": "2025-09-08T22:03:15.550246",
+      "details": null
+    },
+    {
+      "test": "FK Constraint plans.project_id",
+      "success": true,
+      "message": "Correct DELETE rule: CASCADE",
+      "timestamp": "2025-09-08T22:03:15.550337",
+      "details": null
+    },
+    {
+      "test": "Project Creation for Deletion Test",
+      "success": false,
+      "message": "Failed to create: 500 - Internal Server Error",
+      "timestamp": "2025-09-08T22:03:17.589847",
+      "details": null
+    },
+    {
+      "test": "Trello Mock API Integration",
+      "success": false,
+      "message": "Error: 'TrelloService' object has no attribute 'create_project_board'",
+      "timestamp": "2025-09-08T22:03:17.593661",
+      "details": null
+    },
+    {
+      "test": "Trello Real API Connection",
+      "success": false,
+      "message": "API credentials not available",
+      "timestamp": "2025-09-08T22:03:17.593708",
+      "details": null
+    },
+    {
+      "test": "Document Upload",
+      "success": true,
+      "message": "Uploaded document: 70bb4c58-926d-47d3-9fea-62a7e00a2899",
+      "timestamp": "2025-09-08T22:03:19.729202",
+      "details": null
+    },
+    {
+      "test": "MinIO Integration",
+      "success": false,
+      "message": "MinIO error: cannot import name 'minio_client' from 'apps.api.services.minio_service' (C:\\Users\\elira\\Dev\\claude code\\apps\\api\\services\\minio_service.py)",
+      "timestamp": "2025-09-08T22:03:19.794567",
+      "details": null
+    },
+    {
+      "test": "AI Service Config",
+      "success": false,
+      "message": "OpenAI API key not configured",
+      "timestamp": "2025-09-08T22:03:19.794860",
+      "details": null
+    },
+    {
+      "test": "AI Fallback Mechanism",
+      "success": false,
+      "message": "Fallback not triggered correctly",
+      "timestamp": "2025-09-08T22:03:27.985169",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Health Check",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:03:30.060557",
+      "details": null
+    },
+    {
+      "test": "API Endpoint System Status",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:03:32.090312",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Detailed Health",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:03:35.594117",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Vendors List",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:03:37.663851",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Materials List",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:03:39.732137",
+      "details": null
+    },
+    {
+      "test": "API Endpoint Projects List",
+      "success": true,
+      "message": "Endpoint accessible: 200",
+      "timestamp": "2025-09-08T22:03:41.780425",
+      "details": null
+    },
+    {
+      "test": "Health Monitoring Structure",
+      "success": true,
+      "message": "All expected health data present",
+      "timestamp": "2025-09-08T22:03:44.849435",
+      "details": null
+    },
+    {
+      "test": "Service Health database",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-09-08T22:03:44.849645",
+      "details": null
+    },
+    {
+      "test": "Service Health minio",
+      "success": true,
+      "message": "Status: degraded",
+      "timestamp": "2025-09-08T22:03:44.849715",
+      "details": null
+    },
+    {
+      "test": "Service Health trello_mcp",
+      "success": true,
+      "message": "Status: degraded",
+      "timestamp": "2025-09-08T22:03:44.849811",
+      "details": null
+    },
+    {
+      "test": "Service Health ai_service",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-09-08T22:03:44.849862",
+      "details": null
+    },
+    {
+      "test": "Service Health observability",
+      "success": true,
+      "message": "Status: degraded",
+      "timestamp": "2025-09-08T22:03:44.849899",
+      "details": null
+    },
+    {
+      "test": "Service Health system_resources",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-09-08T22:03:44.849929",
+      "details": null
+    }
+  ]
+}
