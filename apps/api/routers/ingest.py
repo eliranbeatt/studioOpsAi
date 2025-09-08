@@ -2,9 +2,10 @@
 Ingestion pipeline API endpoints for document processing and extraction
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks, Depends
 from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict, Any
+from sqlalchemy.orm import Session
 import uuid
 import json
 import asyncio
@@ -12,6 +13,8 @@ from datetime import datetime
 import psycopg2
 import os
 from uuid import UUID
+
+from database import get_db
 
 from services.observability_service import observability_service
 try:
@@ -55,9 +58,13 @@ def get_db_connection():
 async def upload_files(
     files: List[UploadFile] = File(...),
     project_id: Optional[str] = Form(None),
-    tags: Optional[List[str]] = Form([])
+    tags: Optional[List[str]] = Form([]),
+    db: Session = Depends(get_db)
 ):
-    """Upload multiple files for ingestion"""
+    """Upload multiple files for ingestion using enhanced upload service"""
+    
+    # Import the enhanced document upload service
+    from services.document_upload_service import document_upload_service
     
     trace_id = observability_service.create_trace(
         name="ingest_upload",
@@ -74,30 +81,19 @@ async def upload_files(
         
         for file in files:
             try:
-                # Generate unique document ID
-                doc_id = uuid.uuid4()
+                # Use the enhanced upload service
+                result = await document_upload_service.upload_document(
+                    file=file,
+                    project_id=project_id,
+                    db=db
+                )
                 
-                # Store file metadata in database
-                conn = get_db_connection()
-                cursor = conn.cursor()
+                document_ids.append(result['document_id'])
                 
-                cursor.execute("""
-                    INSERT INTO documents 
-                    (id, filename, mime_type, project_id, storage_path, content_sha256)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    RETURNING id
-                """, (
-                    str(doc_id), file.filename, file.content_type, 
-                    project_id, f"uploads/{doc_id}/{file.filename}", 
-                    f"sha256_{uuid.uuid4()}"  # Placeholder for actual hash
-                ))
-                
-                conn.commit()
-                cursor.close()
-                conn.close()
-                
-                document_ids.append(str(doc_id))
-                statuses.append("uploaded")
+                if result.get('duplicate', False):
+                    statuses.append("duplicate")
+                else:
+                    statuses.append("uploaded")
                 
                 # Log upload event
                 observability_service.create_span(
@@ -106,10 +102,19 @@ async def upload_files(
                     metadata={
                         'filename': file.filename,
                         'mime_type': file.content_type,
-                        'document_id': str(doc_id)
+                        'document_id': result['document_id'],
+                        'duplicate': result.get('duplicate', False)
                     }
                 )
                 
+            except HTTPException as e:
+                statuses.append(f"error: {e.detail}")
+                observability_service.track_error(
+                    trace_id=trace_id,
+                    error_type="upload_error",
+                    error_message=e.detail,
+                    context={'filename': file.filename}
+                )
             except Exception as e:
                 statuses.append(f"error: {str(e)}")
                 observability_service.track_error(

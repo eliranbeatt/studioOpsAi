@@ -1,442 +1,485 @@
-from fastapi import APIRouter, HTTPException
-from typing import List, Dict, Any, Optional
-import psycopg2
-import os
+"""
+Enhanced Documents API Router
+
+This router provides comprehensive document management functionality using
+the enhanced DocumentUploadService with proper error handling, deduplication,
+and atomic operations.
+"""
+
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, BackgroundTasks
+from fastapi.responses import StreamingResponse
+from typing import List, Optional, Dict, Any
+from sqlalchemy.orm import Session
 from uuid import UUID
-import json
-from datetime import datetime, timezone
+import logging
 
-from packages.schemas.projects import Document, DocumentCreate
+from database import get_db
+from services.document_upload_service import document_upload_service
+from services.observability_service import observability_service
+from utils.error_handling import (
+    create_http_exception, ErrorCategory, ErrorSeverity, FieldError,
+    create_validation_error
+)
+from utils.validation import DocumentValidator, validate_and_raise
 
-# Optional service imports
-try:
-    from services.pdf_service import pdf_service
-    PDF_SERVICE_AVAILABLE = True
-except (ImportError, OSError) as e:
-    print(f"PDF service not available: {e}")
-    print("Using PDF service stub")
-    from services.pdf_service_stub import pdf_service
-    PDF_SERVICE_AVAILABLE = False
-
-try:
-    from services.trello_service import trello_service
-    TRELLO_SERVICE_AVAILABLE = True
-except ImportError as e:
-    print(f"Trello service not available: {e}")
-    TRELLO_SERVICE_AVAILABLE = False
-    trello_service = None
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
-def get_db_connection():
-    """Get a database connection"""
+@router.post("/upload")
+async def upload_document(
+    file: UploadFile = File(...),
+    project_id: Optional[str] = Form(None),
+    user_id: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload a single document with comprehensive error handling and validation
+    
+    Features:
+    - Pre-upload validation with bilingual error messages
+    - Atomic upload with database record creation
+    - SHA256-based deduplication
+    - Comprehensive validation
+    - Automatic cleanup on failures
+    - Background processing queue
+    """
+    
     try:
-        conn = psycopg2.connect(
-            os.getenv('DATABASE_URL', 'postgresql://studioops:studioops@localhost:5432/studioops')
+        # Pre-upload validation
+        if not file.filename:
+            raise create_validation_error([
+                FieldError(
+                    field="file",
+                    message="File name is required",
+                    message_he="שם הקובץ נדרש",
+                    code="filename_required"
+                )
+            ])
+        
+        # Get file size if available
+        file_size = 0
+        if hasattr(file, 'size') and file.size:
+            file_size = file.size
+        elif file.file:
+            # Try to get size from file object
+            current_pos = file.file.tell()
+            file.file.seek(0, 2)  # Seek to end
+            file_size = file.file.tell()
+            file.file.seek(current_pos)  # Restore position
+        
+        # Validate document parameters
+        validate_and_raise(
+            DocumentValidator.validate_document_upload,
+            file.filename,
+            file_size,
+            file.content_type
         )
-        return conn
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
-
-@router.get("/project/{project_id}", response_model=List[Document])
-async def get_project_documents(project_id: UUID):
-    """Get all documents for a project"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, project_id, type, path, snapshot_jsonb, version, created_by, created_at
-            FROM documents WHERE project_id = %s ORDER BY created_at DESC
-        """, (str(project_id),))
         
-        documents = []
-        for row in cursor.fetchall():
-            documents.append({
-                "id": row[0],
-                "project_id": row[1],
-                "type": row[2],
-                "path": row[3],
-                "snapshot_jsonb": json.loads(row[4]) if row[4] else None,
-                "version": row[5],
-                "created_by": row[6],
-                "created_at": row[7]
+        result = await document_upload_service.upload_document(
+            file=file,
+            project_id=project_id,
+            db=db,
+            user_id=user_id
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in document upload: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during upload"
+        )
+
+@router.post("/upload/batch")
+async def upload_documents_batch(
+    files: List[UploadFile] = File(...),
+    project_id: Optional[str] = Form(None),
+    user_id: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload multiple documents in batch with individual error handling
+    
+    Each file is processed independently, so some uploads may succeed
+    while others fail. The response includes detailed status for each file.
+    """
+    
+    if len(files) > 10:  # Reasonable batch limit
+        raise HTTPException(
+            status_code=400,
+            detail="Maximum 10 files allowed per batch upload"
+        )
+    
+    trace_id = observability_service.create_trace(
+        name="batch_document_upload",
+        metadata={
+            'file_count': len(files),
+            'project_id': project_id,
+            'user_id': user_id
+        }
+    )
+    
+    results = []
+    successful_uploads = 0
+    
+    for i, file in enumerate(files):
+        try:
+            result = await document_upload_service.upload_document(
+                file=file,
+                project_id=project_id,
+                db=db,
+                user_id=user_id
+            )
+            
+            results.append({
+                "index": i,
+                "filename": file.filename,
+                "status": "success",
+                "result": result
             })
-        
-        cursor.close()
-        conn.close()
-        return documents
+            
+            if not result.get("duplicate", False):
+                successful_uploads += 1
+                
+        except HTTPException as e:
+            results.append({
+                "index": i,
+                "filename": file.filename,
+                "status": "error",
+                "error": {
+                    "code": e.status_code,
+                    "message": e.detail
+                }
+            })
+        except Exception as e:
+            logger.error(f"Unexpected error uploading file {file.filename}: {e}")
+            results.append({
+                "index": i,
+                "filename": file.filename,
+                "status": "error",
+                "error": {
+                    "code": 500,
+                    "message": "Unexpected error occurred"
+                }
+            })
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching documents: {e}")
-
-@router.get("/{document_id}", response_model=Document)
-async def get_document(document_id: UUID):
-    """Get a specific document by ID"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, project_id, type, path, snapshot_jsonb, version, created_by, created_at
-            FROM documents WHERE id = %s
-        """, (str(document_id),))
-        
-        row = cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Document not found")
-        
-        document = {
-            "id": row[0],
-            "project_id": row[1],
-            "type": row[2],
-            "path": row[3],
-            "snapshot_jsonb": json.loads(row[4]) if row[4] else None,
-            "version": row[5],
-            "created_by": row[6],
-            "created_at": row[7]
+    observability_service.create_span(
+        trace_id=trace_id,
+        name="batch_upload_completed",
+        metadata={
+            'total_files': len(files),
+            'successful_uploads': successful_uploads,
+            'errors': len(files) - successful_uploads
         }
-        
-        cursor.close()
-        conn.close()
-        return document
+    )
     
+    return {
+        "total_files": len(files),
+        "successful_uploads": successful_uploads,
+        "errors": len(files) - successful_uploads,
+        "results": results,
+        "trace_id": trace_id
+    }
+
+@router.get("/{document_id}")
+async def get_document_info(
+    document_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed information about a document including processing status
+    """
+    
+    try:
+        return await document_upload_service.get_document_info(document_id, db)
+        
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching document: {e}")
-
-@router.post("/", response_model=Document)
-async def create_document(document: DocumentCreate):
-    """Create a new document"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Check if project exists
-        cursor.execute("SELECT id FROM projects WHERE id = %s", (str(document.project_id),))
-        if not cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Project not found")
-        
-        # Create document
-        cursor.execute("""
-            INSERT INTO documents (project_id, type, path, snapshot_jsonb, version, created_by)
-            VALUES (%s, %s, %s, %s, %s, 'system')
-            RETURNING id, created_at
-        """, (
-            str(document.project_id), document.type, document.path,
-            json.dumps(document.snapshot_jsonb) if document.snapshot_jsonb else None,
-            document.version
-        ))
-        
-        result = cursor.fetchone()
-        conn.commit()
-        
-        new_document = {
-            "id": result[0],
-            "project_id": document.project_id,
-            "type": document.type,
-            "path": document.path,
-            "snapshot_jsonb": document.snapshot_jsonb,
-            "version": document.version,
-            "created_by": "system",
-            "created_at": result[1]
-        }
-        
-        cursor.close()
-        conn.close()
-        return new_document
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating document: {e}")
+        logger.error(f"Error getting document info: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve document information"
+        )
 
 @router.delete("/{document_id}")
-async def delete_document(document_id: UUID):
-    """Delete a document"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM documents WHERE id = %s RETURNING id", (str(document_id),))
-        
-        if not cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Document not found")
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return {"message": "Document deleted successfully"}
+async def delete_document(
+    document_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a document and clean up associated storage
+    """
     
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting document: {e}")
-
-@router.post("/project/{project_id}/export/trello")
-async def export_to_trello(project_id: UUID):
-    """Export project tasks to Trello"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get project details
-        cursor.execute("""
-            SELECT name, board_id FROM projects WHERE id = %s
-        """, (str(project_id),))
-        
-        project = cursor.fetchone()
-        if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
-        
-        project_name, existing_board_id = project
-        
-        # Get latest approved plan
-        cursor.execute("""
-            SELECT id FROM plans 
-            WHERE project_id = %s AND status = 'approved'
-            ORDER BY version DESC LIMIT 1
-        """, (str(project_id),))
-        
-        plan_row = cursor.fetchone()
-        if not plan_row:
-            raise HTTPException(status_code=404, detail="No approved plan found")
-        
-        plan_id = plan_row[0]
-        
-        # Get plan items for tasks
-        cursor.execute("""
-            SELECT id, category, title, description, quantity, unit, 
-                   labor_hours, lead_time_days, risk_level
-            FROM plan_items WHERE plan_id = %s
-        """, (str(plan_id),))
-        
-        tasks = []
-        for item in cursor.fetchall():
-            tasks.append({
-                'external_id': str(item[0]),
-                'category': item[1],
-                'title': item[2],
-                'description': item[3] or '',
-                'quantity': item[4],
-                'unit': item[5],
-                'labor_hours': item[6],
-                'lead_time_days': item[7],
-                'risk_level': item[8]
-            })
-        
-        cursor.close()
-        conn.close()
-        
-        # Ensure Trello board exists
-        board_info = trello_service.ensure_board_structure(str(project_id), project_name)
-        if not board_info:
-            raise HTTPException(status_code=500, detail="Trello integration not configured")
-        
-        # Convert plan items to Trello cards
-        cards_data = []
-        for task in tasks:
-            cards_data.append({
-                'external_id': task['external_id'],
-                'title': f"{task['title']} ({task['quantity']} {task['unit']})",
-                'description': _create_task_description(task),
-                'list_name': 'To Do',
-                'labels': [task['category'], task['risk_level']] if task['risk_level'] else [task['category']],
-                'due_date': _calculate_due_date(task)
-            })
-        
-        # Export to Trello
-        result = trello_service.upsert_cards(board_info['board_id'], cards_data)
-        
-        # Update project with board ID if not already set
-        if not existing_board_id and board_info['board_id']:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE projects SET board_id = %s WHERE id = %s",
-                (board_info['board_id'], str(project_id))
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
-        
-        return {
-            'project_id': project_id,
-            'project_name': project_name,
-            'board_url': board_info['board_url'],
-            'export_result': result,
-            'tasks_exported': len(tasks)
-        }
+        return await document_upload_service.delete_document(document_id, db)
         
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error exporting to Trello: {e}")
-
-def _create_task_description(self, task: Dict[str, Any]) -> str:
-    """Create detailed task description for Trello card"""
-    description = f"""{task['description']}
-
----
-
-**פרטי המשימה:**
-- **קטגוריה:** {task['category']}
-- **כמות:** {task['quantity']} {task['unit']}
-- **שעות עבודה משוערות:** {task['labor_hours'] or 'לא צוין'}
-- **זמן אספקה:** {task['lead_time_days'] or 'לא צוין'} ימים
-- **רמת סיכון:** {task['risk_level'] or 'רגילה'}
-
-**מזהה:** {task['external_id']}
-"""
-    return description.strip()
-
-def _calculate_due_date(self, task: Dict[str, Any]) -> Optional[str]:
-    """Calculate due date based on lead time"""
-    if task.get('lead_time_days'):
-        from datetime import datetime, timedelta
-        due_date = datetime.now() + timedelta(days=task['lead_time_days'])
-        return due_date.isoformat()
-    return None
+        logger.error(f"Error deleting document: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete document"
+        )
 
 @router.get("/{document_id}/download")
-async def download_document(document_id: UUID):
-    """Download a document file"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute(
-            """SELECT path, snapshot_jsonb FROM documents WHERE id = %s""",
-            (str(document_id),)
+async def download_document(
+    document_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Download a document from storage
+    """
+    
+    if not document_upload_service.is_available():
+        raise HTTPException(
+            status_code=503,
+            detail="Document storage service is currently unavailable"
         )
+    
+    try:
+        from models import Document
         
-        row = cursor.fetchone()
-        if not row:
+        # Get document record
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
             raise HTTPException(status_code=404, detail="Document not found")
         
-        document_path = row[0]
-        snapshot = json.loads(row[1]) if row[1] else None
-        
-        cursor.close()
-        conn.close()
-        
-        # For quotes, generate the PDF on demand if needed
-        if document_path.endswith('.pdf') and snapshot:
-            if not PDF_SERVICE_AVAILABLE:
-                raise HTTPException(status_code=503, detail="PDF generation not available")
-            # Generate PDF file
-            pdf_path = pdf_service.generate_quote_pdf(snapshot)
-            
-            # Return file response
-            from fastapi.responses import FileResponse
-            return FileResponse(
-                pdf_path, 
-                media_type='application/pdf',
-                filename=f"quote_{snapshot.get('project_name', 'document')}.pdf"
+        # Get file from MinIO
+        try:
+            response = document_upload_service.minio_client.get_object(
+                document_upload_service.bucket_name,
+                document.storage_path
             )
-        
-        raise HTTPException(status_code=404, detail="Document file not available")
-    
+            
+            def generate():
+                try:
+                    for chunk in response.stream(8192):
+                        yield chunk
+                finally:
+                    response.close()
+                    response.release_conn()
+            
+            return StreamingResponse(
+                generate(),
+                media_type=document.mime_type or 'application/octet-stream',
+                headers={
+                    "Content-Disposition": f"attachment; filename={document.filename}"
+                }
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to download document from storage: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to retrieve document from storage"
+            )
+            
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error downloading document: {e}")
+        logger.error(f"Error downloading document: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to download document"
+        )
 
-@router.post("/generate/quote/{project_id}")
-async def generate_quote_document(project_id: UUID):
-    """Generate a quote document for a project"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get project details
-        cursor.execute("""
-            SELECT name, client_name FROM projects WHERE id = %s
-        """, (str(project_id),))
-        
-        project = cursor.fetchone()
-        if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
-        
-        # Get latest plan
-        cursor.execute("""
-            SELECT id FROM plans 
-            WHERE project_id = %s AND status = 'approved'
-            ORDER BY version DESC LIMIT 1
-        """, (str(project_id),))
-        
-        plan_row = cursor.fetchone()
-        if not plan_row:
-            raise HTTPException(status_code=404, detail="No approved plan found")
-        
-        plan_id = plan_row[0]
-        
-        # Get plan items with totals
-        cursor.execute("""
-            SELECT category, title, description, quantity, unit, unit_price, subtotal
-            FROM plan_items WHERE plan_id = %s ORDER BY category, title
-        """, (str(plan_id),))
-        
-        items = []
-        total = 0.0
-        for item_row in cursor.fetchall():
-            item = {
-                "category": item_row[0],
-                "title": item_row[1],
-                "description": item_row[2],
-                "quantity": float(item_row[3]),
-                "unit": item_row[4],
-                "unit_price": float(item_row[5]) if item_row[5] else 0,
-                "subtotal": float(item_row[6]) if item_row[6] else 0
-            }
-            items.append(item)
-            total += item["subtotal"]
-        
-        # Create document snapshot with actual timestamp
-        snapshot = {
-            "project_name": project[0],
-            "client_name": project[1],
-            "items": items,
-            "total": total,
-            "currency": "NIS",
-            "generated_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        # Generate actual PDF file
-        if not PDF_SERVICE_AVAILABLE:
-            raise HTTPException(status_code=503, detail="PDF generation not available")
-        document_path = pdf_service.generate_quote_pdf(snapshot)
-        
-        # Create relative path for storage
-        relative_path = f"/documents/{project_id}/quote_{int(total)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        
-        cursor.execute("""
-            INSERT INTO documents (project_id, type, path, snapshot_jsonb, version, created_by)
-            VALUES (%s, 'quote', %s, %s, 1, 'system')
-            RETURNING id, created_at
-        """, (str(project_id), relative_path, json.dumps(snapshot)))
-        
-        result = cursor.fetchone()
-        conn.commit()
-        
-        # Return document info with both paths
-        document = {
-            "id": result[0],
-            "project_id": project_id,
-            "type": "quote",
-            "path": relative_path,
-            "absolute_path": document_path,  # Full path to generated PDF
-            "snapshot_jsonb": snapshot,
-            "version": 1,
-            "created_by": "system",
-            "created_at": result[1]
-        }
-        
-        cursor.close()
-        conn.close()
-        return document
+@router.get("/")
+async def list_documents(
+    project_id: Optional[str] = None,
+    document_type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db)
+):
+    """
+    List documents with optional filtering
+    """
     
+    try:
+        from models import Document
+        from sqlalchemy import desc
+        
+        query = db.query(Document)
+        
+        # Apply filters
+        if project_id:
+            query = query.filter(Document.project_id == project_id)
+        
+        if document_type:
+            query = query.filter(Document.type == document_type)
+        
+        # Apply pagination and ordering
+        documents = query.order_by(desc(Document.created_at)).offset(offset).limit(limit).all()
+        
+        # Get total count for pagination
+        total_count = query.count()
+        
+        return {
+            "documents": [
+                {
+                    "id": doc.id,
+                    "filename": doc.filename,
+                    "mime_type": doc.mime_type,
+                    "size_bytes": doc.size_bytes,
+                    "type": doc.type,
+                    "confidence": doc.confidence,
+                    "project_id": doc.project_id,
+                    "created_at": doc.created_at.isoformat()
+                }
+                for doc in documents
+            ],
+            "pagination": {
+                "total": total_count,
+                "limit": limit,
+                "offset": offset,
+                "has_more": offset + limit < total_count
+            },
+            "storage_available": document_upload_service.is_available()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing documents: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to list documents"
+        )
+
+@router.get("/health")
+async def get_storage_health():
+    """
+    Get storage service health status
+    """
+    
+    try:
+        is_available = document_upload_service.is_available()
+        
+        health_info = {
+            "storage_available": is_available,
+            "service": "MinIO",
+            "buckets": {
+                "documents": document_upload_service.bucket_name,
+                "temp": document_upload_service.temp_bucket
+            }
+        }
+        
+        if is_available and document_upload_service.minio_client:
+            try:
+                # Get bucket info
+                buckets = document_upload_service.minio_client.list_buckets()
+                health_info["bucket_count"] = len(buckets)
+                health_info["status"] = "healthy"
+            except Exception as e:
+                health_info["status"] = "degraded"
+                health_info["error"] = str(e)
+        else:
+            health_info["status"] = "unavailable"
+            health_info["error"] = "MinIO client not initialized"
+        
+        return health_info
+        
+    except Exception as e:
+        logger.error(f"Error checking storage health: {e}")
+        return {
+            "storage_available": False,
+            "status": "error",
+            "error": str(e)
+        }
+
+@router.post("/{document_id}/reprocess")
+async def reprocess_document(
+    document_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Reprocess a document through the ingestion pipeline
+    """
+    
+    try:
+        from models import Document
+        
+        # Verify document exists
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Queue for reprocessing
+        trace_id = observability_service.create_trace(
+            name="document_reprocessing",
+            metadata={'document_id': document_id}
+        )
+        
+        await document_upload_service._queue_for_processing(document_id, trace_id)
+        
+        return {
+            "document_id": document_id,
+            "message": "Document queued for reprocessing",
+            "trace_id": trace_id
+        }
+        
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating quote document: {e}")
+        logger.error(f"Error reprocessing document: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to queue document for reprocessing"
+        )
+
+@router.get("/stats/summary")
+async def get_document_stats(
+    project_id: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Get document statistics and summary
+    """
+    
+    try:
+        from models import Document
+        from sqlalchemy import func
+        
+        query = db.query(Document)
+        
+        if project_id:
+            query = query.filter(Document.project_id == project_id)
+        
+        # Get basic stats
+        total_documents = query.count()
+        total_size = query.with_entities(func.sum(Document.size_bytes)).scalar() or 0
+        
+        # Get type distribution
+        type_stats = db.query(
+            Document.type,
+            func.count(Document.id).label('count')
+        ).group_by(Document.type)
+        
+        if project_id:
+            type_stats = type_stats.filter(Document.project_id == project_id)
+        
+        type_distribution = {
+            row.type or 'unknown': row.count 
+            for row in type_stats.all()
+        }
+        
+        return {
+            "total_documents": total_documents,
+            "total_size_bytes": total_size,
+            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "type_distribution": type_distribution,
+            "storage_available": document_upload_service.is_available(),
+            "project_id": project_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting document stats: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to get document statistics"
+        )

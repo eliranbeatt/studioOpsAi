@@ -1,181 +1,30 @@
 """
-Enhanced Project Deletion Service
+Project Deletion Service
 
-This service provides safe project deletion with proper handling of all dependent records
-and comprehensive error handling with rollback capabilities.
+Provides safe project deletion with proper cascade handling and transaction management.
+This service ensures that all dependent records are handled appropriately when deleting projects.
 """
 
-import logging
-from typing import Dict, Any, Optional
-from uuid import UUID
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text, update, delete
+from uuid import UUID
+from typing import Dict, List, Optional
 from fastapi import HTTPException
+import logging
 
 from models import (
-    Project, ChatSession, Document, Plan, Purchase, 
-    PlanItem, GeneratedDocument
+    Project, Plan, PlanItem, ChatSession, Document, Purchase, 
+    ExtractedItem, DocChunk, GeneratedDocument
 )
 
 logger = logging.getLogger(__name__)
 
-
 class ProjectDeletionService:
     """Service for safely deleting projects with proper cascade handling"""
     
-    def __init__(self):
-        self.logger = logger
-    
-    async def delete_project_safely(self, project_id: UUID, db: Session) -> Dict[str, Any]:
+    async def validate_project_deletion(self, project_id: UUID, db: Session) -> Dict:
         """
-        Safely delete a project with proper handling of all dependent records
-        
-        Args:
-            project_id: UUID of the project to delete
-            db: Database session
-            
-        Returns:
-            Dict with deletion results and statistics
-            
-        Raises:
-            HTTPException: If deletion fails or project not found
-        """
-        
-        # Start transaction
-        try:
-            # 1. Verify project exists
-            project = db.query(Project).filter(Project.id == project_id).first()
-            if not project:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Project with ID {project_id} not found"
-                )
-            
-            project_name = project.name
-            self.logger.info(f"Starting safe deletion of project: {project_name} ({project_id})")
-            
-            # 2. Collect statistics before deletion
-            stats = await self._collect_deletion_stats(project_id, db)
-            
-            # 3. Handle dependent records (foreign keys will handle this automatically now)
-            # But we'll log what's happening for transparency
-            
-            # Chat sessions will have project_id set to NULL (SET NULL constraint)
-            chat_sessions_count = db.query(ChatSession).filter(
-                ChatSession.project_id == project_id
-            ).count()
-            
-            # Documents will have project_id set to NULL (SET NULL constraint)  
-            documents_count = db.query(Document).filter(
-                Document.project_id == project_id
-            ).count()
-            
-            # Purchases will have project_id set to NULL (SET NULL constraint)
-            purchases_count = db.query(Purchase).filter(
-                Purchase.project_id == project_id
-            ).count()
-            
-            # Plans and plan_items will be CASCADE deleted
-            plans_count = db.query(Plan).filter(Plan.project_id == project_id).count()
-            
-            # Generated documents will have project_id set to NULL
-            generated_docs_count = db.query(GeneratedDocument).filter(
-                GeneratedDocument.project_id == project_id
-            ).count()
-            
-            self.logger.info(f"Deletion impact for project {project_name}:")
-            self.logger.info(f"  - Chat sessions to unlink: {chat_sessions_count}")
-            self.logger.info(f"  - Documents to unlink: {documents_count}")
-            self.logger.info(f"  - Purchases to unlink: {purchases_count}")
-            self.logger.info(f"  - Plans to delete: {plans_count}")
-            self.logger.info(f"  - Generated documents to unlink: {generated_docs_count}")
-            
-            # 4. Delete the project (foreign key constraints will handle dependencies)
-            db.delete(project)
-            db.commit()
-            
-            self.logger.info(f"✅ Successfully deleted project: {project_name} ({project_id})")
-            
-            return {
-                "success": True,
-                "message": f"Project '{project_name}' deleted successfully",
-                "project_id": str(project_id),
-                "project_name": project_name,
-                "deletion_stats": {
-                    "chat_sessions_unlinked": chat_sessions_count,
-                    "documents_unlinked": documents_count,
-                    "purchases_unlinked": purchases_count,
-                    "plans_deleted": plans_count,
-                    "generated_documents_unlinked": generated_docs_count
-                },
-                "pre_deletion_stats": stats
-            }
-            
-        except HTTPException:
-            # Re-raise HTTP exceptions (like 404)
-            db.rollback()
-            raise
-            
-        except SQLAlchemyError as e:
-            db.rollback()
-            error_msg = f"Database error during project deletion: {str(e)}"
-            self.logger.error(error_msg)
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to delete project due to database error: {str(e)}"
-            )
-            
-        except Exception as e:
-            db.rollback()
-            error_msg = f"Unexpected error during project deletion: {str(e)}"
-            self.logger.error(error_msg)
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to delete project: {str(e)}"
-            )
-    
-    async def _collect_deletion_stats(self, project_id: UUID, db: Session) -> Dict[str, Any]:
-        """Collect statistics about what will be affected by deletion"""
-        
-        try:
-            stats = {}
-            
-            # Count related records
-            stats["chat_sessions"] = db.query(ChatSession).filter(
-                ChatSession.project_id == project_id
-            ).count()
-            
-            stats["documents"] = db.query(Document).filter(
-                Document.project_id == project_id
-            ).count()
-            
-            stats["purchases"] = db.query(Purchase).filter(
-                Purchase.project_id == project_id
-            ).count()
-            
-            stats["plans"] = db.query(Plan).filter(
-                Plan.project_id == project_id
-            ).count()
-            
-            # Count plan items (will be cascade deleted with plans)
-            plan_ids = db.query(Plan.id).filter(Plan.project_id == project_id).subquery()
-            stats["plan_items"] = db.query(PlanItem).filter(
-                PlanItem.plan_id.in_(plan_ids)
-            ).count()
-            
-            stats["generated_documents"] = db.query(GeneratedDocument).filter(
-                GeneratedDocument.project_id == project_id
-            ).count()
-            
-            return stats
-            
-        except Exception as e:
-            self.logger.warning(f"Failed to collect deletion stats: {e}")
-            return {"error": "Could not collect statistics"}
-    
-    async def validate_project_deletion(self, project_id: UUID, db: Session) -> Dict[str, Any]:
-        """
-        Validate if a project can be safely deleted and return impact analysis
+        Validate if a project can be safely deleted and provide impact analysis
         
         Args:
             project_id: UUID of the project to validate
@@ -184,56 +33,307 @@ class ProjectDeletionService:
         Returns:
             Dict with validation results and impact analysis
         """
-        
         try:
-            # Check if project exists
-            project = db.query(Project).filter(Project.id == project_id).first()
-            if not project:
+            # Ensure we start with a clean transaction state
+            db.rollback()
+            # Check if project exists using raw SQL
+            project_result = db.execute(
+                text("SELECT id, name FROM projects WHERE id = :project_id"),
+                {"project_id": str(project_id)}
+            ).fetchone()
+            
+            if not project_result:
                 return {
                     "can_delete": False,
-                    "reason": "Project not found",
-                    "project_exists": False
+                    "error": "Project not found",
+                    "project_name": None
                 }
             
-            # Collect impact statistics
-            stats = await self._collect_deletion_stats(project_id, db)
+            project_name = project_result[1]
             
-            # Determine if deletion is safe
-            # With our new foreign key constraints, deletion should always be safe
-            can_delete = True
+            # Count dependent records using raw SQL to handle schema mismatches
+            project_id_str = str(project_id)
+            
+            chat_sessions_count = db.execute(
+                text("SELECT COUNT(*) FROM chat_sessions WHERE project_id = :project_id"),
+                {"project_id": project_id_str}
+            ).scalar()
+            
+            documents_count = db.execute(
+                text("SELECT COUNT(*) FROM documents WHERE project_id = :project_id"),
+                {"project_id": project_id_str}
+            ).scalar()
+            
+            purchases_count = db.execute(
+                text("SELECT COUNT(*) FROM purchases WHERE project_id = :project_id"),
+                {"project_id": project_id_str}
+            ).scalar()
+            
+            plans_count = db.execute(
+                text("SELECT COUNT(*) FROM plans WHERE project_id = :project_id"),
+                {"project_id": project_id_str}
+            ).scalar()
+            
+            # Count plan items (will be cascade deleted with plans)
+            plan_items_count = 0
+            if plans_count > 0:
+                plan_items_count = db.execute(
+                    text("""
+                        SELECT COUNT(*) FROM plan_items 
+                        WHERE plan_id IN (
+                            SELECT id FROM plans WHERE project_id = :project_id
+                        )
+                    """),
+                    {"project_id": project_id_str}
+                ).scalar()
+            
+            # Check for extracted items
+            extracted_items_count = 0
+            try:
+                extracted_items_count = db.execute(
+                    text("SELECT COUNT(*) FROM extracted_items WHERE project_id = :project_id"),
+                    {"project_id": project_id_str}
+                ).scalar()
+            except Exception:
+                # Table might not exist in all environments
+                pass
+            
+            # Check for generated documents
+            generated_docs_count = 0
+            try:
+                generated_docs_count = db.execute(
+                    text("SELECT COUNT(*) FROM generated_documents WHERE project_id = :project_id"),
+                    {"project_id": project_id_str}
+                ).scalar()
+            except Exception:
+                # Table might not exist in all environments
+                pass
+            
             warnings = []
             
             # Add warnings for data that will be affected
-            if stats.get("chat_sessions", 0) > 0:
-                warnings.append(f"{stats['chat_sessions']} chat sessions will be unlinked from this project")
+            if chat_sessions_count > 0:
+                warnings.append(f"{chat_sessions_count} chat sessions will be unlinked from this project")
             
-            if stats.get("documents", 0) > 0:
-                warnings.append(f"{stats['documents']} documents will be unlinked from this project")
+            if documents_count > 0:
+                warnings.append(f"{documents_count} documents will be unlinked from this project")
             
-            if stats.get("purchases", 0) > 0:
-                warnings.append(f"{stats['purchases']} purchase records will be unlinked from this project")
+            if purchases_count > 0:
+                warnings.append(f"{purchases_count} purchases will be unlinked from this project")
             
-            if stats.get("plans", 0) > 0:
-                warnings.append(f"{stats['plans']} plans and {stats.get('plan_items', 0)} plan items will be permanently deleted")
+            if plans_count > 0:
+                warnings.append(f"{plans_count} plans and {plan_items_count} plan items will be permanently deleted")
+            
+            if extracted_items_count > 0:
+                warnings.append(f"{extracted_items_count} extracted items will be unlinked from this project")
+            
+            if generated_docs_count > 0:
+                warnings.append(f"{generated_docs_count} generated documents will be unlinked from this project")
             
             return {
-                "can_delete": can_delete,
-                "project_exists": True,
-                "project_name": project.name,
-                "impact_analysis": stats,
-                "warnings": warnings,
+                "can_delete": True,
+                "project_name": project_name,
                 "safe_deletion": True,
-                "message": "Project can be safely deleted with the current database constraints"
+                "impact_summary": {
+                    "chat_sessions": chat_sessions_count,
+                    "documents": documents_count,
+                    "purchases": purchases_count,
+                    "plans": plans_count,
+                    "plan_items": plan_items_count,
+                    "extracted_items": extracted_items_count,
+                    "generated_documents": generated_docs_count
+                },
+                "warnings": warnings
             }
             
         except Exception as e:
-            self.logger.error(f"Error validating project deletion: {e}")
+            # Rollback any failed transaction
+            db.rollback()
+            logger.error(f"Error validating project deletion for {project_id}: {e}")
             return {
                 "can_delete": False,
-                "reason": f"Validation error: {str(e)}",
-                "error": True
+                "error": f"Validation failed: {str(e)}",
+                "project_name": None
             }
+    
+    async def delete_project_safely(self, project_id: UUID, db: Session) -> Dict:
+        """
+        Safely delete a project with proper cascade handling
+        
+        Args:
+            project_id: UUID of the project to delete
+            db: Database session
+            
+        Returns:
+            Dict with deletion results and statistics
+        """
+        try:
+            # First validate the deletion
+            validation = await self.validate_project_deletion(project_id, db)
+            if not validation["can_delete"]:
+                raise HTTPException(
+                    status_code=400 if "not found" in validation.get("error", "").lower() else 500,
+                    detail=validation.get("error", "Cannot delete project")
+                )
+            
+            project_name = validation["project_name"]
+            
+            # Start deletion process
+            logger.info(f"Starting deletion of project {project_id} ({project_name})")
+            
+            # Ensure we start with a clean transaction state
+            db.rollback()
+            
+            # Convert UUID to string for database operations
+            project_id_str = str(project_id)
+            
+            try:
+                # Track deletion statistics
+                deletion_stats = {
+                    "chat_sessions_unlinked": 0,
+                    "documents_unlinked": 0,
+                    "purchases_unlinked": 0,
+                    "extracted_items_unlinked": 0,
+                    "generated_docs_unlinked": 0,
+                    "doc_chunks_unlinked": 0,
+                    "plans_deleted": 0,
+                    "plan_items_deleted": 0
+                }
+                
+                # 1. Update chat_sessions to remove project reference (SET NULL)
+                logger.debug(f"Unlinking chat sessions from project {project_id}")
+                chat_sessions_result = db.execute(
+                    text("UPDATE chat_sessions SET project_id = NULL WHERE project_id = :project_id"),
+                    {"project_id": project_id_str}
+                )
+                deletion_stats["chat_sessions_unlinked"] = chat_sessions_result.rowcount
+                logger.debug(f"Unlinked {chat_sessions_result.rowcount} chat sessions")
+                
+                # 2. Update documents to remove project reference (SET NULL)
+                logger.debug(f"Unlinking documents from project {project_id}")
+                documents_result = db.execute(
+                    text("UPDATE documents SET project_id = NULL WHERE project_id = :project_id"),
+                    {"project_id": project_id_str}
+                )
+                deletion_stats["documents_unlinked"] = documents_result.rowcount
+                logger.debug(f"Unlinked {documents_result.rowcount} documents")
+                
+                # 3. Update purchases to remove project reference (SET NULL)
+                purchases_result = db.execute(
+                    text("UPDATE purchases SET project_id = NULL WHERE project_id = :project_id"),
+                    {"project_id": project_id_str}
+                )
+                deletion_stats["purchases_unlinked"] = purchases_result.rowcount
+                
+                # 4. Handle extracted_items if table exists
+                try:
+                    extracted_items_result = db.execute(
+                        text("UPDATE extracted_items SET project_id = NULL WHERE project_id = :project_id"),
+                        {"project_id": project_id_str}
+                    )
+                    deletion_stats["extracted_items_unlinked"] = extracted_items_result.rowcount
+                except Exception as e:
+                    logger.debug(f"ExtractedItem table not available: {e}")
+                
+                # 5. Handle generated_documents if table exists
+                try:
+                    generated_docs_result = db.execute(
+                        text("UPDATE generated_documents SET project_id = NULL WHERE project_id = :project_id"),
+                        {"project_id": project_id_str}
+                    )
+                    deletion_stats["generated_docs_unlinked"] = generated_docs_result.rowcount
+                except Exception as e:
+                    logger.debug(f"GeneratedDocument table not available: {e}")
+                
+                # 6. Handle doc_chunks if they reference projects (check if column exists first)
+                try:
+                    # Check if project_id column exists in doc_chunks
+                    column_check = db.execute(
+                        text("""
+                            SELECT column_name FROM information_schema.columns 
+                            WHERE table_name = 'doc_chunks' AND column_name = 'project_id'
+                        """)
+                    ).fetchone()
+                    
+                    if column_check:
+                        doc_chunks_result = db.execute(
+                            text("UPDATE doc_chunks SET project_id = NULL WHERE project_id = :project_id"),
+                            {"project_id": project_id_str}
+                        )
+                        deletion_stats["doc_chunks_unlinked"] = doc_chunks_result.rowcount
+                except Exception as e:
+                    logger.debug(f"DocChunk project_id column not available: {e}")
+                
+                # 7. Count plan items before deletion (for statistics)
+                plan_items_count = 0
+                try:
+                    plan_items_count = db.execute(
+                        text("""
+                            SELECT COUNT(*) FROM plan_items 
+                            WHERE plan_id IN (
+                                SELECT id FROM plans WHERE project_id = :project_id
+                            )
+                        """),
+                        {"project_id": project_id_str}
+                    ).scalar()
+                    deletion_stats["plan_items_deleted"] = plan_items_count
+                except Exception as e:
+                    logger.debug(f"Error counting plan items: {e}")
+                
+                # 8. Delete plans (CASCADE will handle plan_items automatically)
+                logger.debug(f"Deleting plans for project {project_id}")
+                plans_result = db.execute(
+                    text("DELETE FROM plans WHERE project_id = :project_id"),
+                    {"project_id": project_id_str}
+                )
+                deletion_stats["plans_deleted"] = plans_result.rowcount
+                logger.debug(f"Deleted {plans_result.rowcount} plans")
+                
+                # 9. Finally delete the project itself
+                logger.debug(f"Deleting project {project_id}")
+                project_result = db.execute(
+                    text("DELETE FROM projects WHERE id = :project_id"),
+                    {"project_id": project_id_str}
+                )
+                
+                if project_result.rowcount == 0:
+                    raise HTTPException(
+                        status_code=404,
+                        detail="Project not found or already deleted"
+                    )
+                
+                # Commit the changes
+                db.commit()
+                
+                logger.info(f"Successfully deleted project {project_id} ({project_name})")
+                logger.info(f"Deletion stats: {deletion_stats}")
+                
+                return {
+                    "success": True,
+                    "message": "Project deleted successfully",
+                    "project_id": str(project_id),
+                    "project_name": project_name,
+                    "deletion_stats": deletion_stats
+                }
+                
+            except Exception as e:
+                # Rollback on any error
+                db.rollback()
+                logger.error(f"Error during project deletion: {e}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to delete project: {str(e)}"
+                )
+                
+        except HTTPException:
+            # Re-raise HTTP exceptions as-is
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in delete_project_safely: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Unexpected error during project deletion: {str(e)}"
+            )
 
-
-# Global instance
+# Create a singleton instance
 project_deletion_service = ProjectDeletionService()

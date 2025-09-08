@@ -251,16 +251,20 @@ class Document(Base):
     __tablename__ = "documents"
     
     id = Column(String, primary_key=True, default=generate_ulid)
-    filename = Column(String, nullable=False)
+    project_id = Column(String, nullable=True)
+    type = Column(String, nullable=True)  # quote|project_brief|invoice|receipt|shipping_quote|catalog|trello_export|other
+    path = Column(String, nullable=False)  # Required path field
+    snapshot_jsonb = Column(JSON, nullable=True)
+    version = Column(Integer, nullable=True)
+    created_by = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    filename = Column(String, nullable=True)
     mime_type = Column(String, nullable=True)
     size_bytes = Column(BigInteger, nullable=True)
     language = Column(String, nullable=True)  # he/en
-    type = Column(String, nullable=True)  # quote|project_brief|invoice|receipt|shipping_quote|catalog|trello_export|other
     confidence = Column(Numeric(3, 2), nullable=True)
-    project_id = Column(String, nullable=True)
-    storage_path = Column(String, nullable=False)
-    content_sha256 = Column(String, nullable=False, unique=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    storage_path = Column(String, nullable=True)
+    content_sha256 = Column(String, nullable=True)
     
     def __repr__(self):
         return f"<Document(filename={self.filename}, type={self.type})>"

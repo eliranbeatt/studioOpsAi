@@ -6,12 +6,17 @@ from uuid import UUID
 from database import get_db
 from models import Project as ProjectModel
 from packages.schemas.projects import Project, ProjectCreate, ProjectUpdate
+from utils.error_handling import (
+    create_not_found_error, create_database_error, ErrorCategory, ErrorSeverity,
+    create_http_exception
+)
+from utils.validation import ProjectValidator, validate_and_raise
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 @router.get("/", response_model=List[Project])
 async def get_projects(db: Session = Depends(get_db)):
-    """Get all projects"""
+    """Get all projects with enhanced error handling"""
     try:
         projects = db.query(ProjectModel).order_by(ProjectModel.created_at.desc()).all()
         
@@ -36,29 +41,31 @@ async def get_projects(db: Session = Depends(get_db)):
         return result
     
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error fetching projects: {e}")
+        raise create_database_error("fetching projects")
 
 @router.get("/{project_id}", response_model=Project)
 async def get_project(project_id: UUID, db: Session = Depends(get_db)):
-    """Get a specific project by ID"""
+    """Get a specific project by ID with enhanced error handling"""
     try:
         project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
         if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
+            raise create_not_found_error("project")
         
         return project
     
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching project: {e}")
+        raise create_database_error("fetching project")
 
 @router.post("/", response_model=Project)
 async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
-    """Create a new project"""
+    """Create a new project with comprehensive validation"""
     try:
+        # Validate project data
+        project_data = project.dict()
+        validate_and_raise(ProjectValidator.validate_project_data, project_data)
+        
         db_project = ProjectModel(
             name=project.name,
             client_name=project.client_name,
@@ -75,16 +82,23 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         
         return db_project
     
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating project: {e}")
+        raise create_database_error("creating project")
 
 @router.put("/{project_id}", response_model=Project)
 async def update_project(project_id: UUID, project: ProjectUpdate, db: Session = Depends(get_db)):
-    """Update a project"""
+    """Update a project with comprehensive validation"""
     try:
         db_project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
         if not db_project:
-            raise HTTPException(status_code=404, detail="Project not found")
+            raise create_not_found_error("project")
+        
+        # Validate update data (only non-None fields)
+        update_data = {k: v for k, v in project.dict().items() if v is not None}
+        if update_data:
+            validate_and_raise(ProjectValidator.validate_project_data, update_data)
         
         # Update only provided fields
         if project.name is not None:
@@ -110,11 +124,11 @@ async def update_project(project_id: UUID, project: ProjectUpdate, db: Session =
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating project: {e}")
+        raise create_database_error("updating project")
 
 @router.delete("/{project_id}")
 async def delete_project(project_id: UUID, db: Session = Depends(get_db)):
-    """Delete a project safely with proper cascade handling"""
+    """Delete a project safely with proper cascade handling and enhanced error handling"""
     try:
         from services.project_deletion_service import project_deletion_service
         
@@ -125,16 +139,18 @@ async def delete_project(project_id: UUID, db: Session = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting project: {e}")
+        raise create_database_error("deleting project")
 
 @router.get("/{project_id}/deletion-impact")
 async def get_project_deletion_impact(project_id: UUID, db: Session = Depends(get_db)):
-    """Get impact analysis for project deletion"""
+    """Get impact analysis for project deletion with enhanced error handling"""
     try:
         from services.project_deletion_service import project_deletion_service
         
         result = await project_deletion_service.validate_project_deletion(project_id, db)
         return result
     
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing deletion impact: {e}")
+        raise create_database_error("analyzing deletion impact")

@@ -1,0 +1,142 @@
+{
+  "test_suite": "Enhanced Trello MCP Server Tests",
+  "timestamp": "2025-09-08T06:47:30.835661",
+  "summary": {
+    "total_tests": 26,
+    "passed": 22,
+    "failed": 4,
+    "success_rate": 84.61538461538461
+  },
+  "results": [
+    {
+      "test": "Server Import",
+      "success": true,
+      "message": "Successfully imported TrelloMCPServer"
+    },
+    {
+      "test": "Server Instantiation (No Creds)",
+      "success": true,
+      "message": "Successfully created server instance without credentials"
+    },
+    {
+      "test": "Mock Mode Detection",
+      "success": true,
+      "message": "Server correctly detected missing credentials and enabled mock mode"
+    },
+    {
+      "test": "Server Instantiation (Mock Creds)",
+      "success": true,
+      "message": "Successfully created server instance with mock credentials"
+    },
+    {
+      "test": "Enhanced Health Check",
+      "success": true,
+      "message": "Health check returns detailed status information"
+    },
+    {
+      "test": "Health Check Fields",
+      "success": true,
+      "message": "All required health check fields present"
+    },
+    {
+      "test": "Status Values",
+      "success": true,
+      "message": "Valid status: mock_mode"
+    },
+    {
+      "test": "Connection Details",
+      "success": true,
+      "message": "Connection details properly structured"
+    },
+    {
+      "test": "Server Info",
+      "success": true,
+      "message": "Server info properly included"
+    },
+    {
+      "test": "Retry Logic Fallback",
+      "success": true,
+      "message": "Correctly fell back to mock response after retries"
+    },
+    {
+      "test": "Error Details",
+      "success": false,
+      "message": "Error details not included in mock response"
+    },
+    {
+      "test": "Retry Timing",
+      "success": true,
+      "message": "Retry logic completed in reasonable time: 0.00s"
+    },
+    {
+      "test": "Connection Test Structure",
+      "success": true,
+      "message": "All required fields present in connection test result"
+    },
+    {
+      "test": "Test Results",
+      "success": true,
+      "message": "Generated 2 test results"
+    },
+    {
+      "test": "Individual Test Structure",
+      "success": true,
+      "message": "Individual tests properly structured"
+    },
+    {
+      "test": "Test Summary",
+      "success": true,
+      "message": "Test summary properly structured"
+    },
+    {
+      "test": "Recommendations",
+      "success": true,
+      "message": "Generated 2 recommendations"
+    },
+    {
+      "test": "User info mock",
+      "success": true,
+      "message": "Generated appropriate mock response for GET /members/me"
+    },
+    {
+      "test": "Board creation mock",
+      "success": true,
+      "message": "Generated appropriate mock response for POST /boards"
+    },
+    {
+      "test": "Boards list mock",
+      "success": false,
+      "message": "Mock response not properly formatted for GET /boards"
+    },
+    {
+      "test": "Card creation mock",
+      "success": true,
+      "message": "Generated appropriate mock response for POST /cards"
+    },
+    {
+      "test": "Board lists mock",
+      "success": false,
+      "message": "Mock response not properly formatted for GET /boards/test/lists"
+    },
+    {
+      "test": "Mock Error Details",
+      "success": false,
+      "message": "Mock responses should include error details"
+    },
+    {
+      "test": "Board Creation Fallback",
+      "success": true,
+      "message": "Board creation successfully fell back to mock"
+    },
+    {
+      "test": "Card Creation Fallback",
+      "success": true,
+      "message": "Card creation successfully fell back to mock"
+    },
+    {
+      "test": "Boards Listing Fallback",
+      "success": true,
+      "message": "Boards listing successfully fell back to mock"
+    }
+  ]
+}

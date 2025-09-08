@@ -1,0 +1,13 @@
+[project]
+name = "studioops-trello-mcp"
+version = "1.0.0"
+description = "Trello MCP Server for StudioOps AI"
+dependencies = [
+    "requests",
+    "python-dotenv",
+    "mcp"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

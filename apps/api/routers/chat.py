@@ -10,6 +10,11 @@ from llm_service import llm_service
 import psycopg2
 import os
 from dotenv import load_dotenv
+from utils.error_handling import (
+    create_database_error, create_external_service_error, create_validation_error,
+    FieldError, ErrorCategory, ErrorSeverity, create_http_exception
+)
+from utils.validation import Validator
 
 # Load environment variables
 load_dotenv()
@@ -25,12 +30,12 @@ class ChatMessage(BaseModel):
     session_id: Optional[str] = None
 
 def get_db_connection():
-    """Get a database connection"""
+    """Get a database connection with enhanced error handling"""
     try:
         conn = psycopg2.connect(DATABASE_URL)
         return conn
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
+        raise create_database_error("establishing chat database connection")
 
 async def get_project_context(project_id: str) -> Dict[str, Any]:
     """Get project context from database"""
@@ -258,7 +263,7 @@ async def chat_message(chat_message: ChatMessage):
         # Get project context for LLM
         project_context = await get_project_context(chat_message.project_id) if chat_message.project_id else {}
         
-        # Use real LLM service with context and memory
+        # Use enhanced LLM service with context and memory
         llm_response = await llm_service.generate_response(
             message=chat_message.message,
             session_id=chat_message.session_id,
@@ -279,6 +284,7 @@ async def chat_message(chat_message: ChatMessage):
             "context": {
                 "project": project_context,
                 "rag_documents": rag_context,
+                "context_used": llm_response.get("context_used", {}),
                 "assumptions": ["מחירים מעודכנים לפי ספקים נוכחיים", "זמני עבודה לפי ניסיון קודם"],
                 "risks": ["זמינות חומרים עשויה להשתנות", "שינויים בלוח הזמנים אפשריים"],
                 "suggestions": ["מומלץ לקבל הצעות מחיר מכמה ספקים", "לתכנן מרווח ביטחון של 15% בעלויות"]
@@ -286,7 +292,9 @@ async def chat_message(chat_message: ChatMessage):
             "suggest_plan": llm_response.get("suggest_plan", False),
             "session_id": llm_response.get("session_id", chat_message.session_id or f"session_{int(time.time())}"),
             "timestamp": time.time(),
-            "ai_enabled": llm_service.use_openai,
+            "ai_enabled": llm_response.get("ai_enabled", llm_service.use_openai),
+            "mock_mode": llm_response.get("mock_mode", False),
+            "health_status": llm_response.get("health_status", "unknown"),
             "error_info": llm_response.get("error_info")
         }
     
@@ -297,6 +305,26 @@ class PlanSkeleton(BaseModel):
     project_id: Optional[str] = None
     project_name: str
     items: List[dict]
+
+@router.get("/health")
+async def get_ai_health_status():
+    """Get AI service health status and monitoring information"""
+    try:
+        # Get comprehensive health status
+        health_status = llm_service.get_health_status()
+        
+        # Perform active health check
+        api_health = await llm_service.check_api_health()
+        
+        return {
+            "service_health": health_status,
+            "api_health": api_health,
+            "timestamp": time.time(),
+            "status": "healthy" if health_status['api_available'] else "degraded"
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking AI health: {e}")
 
 @router.post("/generate_plan")
 async def generate_plan_skeleton(plan_request: dict):
