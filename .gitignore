@@ -113,6 +113,8 @@ MANIFEST
 venv/
 env/
 ENV/
+**/*venv/
+**/*env/
 
 # IDE
 .vscode/
@@ -155,3 +157,17 @@ secrets/
 # Temporary files
 tmp/
 temp/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+**/test-results/
+**/playwright-report/
+**/playwright/.cache/
+
+# Output directories
+output/
+outputs/
+**/output/
+**/outputs/

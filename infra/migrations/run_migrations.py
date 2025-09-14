@@ -54,7 +54,9 @@ def run_migrations():
             migration_sql = f.read()
         
         try:
+            print(f"Executing SQL:\n{migration_sql}")
             cursor.execute(migration_sql)
+            print(f"Finished executing SQL for {migration_file.name}")
             print(f"✓ Successfully applied {migration_file.name}")
         except Exception as e:
             print(f"✗ Failed to apply {migration_file.name}: {e}")

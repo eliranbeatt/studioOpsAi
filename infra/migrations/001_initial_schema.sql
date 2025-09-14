@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Vendors & Materials
-CREATE TABLE vendors (
+CREATE TABLE IF NOT EXISTS vendors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     contact JSONB,
@@ -17,7 +17,7 @@ CREATE TABLE vendors (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE materials (
+CREATE TABLE IF NOT EXISTS materials (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     spec TEXT,
@@ -29,7 +29,7 @@ CREATE TABLE materials (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE vendor_prices (
+CREATE TABLE IF NOT EXISTS vendor_prices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id UUID REFERENCES vendors(id),
     material_id UUID REFERENCES materials(id),
@@ -43,10 +43,10 @@ CREATE TABLE vendor_prices (
     UNIQUE(vendor_id, material_id, sku, fetched_at)
 );
 
-CREATE INDEX idx_vendor_prices_material_fetched ON vendor_prices(material_id, fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_vendor_prices_material_fetched ON vendor_prices(material_id, fetched_at DESC);
 
 -- Projects & Plans
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     client_name TEXT,
@@ -60,7 +60,7 @@ CREATE TABLE projects (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE plans (
+CREATE TABLE IF NOT EXISTS plans (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     version INTEGER NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE plans (
     UNIQUE(project_id, version)
 );
 
-CREATE TABLE plan_items (
+CREATE TABLE IF NOT EXISTS plan_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     plan_id UUID REFERENCES plans(id) ON DELETE CASCADE,
     category TEXT NOT NULL,
@@ -95,10 +95,10 @@ CREATE TABLE plan_items (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_plan_items_plan_id ON plan_items(plan_id);
+CREATE INDEX IF NOT EXISTS idx_plan_items_plan_id ON plan_items(plan_id);
 
 -- Shipping & Labor models
-CREATE TABLE shipping_quotes (
+CREATE TABLE IF NOT EXISTS shipping_quotes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     route_hash TEXT,
     distance_km NUMERIC(10,2),
@@ -114,7 +114,7 @@ CREATE TABLE shipping_quotes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE rate_cards (
+CREATE TABLE IF NOT EXISTS rate_cards (
     role TEXT PRIMARY KEY,
     hourly_rate_nis NUMERIC(10,2) NOT NULL,
     overtime_rules_json JSONB,
@@ -124,7 +124,7 @@ CREATE TABLE rate_cards (
 );
 
 -- Expenses & Purchases
-CREATE TABLE purchases (
+CREATE TABLE IF NOT EXISTS purchases (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id UUID REFERENCES vendors(id),
     material_id UUID REFERENCES materials(id),
@@ -138,7 +138,7 @@ CREATE TABLE purchases (
 );
 
 -- Documents
-CREATE TABLE documents (
+CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID REFERENCES projects(id),
     type TEXT,
@@ -149,33 +149,10 @@ CREATE TABLE documents (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Vector storage for chunks/memories
-CREATE TABLE doc_chunks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    project_id UUID REFERENCES projects(id),
-    source TEXT,
-    page INTEGER,
-    text TEXT,
-    embedding VECTOR(1024),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
 
-CREATE INDEX idx_doc_chunks_embedding ON doc_chunks USING hnsw (embedding vector_cosine_ops);
-
-CREATE TABLE memories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    project_id UUID,
-    scope_keys JSONB,
-    text TEXT,
-    source_ref TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    embedding VECTOR(1024)
-);
-
-CREATE INDEX idx_memories_embedding ON memories USING hnsw (embedding vector_cosine_ops);
 
 -- Outbox for CDC
-CREATE TABLE outbox (
+CREATE TABLE IF NOT EXISTS outbox (
     id BIGSERIAL PRIMARY KEY,
     topic TEXT NOT NULL,
     payload JSONB NOT NULL,
@@ -192,8 +169,66 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS vendors_updated_at ON vendors;
+DROP TRIGGER IF EXISTS vendors_updated_at ON vendors;
+DROP TRIGGER IF EXISTS vendors_updated_at ON vendors;
+DROP TRIGGER IF EXISTS vendors_updated_at ON vendors;
+DROP TRIGGER IF EXISTS vendors_updated_at ON vendors;
+DROP TRIGGER IF EXISTS vendors_updated_at ON vendors;
 CREATE TRIGGER vendors_updated_at BEFORE UPDATE ON vendors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
+DROP TRIGGER IF EXISTS materials_updated_at ON materials;
 CREATE TRIGGER materials_updated_at BEFORE UPDATE ON materials FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS projects_updated_at ON projects;
 CREATE TRIGGER projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
+DROP TRIGGER IF EXISTS plans_updated_at ON plans;
 CREATE TRIGGER plans_updated_at BEFORE UPDATE ON plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER rate_cards_updated_at BEFORE UPDATE ON rate_cards FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS rate_cards_updated_at ON rate_cards;
+CREATE TRIGGER rate_cards_updated_at BEFORE UPDATE ON rate_cards FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();olumn();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();n();

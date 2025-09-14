@@ -51,7 +51,7 @@ fi
 echo "🔧 Starting API server on port 8001..."
 cd apps/api
 source venv/bin/activate
-uvicorn simple_main:app --host 0.0.0.0 --port 8001 --reload &
+uvicorn simple_main:app --host 0.0.0.0 --port 8001 --reload >> ../../app.log 2>&1 &
 API_PID=$!
 cd ../..
 
@@ -61,7 +61,7 @@ sleep 2
 # Start web app in background
 echo "🌐 Starting web app on port 3000..."
 cd apps/web
-npm run dev &
+npm run dev >> ../../app.log 2>&1 &
 WEB_PID=$!
 cd ../..
 

@@ -1,0 +1,2209 @@
+
+> studioops-web@0.1.0 test:e2e
+> playwright test
+
+
+Running 85 tests using 14 workers
+
+[1A[2K[1/85] [chromium] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor
+[1A[2K[2/85] [chromium] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials
+[1A[2K[3/85] [chromium] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials
+[1A[2K[4/85] [chromium] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface
+[1A[2K[5/85] [chromium] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan
+[1A[2K[6/85] [chromium] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling
+[1A[2K[7/85] [chromium] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out
+[1A[2K[8/85] [chromium] › e2e-tests\playwright-tests.spec.js:141:3 › StudioOps AI End-to-End Tests › should test plan generation API
+[1A[2K[9/85] [chromium] › e2e-tests\playwright-tests.spec.js:41:3 › StudioOps AI End-to-End Tests › should load the home page
+[1A[2K[10/85] [chromium] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design
+[1A[2K[11/85] [chromium] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it
+[1A[2K[12/85] [chromium] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints
+[1A[2K[13/85] [chromium] › e2e-tests\playwright-tests.spec.js:159:3 › StudioOps AI End-to-End Tests › should test vendors and materials APIs
+[1A[2K[14/85] [chromium] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading
+[1A[2K[15/85] [chromium] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page
+[1A[2K[16/85] [chromium] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project
+[1A[2K  1) [chromium] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveProperty[2m([22m[32mpath[39m[2m, [22m[32mvalue[39m[2m)[22m
+
+    Expected path: [32m"status"[39m
+
+    Expected value: [32m"ok"[39m
+    Received value: [31m"healthy"[39m
+
+      116 |     
+      117 |     const healthData = await healthResponse.json();
+    > 118 |     expect(healthData).toHaveProperty('status', 'ok');
+          |                        ^
+      119 |     
+      120 |     // Test API health endpoint
+      121 |     const apiHealthResponse = await request.get('/api/health');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:118:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-chromium\error-context.md
+
+
+[1A[2K[17/85] [chromium] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page
+[1A[2K[18/85] [firefox] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials
+[1A[2K[19/85] [firefox] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials
+[1A[2K[20/85] [firefox] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out
+[1A[2K[21/85] [firefox] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it
+[1A[2K  2) [chromium] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('[role="textbox"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      202 |     
+      203 |     // Verify elements are still accessible
+    > 204 |     await expect(page.locator('[role="textbox"]')).toBeVisible();
+          |                                                    ^
+      205 |     
+      206 |     // Test tablet view
+      207 |     await page.setViewportSize({ width: 768, height: 1024 });
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:204:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-chromium\error-context.md
+
+
+[1A[2K[22/85] [firefox] › e2e-tests\playwright-tests.spec.js:41:3 › StudioOps AI End-to-End Tests › should load the home page
+[1A[2K[23/85] [firefox] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor
+[1A[2K[24/85] [firefox] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan
+[1A[2K[25/85] [firefox] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface
+[1A[2K  3) [chromium] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       5 |   test('should allow a user to log in with valid credentials', async ({ page }) => {
+       6 |     await page.goto('/login');
+    >  7 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       8 |     await page.fill('input[name="password"]', 'password');
+       9 |     await page.click('button[type="submit"]');
+      10 |     await expect(page).toHaveURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:7:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-chromium\error-context.md
+
+
+[1A[2K  4) [chromium] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      14 |   test('should show an error message with invalid credentials', async ({ page }) => {
+      15 |     await page.goto('/login');
+    > 16 |     await page.fill('input[name="email"]', 'wrong@example.com');
+         |                ^
+      17 |     await page.fill('input[name="password"]', 'wrongpassword');
+      18 |     await page.click('button[type="submit"]');
+      19 |     await expect(page.locator('text=Invalid email or password')).toBeVisible();
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:16:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-chromium\error-context.md
+
+
+[1A[2K  5) [chromium] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+       99 |     // Find chat input
+      100 |     const chatInput = page.locator('[role="textbox"]');
+    > 101 |     await chatInput.fill('Hello, can you help me create a project plan?');
+          |                     ^
+      102 |     await chatInput.press('Enter');
+      103 |     
+      104 |     // Wait for AI response
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:101:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-chromium\error-context.md
+
+
+[1A[2K  6) [chromium] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out ────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      23 |     // First, log in
+      24 |     await page.goto('/login');
+    > 25 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+      26 |     await page.fill('input[name="password"]', 'password');
+      27 |     await page.click('button[type="submit"]');
+      28 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:25:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-allow-a-user-to-log-out-chromium\error-context.md
+
+
+[1A[2K  7) [chromium] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      215 |     // Test invalid chat input
+      216 |     const chatInput = page.locator('[role="textbox"]');
+    > 217 |     await chatInput.fill(''); // Empty message
+          |                     ^
+      218 |     await chatInput.press('Enter');
+      219 |     
+      220 |     // Should handle empty messages gracefully
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:217:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-chromium\error-context.md
+
+
+[1A[2K  8) [chromium] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('AI Plan Generation and Editing', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-chromium\error-context.md
+
+
+[1A[2K[26/85] [firefox] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints
+[1A[2K[27/85] [firefox] › e2e-tests\playwright-tests.spec.js:141:3 › StudioOps AI End-to-End Tests › should test plan generation API
+[1A[2K[28/85] [firefox] › e2e-tests\playwright-tests.spec.js:159:3 › StudioOps AI End-to-End Tests › should test vendors and materials APIs
+[1A[2K[29/85] [firefox] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading
+[1A[2K[30/85] [firefox] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design
+[1A[2K[31/85] [firefox] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling
+[1A[2K[32/85] [firefox] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page
+[1A[2K[33/85] [firefox] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project
+[1A[2K  9) [chromium] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Management-should-display-the-projects-page-chromium\error-context.md
+
+
+[1A[2K  10) [firefox] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       5 |   test('should allow a user to log in with valid credentials', async ({ page }) => {
+       6 |     await page.goto('/login');
+    >  7 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       8 |     await page.fill('input[name="password"]', 'password');
+       9 |     await page.click('button[type="submit"]');
+      10 |     await expect(page).toHaveURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:7:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-firefox\error-context.md
+
+
+[1A[2K  11) [chromium] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-chromium\error-context.md
+
+
+[1A[2K  12) [firefox] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveProperty[2m([22m[32mpath[39m[2m, [22m[32mvalue[39m[2m)[22m
+
+    Expected path: [32m"status"[39m
+
+    Expected value: [32m"ok"[39m
+    Received value: [31m"healthy"[39m
+
+      116 |     
+      117 |     const healthData = await healthResponse.json();
+    > 118 |     expect(healthData).toHaveProperty('status', 'ok');
+          |                        ^
+      119 |     
+      120 |     // Test API health endpoint
+      121 |     const apiHealthResponse = await request.get('/api/health');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:118:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-firefox\error-context.md
+
+
+[1A[2K  13) [firefox] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out ────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      23 |     // First, log in
+      24 |     await page.goto('/login');
+    > 25 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+      26 |     await page.fill('input[name="password"]', 'password');
+      27 |     await page.click('button[type="submit"]');
+      28 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:25:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-allow-a-user-to-log-out-firefox\error-context.md
+
+
+[1A[2K  14) [firefox] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      14 |   test('should show an error message with invalid credentials', async ({ page }) => {
+      15 |     await page.goto('/login');
+    > 16 |     await page.fill('input[name="email"]', 'wrong@example.com');
+         |                ^
+      17 |     await page.fill('input[name="password"]', 'wrongpassword');
+      18 |     await page.click('button[type="submit"]');
+      19 |     await expect(page.locator('text=Invalid email or password')).toBeVisible();
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:16:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-firefox\error-context.md
+
+
+[1A[2K[34/85] [firefox] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page
+[1A[2K  15) [firefox] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('AI Plan Generation and Editing', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-firefox\error-context.md
+
+
+[1A[2K[35/85] [webkit] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials
+[1A[2K  16) [chromium] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-chromium\error-context.md
+
+
+[1A[2K[36/85] [webkit] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials
+[1A[2K[37/85] [webkit] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out
+[1A[2K[38/85] [webkit] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it
+[1A[2K[39/85] [webkit] › e2e-tests\playwright-tests.spec.js:41:3 › StudioOps AI End-to-End Tests › should load the home page
+[1A[2K[40/85] [webkit] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor
+[1A[2K[41/85] [webkit] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan
+[1A[2K[42/85] [webkit] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints
+[1A[2K[43/85] [webkit] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface
+[1A[2K  17) [webkit] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveProperty[2m([22m[32mpath[39m[2m, [22m[32mvalue[39m[2m)[22m
+
+    Expected path: [32m"status"[39m
+
+    Expected value: [32m"ok"[39m
+    Received value: [31m"healthy"[39m
+
+      116 |     
+      117 |     const healthData = await healthResponse.json();
+    > 118 |     expect(healthData).toHaveProperty('status', 'ok');
+          |                        ^
+      119 |     
+      120 |     // Test API health endpoint
+      121 |     const apiHealthResponse = await request.get('/api/health');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:118:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-webkit\error-context.md
+
+
+[1A[2K  18) [firefox] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('[role="textbox"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      202 |     
+      203 |     // Verify elements are still accessible
+    > 204 |     await expect(page.locator('[role="textbox"]')).toBeVisible();
+          |                                                    ^
+      205 |     
+      206 |     // Test tablet view
+      207 |     await page.setViewportSize({ width: 768, height: 1024 });
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:204:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-firefox\error-context.md
+
+
+[1A[2K[44/85] [webkit] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading
+[1A[2K[45/85] [webkit] › e2e-tests\playwright-tests.spec.js:141:3 › StudioOps AI End-to-End Tests › should test plan generation API
+[1A[2K[46/85] [webkit] › e2e-tests\playwright-tests.spec.js:159:3 › StudioOps AI End-to-End Tests › should test vendors and materials APIs
+[1A[2K[47/85] [webkit] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design
+[1A[2K[48/85] [webkit] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling
+[1A[2K[49/85] [webkit] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page
+[1A[2K  19) [firefox] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+       99 |     // Find chat input
+      100 |     const chatInput = page.locator('[role="textbox"]');
+    > 101 |     await chatInput.fill('Hello, can you help me create a project plan?');
+          |                     ^
+      102 |     await chatInput.press('Enter');
+      103 |     
+      104 |     // Wait for AI response
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:101:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-firefox\error-context.md
+
+
+[1A[2K[50/85] [webkit] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project
+[1A[2K[51/85] [webkit] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page
+[1A[2K  20) [webkit] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('[role="textbox"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      202 |     
+      203 |     // Verify elements are still accessible
+    > 204 |     await expect(page.locator('[role="textbox"]')).toBeVisible();
+          |                                                    ^
+      205 |     
+      206 |     // Test tablet view
+      207 |     await page.setViewportSize({ width: 768, height: 1024 });
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:204:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-webkit\error-context.md
+
+
+[1A[2K[52/85] [Mobile Chrome] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials
+[1A[2K  21) [firefox] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      215 |     // Test invalid chat input
+      216 |     const chatInput = page.locator('[role="textbox"]');
+    > 217 |     await chatInput.fill(''); // Empty message
+          |                     ^
+      218 |     await chatInput.press('Enter');
+      219 |     
+      220 |     // Should handle empty messages gracefully
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:217:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-firefox\error-context.md
+
+
+[1A[2K[53/85] [Mobile Chrome] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials
+[1A[2K  22) [firefox] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Management-should-display-the-projects-page-firefox\error-context.md
+
+
+[1A[2K  23) [firefox] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-firefox\error-context.md
+
+
+[1A[2K[54/85] [Mobile Chrome] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out
+[1A[2K[55/85] [Mobile Chrome] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it
+[1A[2K  24) [webkit] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       5 |   test('should allow a user to log in with valid credentials', async ({ page }) => {
+       6 |     await page.goto('/login');
+    >  7 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       8 |     await page.fill('input[name="password"]', 'password');
+       9 |     await page.click('button[type="submit"]');
+      10 |     await expect(page).toHaveURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:7:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-webkit\error-context.md
+
+
+[1A[2K  25) [webkit] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out ─────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      23 |     // First, log in
+      24 |     await page.goto('/login');
+    > 25 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+      26 |     await page.fill('input[name="password"]', 'password');
+      27 |     await page.click('button[type="submit"]');
+      28 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:25:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-allow-a-user-to-log-out-webkit\error-context.md
+
+
+[1A[2K  26) [webkit] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      14 |   test('should show an error message with invalid credentials', async ({ page }) => {
+      15 |     await page.goto('/login');
+    > 16 |     await page.fill('input[name="email"]', 'wrong@example.com');
+         |                ^
+      17 |     await page.fill('input[name="password"]', 'wrongpassword');
+      18 |     await page.click('button[type="submit"]');
+      19 |     await expect(page.locator('text=Invalid email or password')).toBeVisible();
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:16:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-webkit\error-context.md
+
+
+[1A[2K  27) [webkit] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('AI Plan Generation and Editing', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-webkit\error-context.md
+
+
+[1A[2K  28) [firefox] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-firefox\error-context.md
+
+
+[1A[2K[56/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:41:3 › StudioOps AI End-to-End Tests › should load the home page
+[1A[2K[57/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan
+[1A[2K[58/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor
+[1A[2K[59/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface
+[1A[2K[60/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints
+[1A[2K[61/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:141:3 › StudioOps AI End-to-End Tests › should test plan generation API
+[1A[2K  29) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveProperty[2m([22m[32mpath[39m[2m, [22m[32mvalue[39m[2m)[22m
+
+    Expected path: [32m"status"[39m
+
+    Expected value: [32m"ok"[39m
+    Received value: [31m"healthy"[39m
+
+      116 |     
+      117 |     const healthData = await healthResponse.json();
+    > 118 |     expect(healthData).toHaveProperty('status', 'ok');
+          |                        ^
+      119 |     
+      120 |     // Test API health endpoint
+      121 |     const apiHealthResponse = await request.get('/api/health');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:118:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-Mobile-Chrome\error-context.md
+
+
+[1A[2K[62/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading
+[1A[2K  30) [webkit] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+       99 |     // Find chat input
+      100 |     const chatInput = page.locator('[role="textbox"]');
+    > 101 |     await chatInput.fill('Hello, can you help me create a project plan?');
+          |                     ^
+      102 |     await chatInput.press('Enter');
+      103 |     
+      104 |     // Wait for AI response
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:101:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-webkit\error-context.md
+
+
+[1A[2K[63/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:159:3 › StudioOps AI End-to-End Tests › should test vendors and materials APIs
+[1A[2K[64/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design
+[1A[2K[65/85] [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling
+[1A[2K  31) [webkit] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      215 |     // Test invalid chat input
+      216 |     const chatInput = page.locator('[role="textbox"]');
+    > 217 |     await chatInput.fill(''); // Empty message
+          |                     ^
+      218 |     await chatInput.press('Enter');
+      219 |     
+      220 |     // Should handle empty messages gracefully
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:217:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-webkit\error-context.md
+
+
+[1A[2K  32) [webkit] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Management-should-display-the-projects-page-webkit\error-context.md
+
+
+[1A[2K[66/85] [Mobile Chrome] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page
+[1A[2K[67/85] [Mobile Chrome] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project
+[1A[2K  33) [webkit] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-webkit\error-context.md
+
+
+[1A[2K[68/85] [Mobile Chrome] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page
+[1A[2K  34) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('[role="textbox"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      202 |     
+      203 |     // Verify elements are still accessible
+    > 204 |     await expect(page.locator('[role="textbox"]')).toBeVisible();
+          |                                                    ^
+      205 |     
+      206 |     // Test tablet view
+      207 |     await page.setViewportSize({ width: 768, height: 1024 });
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:204:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-Mobile-Chrome\error-context.md
+
+
+[1A[2K  35) [webkit] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-webkit\error-context.md
+
+
+[1A[2K[69/85] [Mobile Safari] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials
+[1A[2K[70/85] [Mobile Safari] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials
+[1A[2K  36) [Mobile Chrome] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       5 |   test('should allow a user to log in with valid credentials', async ({ page }) => {
+       6 |     await page.goto('/login');
+    >  7 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       8 |     await page.fill('input[name="password"]', 'password');
+       9 |     await page.click('button[type="submit"]');
+      10 |     await expect(page).toHaveURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:7:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-Mobile-Chrome\error-context.md
+
+
+[1A[2K[71/85] [Mobile Safari] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out
+[1A[2K  37) [Mobile Chrome] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      14 |   test('should show an error message with invalid credentials', async ({ page }) => {
+      15 |     await page.goto('/login');
+    > 16 |     await page.fill('input[name="email"]', 'wrong@example.com');
+         |                ^
+      17 |     await page.fill('input[name="password"]', 'wrongpassword');
+      18 |     await page.click('button[type="submit"]');
+      19 |     await expect(page.locator('text=Invalid email or password')).toBeVisible();
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:16:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-Mobile-Chrome\error-context.md
+
+
+[1A[2K[72/85] [Mobile Safari] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it
+[1A[2K  38) [Mobile Chrome] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      23 |     // First, log in
+      24 |     await page.goto('/login');
+    > 25 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+      26 |     await page.fill('input[name="password"]', 'password');
+      27 |     await page.click('button[type="submit"]');
+      28 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:25:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-allow-a-user-to-log-out-Mobile-Chrome\error-context.md
+
+
+[1A[2K[73/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:41:3 › StudioOps AI End-to-End Tests › should load the home page
+[1A[2K  39) [Mobile Chrome] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('AI Plan Generation and Editing', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-Mobile-Chrome\error-context.md
+
+
+[1A[2K  40) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('text=Plan Editor').or(locator('a[href*="plan"]'))[22m
+    [2m    - locator resolved to <a href="/plans" class="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50">…</a>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is visible, enabled and stable[22m
+    [2m      - scrolling into view if needed[22m
+    [2m      - done scrolling[22m
+    [2m      - <button class="btn btn-primary btn-lg px-6 gradient-bg border-0">🚀 התחל עכשיו</button> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 500ms[22m
+    [2m    12 × waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <div class="text-center">…</div> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <button class="btn btn-primary btn-lg px-6 gradient-bg border-0">🚀 התחל עכשיו</button> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m    - <div class="text-center">…</div> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m  2 × retrying click action[22m
+    [2m      - waiting 500ms[22m
+    [2m      - waiting for element to be visible, enabled and stable[22m
+    [2m      - element is visible, enabled and stable[22m
+    [2m      - scrolling into view if needed[22m
+    [2m      - done scrolling[22m
+    [2m      - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 500ms[22m
+
+
+      72 |     // Navigate to plan editor
+      73 |     const planEditorLink = page.locator('text=Plan Editor').or(page.locator('a[href*="plan"]'));
+    > 74 |     await planEditorLink.click();
+         |                          ^
+      75 |     
+      76 |     // Wait for plan editor to load
+      77 |     await page.waitForSelector('text=עורך תוכנית');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:74:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-94063-ould-create-and-edit-a-plan-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-94063-ould-create-and-edit-a-plan-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-94063-ould-create-and-edit-a-plan-Mobile-Chrome\error-context.md
+
+
+[1A[2K  41) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('text=Plan Editor').or(locator('a[href*="plan"]'))[22m
+    [2m    - locator resolved to <a href="/plans" class="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50">…</a>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is visible, enabled and stable[22m
+    [2m      - scrolling into view if needed[22m
+    [2m      - done scrolling[22m
+    [2m      - <button class="btn btn-primary btn-lg px-6 gradient-bg border-0">🚀 התחל עכשיו</button> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 500ms[22m
+    [2m    12 × waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <div class="text-center">…</div> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <button class="btn btn-primary btn-lg px-6 gradient-bg border-0">🚀 התחל עכשיו</button> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m    - <div class="text-center">…</div> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m  2 × retrying click action[22m
+    [2m      - waiting 500ms[22m
+    [2m      - waiting for element to be visible, enabled and stable[22m
+    [2m      - element is visible, enabled and stable[22m
+    [2m      - scrolling into view if needed[22m
+    [2m      - done scrolling[22m
+    [2m      - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 500ms[22m
+
+
+      59 |     // Click on plan editor link or button
+      60 |     const planEditorLink = page.locator('text=Plan Editor').or(page.locator('a[href*="plan"]'));
+    > 61 |     await planEditorLink.click();
+         |                          ^
+      62 |     
+      63 |     // Wait for plan editor to load
+      64 |     await page.waitForSelector('text=עורך תוכנית');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:61:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-aca32-uld-navigate-to-plan-editor-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-aca32-uld-navigate-to-plan-editor-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-aca32-uld-navigate-to-plan-editor-Mobile-Chrome\error-context.md
+
+
+[1A[2K[74/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor
+[1A[2K[75/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan
+[1A[2K[76/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface
+[1A[2K[77/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints
+[1A[2K  42) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+       99 |     // Find chat input
+      100 |     const chatInput = page.locator('[role="textbox"]');
+    > 101 |     await chatInput.fill('Hello, can you help me create a project plan?');
+          |                     ^
+      102 |     await chatInput.press('Enter');
+      103 |     
+      104 |     // Wait for AI response
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:101:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-Mobile-Chrome\error-context.md
+
+
+[1A[2K[78/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:141:3 › StudioOps AI End-to-End Tests › should test plan generation API
+[1A[2K  43) [Mobile Safari] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveProperty[2m([22m[32mpath[39m[2m, [22m[32mvalue[39m[2m)[22m
+
+    Expected path: [32m"status"[39m
+
+    Expected value: [32m"ok"[39m
+    Received value: [31m"healthy"[39m
+
+      116 |     
+      117 |     const healthData = await healthResponse.json();
+    > 118 |     expect(healthData).toHaveProperty('status', 'ok');
+          |                        ^
+      119 |     
+      120 |     // Test API health endpoint
+      121 |     const apiHealthResponse = await request.get('/api/health');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:118:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-a7240-s-should-test-API-endpoints-Mobile-Safari\error-context.md
+
+
+[1A[2K[79/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading
+[1A[2K  44) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('text=Plan Editor').or(locator('a[href*="plan"]'))[22m
+    [2m    - locator resolved to <a href="/plans" class="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50">…</a>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not stable[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is not stable[22m
+    [2m  13 × retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <button class="btn btn-primary btn-lg px-6 gradient-bg border-0">🚀 התחל עכשיו</button> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <div class="text-center">…</div> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+    [2m       - waiting for element to be visible, enabled and stable[22m
+    [2m       - element is visible, enabled and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <h2 class="text-lg font-semibold text-foreground">StudioOps AI Dashboard</h2> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 500ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m    - <button class="btn btn-primary btn-lg px-6 gradient-bg border-0">🚀 התחל עכשיו</button> from <div class="flex-1 flex flex-col">…</div> subtree intercepts pointer events[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 500ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+
+
+      176 |     // Navigate to plan editor
+      177 |     const planEditorLink = page.locator('text=Plan Editor').or(page.locator('a[href*="plan"]'));
+    > 178 |     await planEditorLink.click();
+          |                          ^
+      179 |     
+      180 |     // Wait for plan editor to load
+      181 |     await page.waitForSelector('text=עורך תוכנית');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:178:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c88b-dle-plan-saving-and-loading-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c88b-dle-plan-saving-and-loading-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-6c88b-dle-plan-saving-and-loading-Mobile-Chrome\error-context.md
+
+
+[1A[2K[80/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:159:3 › StudioOps AI End-to-End Tests › should test vendors and materials APIs
+[1A[2K[81/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design
+[1A[2K[82/85] [Mobile Safari] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling
+[1A[2K[83/85] [Mobile Safari] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page
+[1A[2K[84/85] [Mobile Safari] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project
+[1A[2K  45) [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      215 |     // Test invalid chat input
+      216 |     const chatInput = page.locator('[role="textbox"]');
+    > 217 |     await chatInput.fill(''); // Empty message
+          |                     ^
+      218 |     await chatInput.press('Enter');
+      219 |     
+      220 |     // Should handle empty messages gracefully
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:217:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-Mobile-Chrome\error-context.md
+
+
+[1A[2K[85/85] [Mobile Safari] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page
+[1A[2K  46) [Mobile Chrome] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Management-should-display-the-projects-page-Mobile-Chrome\error-context.md
+
+
+[1A[2K  47) [Mobile Chrome] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-Mobile-Chrome\error-context.md
+
+
+[1A[2K  48) [Mobile Chrome] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-Mobile-Chrome\error-context.md
+
+
+[1A[2K  49) [Mobile Safari] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('[role="textbox"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      202 |     
+      203 |     // Verify elements are still accessible
+    > 204 |     await expect(page.locator('[role="textbox"]')).toBeVisible();
+          |                                                    ^
+      205 |     
+      206 |     // Test tablet view
+      207 |     await page.setViewportSize({ width: 768, height: 1024 });
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:204:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-77662-ould-test-responsive-design-Mobile-Safari\error-context.md
+
+
+[1A[2K  50) [Mobile Safari] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       5 |   test('should allow a user to log in with valid credentials', async ({ page }) => {
+       6 |     await page.goto('/login');
+    >  7 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       8 |     await page.fill('input[name="password"]', 'password');
+       9 |     await page.click('button[type="submit"]');
+      10 |     await expect(page).toHaveURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:7:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-61ae7-g-in-with-valid-credentials-Mobile-Safari\error-context.md
+
+
+[1A[2K  51) [Mobile Safari] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      14 |   test('should show an error message with invalid credentials', async ({ page }) => {
+      15 |     await page.goto('/login');
+    > 16 |     await page.fill('input[name="email"]', 'wrong@example.com');
+         |                ^
+      17 |     await page.fill('input[name="password"]', 'wrongpassword');
+      18 |     await page.click('button[type="submit"]');
+      19 |     await expect(page.locator('text=Invalid email or password')).toBeVisible();
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:16:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-d8fc3-ge-with-invalid-credentials-Mobile-Safari\error-context.md
+
+
+[1A[2K  52) [Mobile Safari] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+      23 |     // First, log in
+      24 |     await page.goto('/login');
+    > 25 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+      26 |     await page.fill('input[name="password"]', 'password');
+      27 |     await page.click('button[type="submit"]');
+      28 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\auth.spec.js:25:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\auth-Authentication-should-allow-a-user-to-log-out-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-Authentication-should-allow-a-user-to-log-out-Mobile-Safari\error-context.md
+
+
+[1A[2K  53) [Mobile Safari] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('AI Plan Generation and Editing', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\plan-generation.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\plan-generation-AI-Plan-Ge-2c981-an-from-AI-chat-and-edit-it-Mobile-Safari\error-context.md
+
+
+[1A[2K  54) [Mobile Safari] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+       99 |     // Find chat input
+      100 |     const chatInput = page.locator('[role="textbox"]');
+    > 101 |     await chatInput.fill('Hello, can you help me create a project plan?');
+          |                     ^
+      102 |     await chatInput.press('Enter');
+      103 |     
+      104 |     // Wait for AI response
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:101:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-c8a8c-nteract-with-chat-interface-Mobile-Safari\error-context.md
+
+
+[1A[2K  55) [Mobile Safari] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[role="textbox"]')[22m
+
+
+      215 |     // Test invalid chat input
+      216 |     const chatInput = page.locator('[role="textbox"]');
+    > 217 |     await chatInput.fill(''); // Empty message
+          |                     ^
+      218 |     await chatInput.press('Enter');
+      219 |     
+      220 |     // Should handle empty messages gracefully
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\playwright-tests.spec.js:217:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\playwright-tests-StudioOps-6c717--should-test-error-handling-Mobile-Safari\error-context.md
+
+
+[1A[2K  56) [Mobile Safari] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Management-should-display-the-projects-page-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Management-should-display-the-projects-page-Mobile-Safari\error-context.md
+
+
+[1A[2K  57) [Mobile Safari] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-e8dd4-ser-to-create-a-new-project-Mobile-Safari\error-context.md
+
+
+[1A[2K  58) [Mobile Safari] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+
+    [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m
+
+      3 |
+      4 | test.describe('Project Management', () => {
+    > 5 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      6 |     // Log in before each test
+      7 |     await page.goto('/login');
+      8 |     await page.fill('input[name="email"]', 'test@example.com');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:5:8
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="email"]')[22m
+
+
+       6 |     // Log in before each test
+       7 |     await page.goto('/login');
+    >  8 |     await page.fill('input[name="email"]', 'test@example.com');
+         |                ^
+       9 |     await page.fill('input[name="password"]', 'password');
+      10 |     await page.click('button[type="submit"]');
+      11 |     await page.waitForURL('/');
+        at C:\Users\elira\Dev\claude code\apps\web\e2e-tests\projects.spec.js:8:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\projects-Project-Managemen-9c2e4-to-the-project-details-page-Mobile-Safari\error-context.md
+
+
+[1A[2K  58 failed
+    [chromium] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+    [chromium] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+    [chromium] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out ─────
+    [chromium] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+    [chromium] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+    [chromium] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+    [chromium] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+    [chromium] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+    [chromium] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+    [chromium] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+    [chromium] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+    [firefox] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+    [firefox] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+    [firefox] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out ──────
+    [firefox] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+    [firefox] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+    [firefox] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+    [firefox] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+    [firefox] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+    [firefox] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+    [firefox] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+    [firefox] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+    [webkit] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+    [webkit] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+    [webkit] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out ───────
+    [webkit] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+    [webkit] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+    [webkit] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+    [webkit] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+    [webkit] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+    [webkit] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+    [webkit] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+    [webkit] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+    [Mobile Chrome] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+    [Mobile Chrome] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+    [Mobile Chrome] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out 
+    [Mobile Chrome] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:58:3 › StudioOps AI End-to-End Tests › should navigate to plan editor 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:71:3 › StudioOps AI End-to-End Tests › should create and edit a plan 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:175:3 › StudioOps AI End-to-End Tests › should handle plan saving and loading 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+    [Mobile Chrome] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+    [Mobile Chrome] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+    [Mobile Chrome] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+    [Mobile Chrome] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+    [Mobile Safari] › e2e-tests\auth.spec.js:5:3 › Authentication › should allow a user to log in with valid credentials 
+    [Mobile Safari] › e2e-tests\auth.spec.js:14:3 › Authentication › should show an error message with invalid credentials 
+    [Mobile Safari] › e2e-tests\auth.spec.js:22:3 › Authentication › should allow a user to log out 
+    [Mobile Safari] › e2e-tests\plan-generation.spec.js:14:3 › AI Plan Generation and Editing › should generate a plan from AI chat and edit it 
+    [Mobile Safari] › e2e-tests\playwright-tests.spec.js:98:3 › StudioOps AI End-to-End Tests › should interact with chat interface 
+    [Mobile Safari] › e2e-tests\playwright-tests.spec.js:112:3 › StudioOps AI End-to-End Tests › should test API endpoints 
+    [Mobile Safari] › e2e-tests\playwright-tests.spec.js:199:3 › StudioOps AI End-to-End Tests › should test responsive design 
+    [Mobile Safari] › e2e-tests\playwright-tests.spec.js:214:3 › StudioOps AI End-to-End Tests › should test error handling 
+    [Mobile Safari] › e2e-tests\projects.spec.js:15:3 › Project Management › should display the projects page 
+    [Mobile Safari] › e2e-tests\projects.spec.js:20:3 › Project Management › should allow a user to create a new project 
+    [Mobile Safari] › e2e-tests\projects.spec.js:29:3 › Project Management › should navigate to the project details page 
+  27 passed (2.3m)
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

@@ -56,64 +56,77 @@
     - generic [ref=e49]:
       - banner [ref=e50]:
         - generic [ref=e51]:
-          - heading "StudioOps AI Dashboard" [level=2] [ref=e53]
-          - generic [ref=e54]:
-            - button "🔔" [ref=e55] [cursor=pointer]:
-              - generic [ref=e56] [cursor=pointer]: 🔔
-            - generic [ref=e58]: 👤
-      - main [ref=e59]:
-        - generic [ref=e60]:
-          - generic [ref=e61]:
-            - generic [ref=e64]: ✨ פלטפורמת ניהול פרויקטים חכמה
-            - heading "ברוכים הבאים ל StudioOps AI" [level=1] [ref=e65]:
+          - generic [ref=e52]:
+            - heading "StudioOps AI Dashboard" [level=2] [ref=e53]
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - generic [ref=e57]: System is running with limited functionality
+                - button "הצג פרטים" [ref=e59] [cursor=pointer]
+              - generic [ref=e60]: "בדיקה אחרונה: 22:52:37"
+              - generic [ref=e61]:
+                - generic [ref=e62]: "השפעות על השירות:"
+                - list [ref=e63]:
+                  - listitem [ref=e64]: Trello export may be slower than usual
+              - generic [ref=e65]:
+                - generic [ref=e66]: ⚠️ בעיות באתחול המערכת
+                - generic [ref=e67]: חלק מהשירותים עלולים שלא לפעול כראוי
+          - generic [ref=e68]:
+            - button "🔔" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70] [cursor=pointer]: 🔔
+            - generic [ref=e72]: 👤
+      - main [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e78]: ✨ פלטפורמת ניהול פרויקטים חכמה
+            - heading "ברוכים הבאים ל StudioOps AI" [level=1] [ref=e79]:
               - text: ברוכים הבאים ל
-              - generic [ref=e66]: StudioOps AI
-            - paragraph [ref=e67]: מערכת ניהול אוטומטית לסטודיו עם בינה מלאכותית. ניהול פרויקטים, תמחור אוטומטי, יצירת תוכניות עבודה וקבלת החלטות חכמות בזמן אמת.
-            - generic [ref=e68]:
-              - button "🚀 התחל עכשיו" [ref=e69] [cursor=pointer]
-              - button "📖 מדריך מהיר" [ref=e70] [cursor=pointer]
-          - generic [ref=e71]:
-            - generic [ref=e73]:
-              - generic [ref=e75]: 📋
-              - heading "פרויקט חדש" [level=3] [ref=e76]
-              - paragraph [ref=e77]: התחל פרויקט חדש עם תכנון אוטומטי וניהול מלא
-              - button "צור פרויקט" [ref=e78] [cursor=pointer]
-            - generic [ref=e80]:
-              - generic [ref=e82]: 💬
-              - heading "שיחה עם AI" [level=3] [ref=e83]
-              - paragraph [ref=e84]: קבל ייעוץ והמלצות מבינה מלאכותית בזמן אמת
-              - button "התחל שיחה" [ref=e85] [cursor=pointer]
+              - generic [ref=e80]: StudioOps AI
+            - paragraph [ref=e81]: מערכת ניהול אוטומטית לסטודיו עם בינה מלאכותית. ניהול פרויקטים, תמחור אוטומטי, יצירת תוכניות עבודה וקבלת החלטות חכמות בזמן אמת.
+            - generic [ref=e82]:
+              - button "🚀 התחל עכשיו" [ref=e83] [cursor=pointer]
+              - button "📖 מדריך מהיר" [ref=e84] [cursor=pointer]
+          - generic [ref=e85]:
             - generic [ref=e87]:
-              - generic [ref=e89]: 📊
-              - heading "ניתוח נתונים" [level=3] [ref=e90]
-              - paragraph [ref=e91]: צפה בדוחות וניתוחים מתקדמים על הביצועים שלך
-              - button "צפה בדוחות" [ref=e92] [cursor=pointer]
-          - generic [ref=e93]:
+              - generic [ref=e89]: 📋
+              - heading "פרויקט חדש" [level=3] [ref=e90]
+              - paragraph [ref=e91]: התחל פרויקט חדש עם תכנון אוטומטי וניהול מלא
+              - button "צור פרויקט" [ref=e92] [cursor=pointer]
             - generic [ref=e94]:
-              - generic [ref=e95]:
-                - heading "פעילות אחרונה" [level=2] [ref=e96]
-                - paragraph [ref=e97]: הפעילות האחרונה בחשבון שלך
-              - generic [ref=e99]:
-                - generic [ref=e101]: 📋
-                - paragraph [ref=e102]: אין פעילות אחרונה להצגה
-                - paragraph [ref=e103]: התחל פרויקט חדש כדי לראות פעילות כאן
-            - generic [ref=e105]:
-              - generic [ref=e106]:
-                - heading "שיחה עם AI" [level=2] [ref=e107]
-                - paragraph [ref=e108]: קבל ייעוץ והמלצות לפרויקט שלך
-              - generic [ref=e110]:
-                - generic [ref=e112]: 💬
-                - paragraph [ref=e113]: שלום! איך אני יכול לעזור לך היום?
-                - paragraph [ref=e114]: שאל שאלה על פרויקט, תמחור, או תכנון
-              - generic [ref=e116]:
-                - textbox "הקלד את ההודעה שלך..." [ref=e117]
+              - generic [ref=e96]: 💬
+              - heading "שיחה עם AI" [level=3] [ref=e97]
+              - paragraph [ref=e98]: קבל ייעוץ והמלצות מבינה מלאכותית בזמן אמת
+              - button "התחל שיחה" [ref=e99] [cursor=pointer]
+            - generic [ref=e101]:
+              - generic [ref=e103]: 📊
+              - heading "ניתוח נתונים" [level=3] [ref=e104]
+              - paragraph [ref=e105]: צפה בדוחות וניתוחים מתקדמים על הביצועים שלך
+              - button "צפה בדוחות" [ref=e106] [cursor=pointer]
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - heading "פעילות אחרונה" [level=2] [ref=e110]
+                - paragraph [ref=e111]: הפעילות האחרונה בחשבון שלך
+              - generic [ref=e113]:
+                - generic [ref=e115]: 📋
+                - paragraph [ref=e116]: אין פעילות אחרונה להצגה
+                - paragraph [ref=e117]: התחל פרויקט חדש כדי לראות פעילות כאן
+            - generic [ref=e119]:
+              - generic [ref=e120]:
+                - heading "שיחה עם AI" [level=2] [ref=e121]
+                - paragraph [ref=e122]: קבל ייעוץ והמלצות לפרויקט שלך
+              - generic [ref=e124]:
+                - generic [ref=e126]: 💬
+                - paragraph [ref=e127]: שלום! איך אני יכול לעזור לך היום?
+                - paragraph [ref=e128]: שאל שאלה על פרויקט, תמחור, או תכנון
+              - generic [ref=e130]:
+                - textbox "הקלד את ההודעה שלך..." [ref=e131]
                 - button "📤 שלח" [disabled]
-      - contentinfo [ref=e118]:
-        - generic [ref=e119]:
-          - paragraph [ref=e120]: © 2024 StudioOps AI. כל הזכויות שמורות.
-          - generic [ref=e121]:
-            - generic [ref=e122]: גרסה 2.0.0
-            - generic [ref=e123]: •
-            - generic [ref=e124]: מערכת ניהול פרויקטים חכמה
-  - alert [ref=e125]
+      - contentinfo [ref=e132]:
+        - generic [ref=e133]:
+          - paragraph [ref=e134]: © 2024 StudioOps AI. כל הזכויות שמורות.
+          - generic [ref=e135]:
+            - generic [ref=e136]: גרסה 2.0.0
+            - generic [ref=e137]: •
+            - generic [ref=e138]: מערכת ניהול פרויקטים חכמה
+  - alert [ref=e139]
 ```
