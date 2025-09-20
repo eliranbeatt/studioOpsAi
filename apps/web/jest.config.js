@@ -8,6 +8,7 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testPathIgnorePatterns: ['<rootDir>/e2e-tests/'],
   moduleNameMapper: {
     // Handle module aliases (if you have them configured in your Next.js app)
     '^@/components/(.*)$': '<rootDir>/src/components/$1',

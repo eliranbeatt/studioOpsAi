@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from routers import vendors, materials, mem0, chat, projects, plans, auth, estimation, ingest, vendor_prices, purchases, shipping_quotes, rate_cards, health
+from routers import vendors, materials, mem0, chat, projects, plans, auth, estimation, ingest, vendor_prices, purchases, shipping_quotes, rate_cards, health, trello
 
 # Conditionally import instructor router if dependencies are available
 try:
@@ -134,6 +134,7 @@ app.include_router(rate_cards.router)
 if INSTRUCTOR_AVAILABLE:
     app.include_router(instructor.router)
 app.include_router(ingest.router)
+app.include_router(trello.router)
 
 def get_db_connection():
     """Get a database connection"""

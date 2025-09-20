@@ -3,6 +3,11 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import PlanEditor from './PlanEditor'
+jest.mock('@/lib/api', () => ({
+  trelloApi: {
+    exportPlan: jest.fn().mockResolvedValue({ data: { board: { url: 'https://trello.com/b/test' } } })
+  }
+}))
 
 const mockPlan = {
   project_id: 'test-123',
@@ -101,5 +106,30 @@ describe('PlanEditor', () => {
     expect(onPlanChange).toHaveBeenCalled()
     const updatedPlan = onPlanChange.mock.calls[0][0]
     expect(updatedPlan.items.length).toBe(1) // Original 2 - 1 deleted
+  })
+
+  it('sends plan to Trello when clicking button', async () => {
+    const { trelloApi } = await import('@/lib/api') as any
+    render(<PlanEditor plan={mockPlan} onPlanChange={() => {}} />)
+    const btn = screen.getByText('Send to Trello')
+    fireEvent.click(btn)
+    expect(trelloApi.exportPlan).toHaveBeenCalled()
+    const args = (trelloApi.exportPlan as jest.Mock).mock.calls[0]
+    expect(args[0]).toBe('test-123')
+    expect(args[1]).toBe('Test Project')
+    expect(Array.isArray(args[2])).toBe(true)
+  })
+
+  it('moves rows down to reorder', () => {
+    const onPlanChange = jest.fn()
+    render(<PlanEditor plan={mockPlan} onPlanChange={onPlanChange} />)
+
+    // Move first row down
+    const moveDownButtons = screen.getAllByRole('button', { name: 'Move down' })
+    moveDownButtons[0].click()
+    expect(onPlanChange).toHaveBeenCalled()
+    const updated1 = onPlanChange.mock.calls.pop()[0]
+    expect(updated1.items[0].title).toBe('Carpenter work')
+    expect(updated1.items[1].title).toBe('Plywood 4x8')
   })
 })

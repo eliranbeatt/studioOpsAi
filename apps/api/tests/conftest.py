@@ -10,12 +10,21 @@ from sqlalchemy.pool import StaticPool
 
 # Load test environment variables
 load_dotenv('.env.test')
+# Prefer isolated in-memory DB for tests to avoid FK teardown issues
+os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
 
 # Import app and database
 from main import app
 from database import Base, get_db
-from services.llm_service import llm_service
-from services.rag_service import rag_service
+try:
+    from services.llm_service import llm_service  # type: ignore
+except Exception:
+    from llm_service import llm_service  # fallback for flat layout
+
+try:
+    from services.rag_service import rag_service  # type: ignore
+except Exception:
+    from rag_service import rag_service  # fallback for flat layout
 from services.trello_service import TrelloService
 from services.simple_pdf_service import SimplePDFService
 from services.pricing_resolver import pricing_resolver

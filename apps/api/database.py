@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import os
 from dotenv import load_dotenv
+from models import Base  # re-export Base for tests expecting it
 
 load_dotenv()
 

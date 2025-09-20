@@ -12,7 +12,7 @@ interface Message {
 }
 
 interface ChatProps {
-  onPlanSuggest?: (suggestion: boolean) => void
+  onPlanSuggest?: (suggestion: boolean, lastUserText?: string) => void
   onPlanGenerated?: (plan: any) => void
 }
 
@@ -21,6 +21,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -29,6 +30,27 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Load persisted session and history on mount
+  useEffect(() => {
+    const existing = typeof window !== 'undefined' ? localStorage.getItem('studioops_chat_session_id') : null
+    if (existing) {
+      setSessionId(existing)
+      // Fetch history
+      fetch(`${API_BASE_URL}/chat/history?session_id=${encodeURIComponent(existing)}`)
+        .then(res => res.ok ? res.json() : [])
+        .then((rows: any[]) => {
+          const restored: Message[] = rows.map((row, idx) => ({
+            id: `${idx}-${row.timestamp}`,
+            text: row.is_user ? (row.message || '') : (row.response || ''),
+            isUser: !!row.is_user,
+            timestamp: new Date(row.timestamp || Date.now()),
+          }))
+          setMessages(restored)
+        })
+        .catch(() => {/* ignore */})
+    }
+  }, [])
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
@@ -52,7 +74,8 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
         },
         body: JSON.stringify({
           message: input,
-          project_id: null
+          project_id: null,
+          session_id: sessionId || undefined,
         })
       })
 
@@ -68,11 +91,17 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
         }
 
         setMessages(prev => [...prev, aiMessage])
+
+        // Persist session id if newly assigned
+        if (!sessionId && data.session_id) {
+          setSessionId(data.session_id)
+          try { localStorage.setItem('studioops_chat_session_id', data.session_id) } catch {}
+        }
         
         // Check if AI suggests creating a plan
         if (data.suggests_plan || data.suggest_plan || data.message?.includes('תוכנית')) {
           if (onPlanSuggest) {
-            onPlanSuggest(true)
+            onPlanSuggest(true, userMessage.text)
           }
         }
       } else {
@@ -108,7 +137,7 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
   const handleGeneratePlan = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/generate_plan`, {
+      const response = await fetch(`${API_BASE_URL}/plans/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -243,3 +272,8 @@ export default function Chat({ onPlanSuggest, onPlanGenerated }: ChatProps) {
     </div>
   )
 }
+
+
+
+
+

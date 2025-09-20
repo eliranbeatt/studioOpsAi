@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useApi } from '@/hooks/useApi'
 
 interface Settings {
   openai_api_key?: string
@@ -15,7 +14,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({})
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const { post } = useApi()
+  
 
   const handleSave = async () => {
     setIsLoading(true)

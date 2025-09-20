@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useApi } from '@/hooks/useApi'
 import { API_BASE_URL } from '@/lib/api'
 
 interface UploadStatus {
@@ -15,7 +14,7 @@ export default function DataLoadingPage() {
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { post } = useApi()
+  
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return

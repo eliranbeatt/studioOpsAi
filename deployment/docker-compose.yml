@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:14
+    image: pgvector/pgvector:pg14
     container_name: studioops-postgres-dev
     environment:
       POSTGRES_DB: studioops

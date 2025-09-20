@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from uuid import UUID
 import json
@@ -10,6 +11,150 @@ from packages.schemas.projects import Plan, PlanCreate, PlanUpdate, PlanItem, Pl
 from services.pricing_resolver import pricing_resolver
 
 router = APIRouter(prefix="/plans", tags=["plans"])
+
+
+class PlanGenerateRequest(BaseModel):
+    project_id: Optional[str] = None
+    project_name: str
+    goal: Optional[str] = None
+    project_description: Optional[str] = None
+
+class GeneratedPlan(BaseModel):
+    project_id: Optional[str]
+    project_name: str
+    items: List[Dict[str, Any]]
+    total: float
+    margin_target: float
+    currency: str
+    metadata: Dict[str, Any]
+
+@router.post("/generate", response_model=GeneratedPlan)
+async def generate_plan(payload: PlanGenerateRequest):
+    """Generate a structured plan JSON from a goal/description without persisting it."""
+    try:
+        name = payload.project_name or "New Project"
+        desc = payload.project_description or payload.goal or ""
+
+        # Basic heuristic to select materials
+        if desc:
+            lowered = desc.lower()
+        else:
+            lowered = ""
+
+        if any(k in lowered for k in ["cabinet", "furniture"]):
+            materials = ["Plywood 4x8", "2x4 Lumber", "Screws"]
+        elif "painting" in lowered:
+            materials = ["Paint"]
+        else:
+            materials = ["Plywood 4x8", "2x4 Lumber", "Screws", "Nails"]
+
+        items: List[Dict[str, Any]] = []
+        total = 0.0
+
+        # Materials with pricing
+        for mat in materials:
+            price = pricing_resolver.get_material_price(mat)
+            if price:
+                qty = _estimate_material_quantity_for_plans(mat, lowered)
+                sub = qty * price["price"]
+                items.append({
+                    "category": "materials",
+                    "title": price["material_name"],
+                    "description": f"{mat} from {price['vendor_name']}",
+                    "quantity": qty,
+                    "unit": price["unit"],
+                    "unit_price": price["price"],
+                    "unit_price_source": {
+                        "vendor": price["vendor_name"],
+                        "confidence": price["confidence"],
+                        "fetched_at": price["fetched_at"].isoformat() if price.get("fetched_at") else None,
+                    },
+                    "subtotal": round(sub, 2),
+                })
+                total += sub
+
+        # Labor roles
+        roles = ["Carpenter"]
+        if "painting" in lowered:
+            roles.append("Painter")
+        if "electrical" in lowered:
+            roles.append("Electrician")
+
+        for role in roles:
+            labor = pricing_resolver.get_labor_rate(role)
+            if labor:
+                hours = _estimate_labor_hours_for_plans(role, lowered, len(materials))
+                sub = hours * labor["hourly_rate"]
+                items.append({
+                    "category": "labor",
+                    "title": f"{role} work",
+                    "description": f"{role} services for {name}",
+                    "quantity": hours,
+                    "unit": "hour",
+                    "unit_price": labor["hourly_rate"],
+                    "labor_role": role,
+                    "labor_hours": hours,
+                    "subtotal": round(sub, 2),
+                })
+                total += sub
+
+        # Logistics
+        shipping = pricing_resolver.estimate_shipping_cost(100, 50)
+        items.append({
+            "category": "logistics",
+            "title": "Shipping & Delivery",
+            "description": "Material delivery and logistics",
+            "quantity": 1,
+            "unit": "delivery",
+            "unit_price": shipping["estimated_cost"],
+            "subtotal": round(shipping["estimated_cost"], 2),
+        })
+        total += shipping["estimated_cost"]
+
+        return {
+            "project_id": payload.project_id,
+            "project_name": name,
+            "items": items,
+            "total": round(total, 2),
+            "margin_target": 0.25,
+            "currency": "NIS",
+            "metadata": {
+                "generated_via": "plans.generate",
+                "items_count": len(items),
+            },
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating plan: {e}")
+
+
+def _estimate_material_quantity_for_plans(material_name: str, lowered_desc: str) -> float:
+    base = {
+        "Plywood 4x8": 8.0,
+        "2x4 Lumber": 20.0,
+        "Screws": 2.0,
+        "Nails": 1.0,
+        "Paint": 3.0,
+        "Drywall": 15.0,
+    }
+    qty = base.get(material_name, 1.0)
+    if any(k in lowered_desc for k in ["large", "big"]):
+        return qty * 1.5
+    if any(k in lowered_desc for k in ["small", "simple"]):
+        return qty * 0.7
+    return qty
+
+def _estimate_labor_hours_for_plans(role: str, lowered_desc: str, materials_count: int) -> float:
+    base = {"Carpenter": 16.0, "Painter": 8.0, "Electrician": 6.0, "Laborer": 12.0}
+    hours = base.get(role, 8.0)
+    if any(k in lowered_desc for k in ["complex", "detailed"]):
+        hours *= 1.5
+    elif any(k in lowered_desc for k in ["simple", "basic"]):
+        hours *= 0.8
+    if materials_count > 5:
+        hours *= 1.3
+    elif materials_count < 2:
+        hours *= 0.7
+    return round(hours, 1)
 
 @router.get("/project/{project_id}", response_model=List[Plan])
 async def get_project_plans(project_id: UUID, db: Session = Depends(get_db)):

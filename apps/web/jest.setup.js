@@ -23,3 +23,11 @@ global.matchMedia = global.matchMedia || function() {
     removeListener: function() {},
   }
 }
+
+// Mock alert to avoid jsdom not-implemented errors
+if (typeof globalThis.alert !== 'function') {
+  globalThis.alert = () => {}
+}
+if (typeof globalThis.window !== 'undefined' && typeof globalThis.window.alert !== 'function') {
+  globalThis.window.alert = () => {}
+}

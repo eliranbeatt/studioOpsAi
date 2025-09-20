@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Chat from '@/components/Chat'
 import PlanEditor from '@/components/PlanEditor'
+import { API_BASE_URL } from '@/lib/api'
 
 interface Plan {
   project_id?: string
@@ -18,11 +19,12 @@ export default function ChatPage() {
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null)
   const [showPlanEditor, setShowPlanEditor] = useState(false)
   const [planSuggestion, setPlanSuggestion] = useState(false)
+  const [lastUserText, setLastUserText] = useState<string>('')
 
-  const handlePlanSuggest = (suggest: boolean) => {
+  const handlePlanSuggest = (suggest: boolean, lastText?: string) => {
     setPlanSuggestion(suggest)
+    if (lastText) setLastUserText(lastText)
   }
-
   const handlePlanGenerated = (plan: Plan) => {
     setCurrentPlan(plan)
     setShowPlanEditor(true)
@@ -37,6 +39,26 @@ export default function ChatPage() {
     // TODO: Implement plan saving
     console.log('Saving plan:', currentPlan)
     alert('תוכנית נשמרה successfully!')
+  }
+
+  const generatePlanFromSuggestion = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/plans/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project_name: 'Project from Chat',
+          project_description: lastUserText,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to generate')
+      const plan = await res.json()
+      setCurrentPlan(plan)
+      setShowPlanEditor(true)
+      setPlanSuggestion(false)
+    } catch (e) {
+      alert('Failed to generate plan')
+    }
   }
 
   return (
@@ -99,10 +121,10 @@ export default function ChatPage() {
               </p>
             </div>
             <button
-              onClick={() => setShowPlanEditor(true)}
+              onClick={generatePlanFromSuggestion}
               className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
             >
-              צור תוכנית
+              Generate Plan
             </button>
           </div>
         </div>

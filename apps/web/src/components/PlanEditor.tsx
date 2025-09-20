@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { trelloApi } from '@/lib/api'
 
 interface PlanItem {
   id?: string
@@ -124,6 +125,32 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
     onPlanChange(updatedPlan)
   }
 
+  const moveRowUp = (index: number) => {
+    if (index <= 0) return
+    const items = [...localPlan.items]
+    ;[items[index - 1], items[index]] = [items[index], items[index - 1]]
+    const updatedPlan = {
+      ...localPlan,
+      items,
+      total: items.reduce((sum, item) => sum + item.subtotal, 0)
+    }
+    setLocalPlan(updatedPlan)
+    onPlanChange(updatedPlan)
+  }
+
+  const moveRowDown = (index: number) => {
+    if (index >= localPlan.items.length - 1) return
+    const items = [...localPlan.items]
+    ;[items[index + 1], items[index]] = [items[index], items[index + 1]]
+    const updatedPlan = {
+      ...localPlan,
+      items,
+      total: items.reduce((sum, item) => sum + item.subtotal, 0)
+    }
+    setLocalPlan(updatedPlan)
+    onPlanChange(updatedPlan)
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('he-IL', {
       style: 'currency',
@@ -141,6 +168,34 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
           {localPlan.items.length} פריטים | 
           יעד רווח: {localPlan.margin_target}%
         </p>
+      </div>
+
+      {/* Actions */}
+      <div className="px-8 py-4 flex justify-end gap-3">
+        <button
+          className="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+          onClick={async () => {
+            try {
+              const projectId = localPlan.project_id || 'plan';
+              const res = await trelloApi.exportPlan(projectId, localPlan.project_name, localPlan.items as any[]);
+              const url = (res.data as any)?.board?.url;
+              alert(url ? `Sent to Trello: ${url}` : 'Sent to Trello');
+            } catch (e: any) {
+              alert(`Trello export failed: ${e?.message || 'Unknown error'}`);
+            }
+          }}
+        >
+          Send to Trello
+        </button>
+        {onSave && (
+          <button
+            className="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            onClick={onSave}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving…' : 'Save Plan'}
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -291,6 +346,10 @@ export default function PlanEditor({ plan, onPlanChange, onSave, isLoading = fal
 
                 {/* Actions */}
                 <td className="px-6 py-4 text-center">
+                  <div className="inline-flex gap-2 mr-2">
+                    <button aria-label="Move up" onClick={() => moveRowUp(index)} className="text-sm px-2 py-1 rounded-md border border-border/40 hover:bg-muted/40">Move up</button>
+                    <button aria-label="Move down" onClick={() => moveRowDown(index)} className="text-sm px-2 py-1 rounded-md border border-border/40 hover:bg-muted/40">Move down</button>
+                  </div>
                   <button
                     onClick={() => deleteRow(index)}
                     className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-lg hover:bg-red-50 transition-all duration-200"

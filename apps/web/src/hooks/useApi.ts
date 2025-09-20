@@ -87,7 +87,7 @@ export function useApi<T>() {
 
       setState(prev => ({
         ...prev,
-        data: response.data as T,
+        data: (response.data as unknown) as T,
         isLoading: false,
         error: null,
         retryCount: 0

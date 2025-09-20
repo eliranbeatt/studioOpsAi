@@ -100,6 +100,25 @@ async def get_chat_history(session_id: str, limit: int = 10) -> List[Dict]:
         cursor.close()
         conn.close()
 
+@router.get("/history")
+async def chat_history(session_id: str, limit: int = 100):
+    """Return chronological chat history for a given session_id.
+
+    Uses the existing DB-backed get_chat_history helper which returns
+    messages ordered by newest first; reverse before returning to
+    preserve chronological order for the UI.
+    """
+    try:
+        if not session_id:
+            raise HTTPException(status_code=422, detail="session_id is required")
+        history = await get_chat_history(session_id, limit)
+        # Oldest first for UI consumption
+        return list(reversed(history))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching chat history: {e}")
+
 async def search_rag_documents(search_term: str, limit: int = 5) -> List[Dict]:
     """Search RAG documents for relevant information"""
     conn = get_db_connection()
